@@ -12,14 +12,14 @@ const EXTRA_JS_PATTERNS = [
 function findExtraJs(source) {
   const signals = [];
   for (const { re, label } of EXTRA_JS_PATTERNS) {
-    if (re.global) {
+    const r = new RegExp(re.source, re.flags);
+    if (r.global) {
       let m;
-      const r = new RegExp(re.source, re.flags);
       while ((m = r.exec(source)) !== null) {
         const s = label(m);
         if (!signals.includes(s)) signals.push(s);
       }
-    } else if (re.test(source)) {
+    } else if (r.test(source)) {
       signals.push(label());
     }
   }
