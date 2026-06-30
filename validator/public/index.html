@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interact Validator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Interact Validator</h1>
+    <div class="actions">
+      <button id="scanBtn">Scan / Diagnose</button>
+      <button id="selectAllBtn">Select all</button>
+      <span id="summary" class="summary"></span>
+    </div>
+  </header>
+  <main>
+    <section id="listPane">
+      <ul id="fileList"></ul>
+    </section>
+    <section id="detailPane">
+      <div class="tabs">
+        <button data-tab="preview" class="tab active">Preview</button>
+        <button data-tab="code" class="tab">Code</button>
+        <button data-tab="diff" class="tab">Diff</button>
+      </div>
+      <iframe id="preview" title="preview"></iframe>
+      <pre id="code" hidden></pre>
+      <div id="diff" hidden></div>
+    </section>
+    <aside id="fixPane">
+      <h2>Fix options</h2>
+      <form id="fixOptions"></form>
+      <textarea id="customPrompt" placeholder="Custom instructions (optional)"></textarea>
+      <button id="fixBtn">Fix selected</button>
+      <div id="fixStatus"></div>
+      <div class="apply-actions">
+        <button id="applyBtn">Apply selected drafts</button>
+        <button id="discardBtn">Discard selected drafts</button>
+      </div>
+    </aside>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

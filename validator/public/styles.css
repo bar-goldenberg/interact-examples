@@ -1,0 +1,35 @@
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: #1a1a1a; }
+header { display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; border-bottom: 1px solid #ddd; }
+header h1 { font-size: 16px; margin: 0; }
+.actions { display: flex; gap: 8px; align-items: center; }
+.summary { color: #555; font-size: 12px; }
+button { cursor: pointer; padding: 6px 10px; border: 1px solid #ccc;
+  background: #f7f7f7; border-radius: 6px; }
+main { display: grid; grid-template-columns: 320px 1fr 300px; height: calc(100vh - 53px); }
+#listPane { overflow: auto; border-right: 1px solid #eee; }
+#fileList { list-style: none; margin: 0; padding: 0; }
+#fileList li { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer;
+  display: flex; gap: 8px; align-items: center; }
+#fileList li.active { background: #eef4ff; }
+.badge { font-size: 11px; padding: 1px 6px; border-radius: 10px; white-space: nowrap; }
+.badge.outdated { background: #ffe6cc; }
+.badge.nointeract { background: #ffd6d6; }
+.badge.extrajs { background: #fff2b3; }
+.badge.custom { background: #e0d6ff; }
+.badge.clean { background: #cdeccd; }
+.badge.draft { background: #cfe9ff; }
+#detailPane { display: flex; flex-direction: column; }
+.tabs { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid #eee; }
+.tab.active { background: #1a1a1a; color: #fff; }
+#preview { flex: 1; border: 0; width: 100%; }
+#code, #diff { flex: 1; overflow: auto; margin: 0; padding: 12px;
+  white-space: pre-wrap; font-family: ui-monospace, monospace; }
+#diff ins { background: #d6f5d6; text-decoration: none; display: block; }
+#diff del { background: #f8d6d6; text-decoration: none; display: block; }
+#fixPane { border-left: 1px solid #eee; padding: 12px; overflow: auto;
+  display: flex; flex-direction: column; gap: 10px; }
+#customPrompt { width: 100%; min-height: 80px; }
+.apply-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+#fixStatus { font-size: 12px; color: #555; white-space: pre-wrap; }
