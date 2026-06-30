@@ -10,21 +10,22 @@
   <!-- Full-bleed viewport (behind the floating panels) -->
   <div id="viewport">
     <iframe id="preview" title="preview"></iframe>
-    <div id="compare" hidden>
-      <div class="cmp-col"><div class="cmp-label">Original</div><iframe id="cmpOrig" title="original"></iframe></div>
-      <div class="cmp-col"><div class="cmp-label">Draft</div><iframe id="cmpDraft" title="draft"></iframe></div>
-    </div>
     <pre id="code" hidden></pre>
     <div id="diff" hidden></div>
     <div id="placeholder"><div class="ic">◈</div><p>Select a file to preview</p></div>
   </div>
 
-  <!-- Floating segmented tabs -->
-  <div id="tabs" class="glass">
-    <button data-tab="preview" class="tab active">Preview</button>
-    <button data-tab="compare" class="tab">Compare</button>
-    <button data-tab="code" class="tab">Code</button>
-    <button data-tab="diff" class="tab">Diff</button>
+  <!-- Floating tab groups: mode (Preview/Code/Diff) + version (Current/Draft) -->
+  <div id="topbar">
+    <div id="modeTabs" class="glass seg">
+      <button data-mode="preview" class="tab active">Preview</button>
+      <button data-mode="code" class="tab">Code</button>
+      <button data-mode="diff" class="tab">Diff</button>
+    </div>
+    <div id="verTabs" class="glass seg">
+      <button data-ver="current" class="tab active">Current</button>
+      <button data-ver="draft" class="tab">Draft</button>
+    </div>
   </div>
 
   <!-- Left panel: files -->

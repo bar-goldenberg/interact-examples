@@ -9,7 +9,7 @@ const CAT_INFO = {
 };
 const CAT_ORDER = ['Outdated version', 'Uses extra JS', 'Uses customEffect', 'Not using interact', 'Clean & current'];
 
-const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '', tab: 'preview', progress: null };
+const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '', mode: 'preview', version: 'current', progress: null };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -75,25 +75,18 @@ function baseHrefFor(path) {
   return slash === -1 ? '/' : '/' + path.slice(0, slash + 1);
 }
 const fetchSource = (kind, path) => api(`/api/${kind}?path=${encodeURIComponent(path)}`).then((r) => r.source);
-// the "working" source the Preview/Code tabs show: the draft if one exists, else the original
-const currentSource = (path) => fetchSource(state.drafts.has(path) ? 'draft' : 'file', path);
 const blankDoc = (label) => `<!doctype html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,system-ui,sans-serif;color:#b0b0b5;background:#fff;font-size:14px">${label}</body>`;
 
-async function showPreview(path) {
-  $('preview').srcdoc = injectBase(await currentSource(path), baseHrefFor(path));
+// Resolve which file source to show for the chosen version. 'draft' with no
+// draft on disk yields null (callers render a placeholder).
+async function sourceFor(path, version) {
+  if (version === 'draft') return state.drafts.has(path) ? fetchSource('draft', path) : null;
+  return fetchSource('file', path);
 }
-async function showCode(path) {
-  $('code').textContent = await currentSource(path);
-}
-async function showCompare(path) {
-  const base = baseHrefFor(path);
-  $('cmpOrig').srcdoc = injectBase(await fetchSource('file', path), base);
-  if (state.drafts.has(path)) $('cmpDraft').srcdoc = injectBase(await fetchSource('draft', path), base);
-  else $('cmpDraft').srcdoc = blankDoc('No draft yet — fix this file first');
-}
-async function showDiff(path) {
+
+async function renderDiff(path) {
   const res = await fetch(`/api/diff?path=${encodeURIComponent(path)}`);
-  if (!res.ok) { $('diff').innerHTML = '<div style="color:var(--text-3)">No draft for this file yet.</div>'; return; }
+  if (!res.ok) { $('diff').innerHTML = '<div style="color:var(--text-3)">No draft for this file yet — fix it first.</div>'; return; }
   const { parts } = await res.json();
   $('diff').innerHTML = parts.map((p) => {
     const safe = esc(p.value);
@@ -103,20 +96,29 @@ async function showDiff(path) {
   }).join('');
 }
 
-function selectTab(tab) {
-  state.tab = tab;
-  for (const b of document.querySelectorAll('.tab')) b.classList.toggle('active', b.dataset.tab === tab);
-  const has = !!state.current;
+// Reflect state.mode + state.version into the viewport.
+async function render() {
+  const { mode, version, current } = state;
+  for (const b of document.querySelectorAll('#modeTabs .tab')) b.classList.toggle('active', b.dataset.mode === mode);
+  for (const b of document.querySelectorAll('#verTabs .tab')) b.classList.toggle('active', b.dataset.ver === version);
+  $('topbar').classList.toggle('diff', mode === 'diff'); // hides version group for Diff
+
+  const has = !!current;
   $('placeholder').hidden = has;
-  $('preview').hidden = !(has && tab === 'preview');
-  $('compare').hidden = !(has && tab === 'compare');
-  $('code').hidden = !(has && tab === 'code');
-  $('diff').hidden = !(has && tab === 'diff');
+  $('preview').hidden = !(has && mode === 'preview');
+  $('code').hidden = !(has && mode === 'code');
+  $('diff').hidden = !(has && mode === 'diff');
   if (!has) return;
-  if (tab === 'preview') showPreview(state.current);
-  else if (tab === 'compare') showCompare(state.current);
-  else if (tab === 'code') showCode(state.current);
-  else if (tab === 'diff') showDiff(state.current);
+
+  if (mode === 'diff') { renderDiff(current); return; }
+
+  const src = await sourceFor(current, version);
+  if (mode === 'preview') {
+    $('preview').srcdoc = src === null ? blankDoc('No draft yet — fix this file first')
+      : injectBase(src, baseHrefFor(current));
+  } else { // code
+    $('code').textContent = src === null ? 'No draft yet — fix this file first.' : src;
+  }
 }
 
 // ── Live fix progress (SSE) ─────────────────────────
@@ -192,7 +194,9 @@ async function runFix() {
     renderProgress();
     $('fixBtn').disabled = false;
     renderList();
-    if (state.current && state.drafts.has(state.current)) selectTab('compare');
+    // surface the freshly-written draft for the open file
+    if (state.current && state.drafts.has(state.current)) state.version = 'draft';
+    render();
   }
 }
 
@@ -210,7 +214,9 @@ async function applyOrDiscard(endpoint) {
   if (failed.length) msg += ` Failed ${failed.length}: ${failed.map((r) => r.path).join(', ')}`;
   $('applyStatus').textContent = msg;
   renderList();
-  if (state.current && succeeded.includes(state.current)) selectTab(state.tab);
+  // the draft is gone for applied/discarded files — fall back to Current
+  if (state.current && succeeded.includes(state.current)) state.version = 'current';
+  render();
 }
 
 // ── events ──────────────────────────────────────────
@@ -223,7 +229,7 @@ $('fileList').addEventListener('click', (e) => {
   }
   state.current = path;
   renderList();
-  selectTab(state.tab);
+  render();
 });
 $('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderList(); });
 $('scanBtn').onclick = scan;
@@ -237,7 +243,8 @@ $('selectAllBtn').onclick = () => {
 $('fixBtn').onclick = runFix;
 $('applyBtn').onclick = () => applyOrDiscard('apply');
 $('discardBtn').onclick = () => applyOrDiscard('discard');
-for (const b of document.querySelectorAll('.tab')) b.onclick = () => selectTab(b.dataset.tab);
+for (const b of document.querySelectorAll('#modeTabs .tab')) b.onclick = () => { state.mode = b.dataset.mode; render(); };
+for (const b of document.querySelectorAll('#verTabs .tab')) b.onclick = () => { state.version = b.dataset.ver; render(); };
 
 loadFiles();
 loadOptions();
