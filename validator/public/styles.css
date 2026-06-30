@@ -25,6 +25,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; } /* beat element display rules */
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -50,9 +51,14 @@ body {
 #viewport { position: fixed; inset: 0; z-index: 0; background: #0e0e0f; }
 #viewport > * { position: absolute; inset: 0; }
 #preview, #cmpOrig, #cmpDraft { width: 100%; height: 100%; border: 0; background: #fff; }
+/* Code/Diff read as a floating panel in the central column (clear of the
+   left/right panels and the top tab groups). */
 #code, #diff {
-  overflow: auto; padding: 84px 28px 28px; margin: 0; color: var(--text);
+  inset: 68px 332px 16px 322px;
+  overflow: auto; padding: 18px 22px; margin: 0; color: var(--text);
   white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 12px; line-height: 1.65;
+  background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--hair); border-radius: var(--radius); box-shadow: var(--shadow);
 }
 #diff ins, #diff del, #diff span { display: block; text-decoration: none; padding: 0 8px; border-radius: 3px; }
 #diff ins { background: rgba(52,211,153,0.16); color: #6ee7b7; }
