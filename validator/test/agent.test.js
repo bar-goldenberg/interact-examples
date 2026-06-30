@@ -12,3 +12,9 @@ test('extractHtml strips bare fences', () => {
 test('extractHtml passes through plain html', () => {
   assert.equal(extractHtml('<!DOCTYPE html>\n<html></html>'), '<!DOCTYPE html>\n<html></html>');
 });
+test('extractHtml extracts fenced block when prose precedes it', () => {
+  assert.equal(extractHtml('Here:\n```html\n<div>x</div>\n```'), '<div>x</div>');
+});
+test('extractHtml returns trimmed text unchanged when no fence present', () => {
+  assert.equal(extractHtml('  no fence here  '), 'no fence here');
+});

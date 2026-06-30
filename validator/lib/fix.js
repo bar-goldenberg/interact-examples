@@ -25,8 +25,10 @@ export async function fixFile(rootDir, relPath, opts) {
     const html = extractHtml(await runAgent(system, user, { model }));
     await writeDraft(rootDir, relPath, html);
     const recheck = detect(relPath, html);
-    const clean = recheck.category === 'Clean & current'
+    let clean = recheck.category === 'Clean & current'
       || (recheck.isLatest && recheck.oldSyntaxMarkers.length === 0);
+    if (clean && optionIds.includes('convertCustomEffect') && recheck.usesCustomEffect) clean = false;
+    if (clean && optionIds.includes('removeExtraJs') && recheck.usesExtraJs) clean = false;
     return { path: relPath, status: clean ? 'fixed' : 'needsReview', recheck };
   } catch (err) {
     return { path: relPath, status: 'fixFailed', error: String(err.message || err) };

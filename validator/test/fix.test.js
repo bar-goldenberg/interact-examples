@@ -55,6 +55,19 @@ test('fixFile reports fixFailed and writes no draft when agent throws', async ()
   assert.equal(await readDraft(r, 'C.html'), null);
 });
 
+test('fixFile reports needsReview when convertCustomEffect requested but draft still uses customEffect', async () => {
+  const r = await root();
+  // Draft is latest version, no old-syntax markers, but still contains customEffect:
+  const draftWithCustomEffect = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+    Interact.create({ interactions:[{ key:'a', trigger:'hover',
+      effects:[{ customEffect: (el, p) => { el.style.opacity = p; }, duration:300, triggerType:'once' }] }] });`;
+  const res = await fixFile(r, 'D.html', {
+    source: 'OLD', optionIds: ['convertCustomEffect'], customPrompt: '', specText: SPEC,
+    runAgent: async () => draftWithCustomEffect,
+  });
+  assert.equal(res.status, 'needsReview', 'should be needsReview when customEffect conversion was requested but still present');
+});
+
 test('runFix processes a batch', async () => {
   const r = await root();
   const results = await runFix(r,

@@ -101,12 +101,20 @@ async function runFix() {
 async function applyOrDiscard(endpoint) {
   const paths = [...state.selected].filter((p) => state.drafts.has(p));
   if (!paths.length) { $('fixStatus').textContent = 'No drafts in selection.'; return; }
-  await api(`/api/${endpoint}`, { method: 'POST',
+  const data = await api(`/api/${endpoint}`, { method: 'POST',
     headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paths }) });
-  for (const p of paths) state.drafts.delete(p);
-  $('fixStatus').textContent = `${endpoint === 'apply' ? 'Applied' : 'Discarded'} ${paths.length} draft(s).`;
+  const results = data.results || [];
+  const succeeded = results.filter((r) => r.ok).map((r) => r.path);
+  const failed = results.filter((r) => !r.ok);
+  for (const p of succeeded) state.drafts.delete(p);
+  const verb = endpoint === 'apply' ? 'Applied' : 'Discarded';
+  let msg = `${verb} ${succeeded.length} draft(s).`;
+  if (failed.length) {
+    msg += ` Failed ${failed.length}: ${failed.map((r) => r.path).join(', ')}`;
+  }
+  $('fixStatus').textContent = msg;
   renderList();
-  if (state.current && paths.includes(state.current)) showPreview(state.current);
+  if (state.current && succeeded.includes(state.current)) showPreview(state.current);
 }
 
 $('fileList').addEventListener('click', (e) => {

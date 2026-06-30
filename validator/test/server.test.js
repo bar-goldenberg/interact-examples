@@ -64,3 +64,26 @@ test('apply flow: seed a draft via discard/apply endpoints', async () => {
   assert.equal(after.source, 'FIXED');
   server.close();
 });
+
+test('apply partial batch: valid path succeeds, missing path fails, always 200', async () => {
+  const root = await repo();
+  const { base, server } = await start(root);
+  const { writeDraft } = await import('../lib/drafts.js');
+  await writeDraft(root, 'G/A.html', 'PATCHED');
+  const res = await fetch(`${base}/api/apply`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ paths: ['G/A.html', 'G/missing.html'] }) });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.ok(Array.isArray(body.results), 'results should be an array');
+  const good = body.results.find((r) => r.path === 'G/A.html');
+  const bad = body.results.find((r) => r.path === 'G/missing.html');
+  assert.ok(good, 'should have result for G/A.html');
+  assert.ok(bad, 'should have result for G/missing.html');
+  assert.equal(good.ok, true, 'G/A.html should succeed');
+  assert.equal(bad.ok, false, 'G/missing.html should fail');
+  // Verify the valid original was actually overwritten
+  const after = await (await fetch(`${base}/api/file?path=${encodeURIComponent('G/A.html')}`)).json();
+  assert.equal(after.source, 'PATCHED');
+  server.close();
+});

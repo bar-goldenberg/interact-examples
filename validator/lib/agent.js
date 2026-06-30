@@ -2,7 +2,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 
 export function extractHtml(text) {
   let t = String(text).trim();
-  const fence = t.match(/^```(?:html)?\s*\n([\s\S]*?)\n```$/i);
+  const fence = t.match(/```(?:html)?\s*\n([\s\S]*?)\n```/i);
   if (fence) t = fence[1];
   return t.trim();
 }

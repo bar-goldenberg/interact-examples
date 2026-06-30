@@ -63,9 +63,16 @@ export function createApp(rootDir) {
       if (!Array.isArray(paths) || !paths.length) return bad(res, 'paths required');
       const specText = await loadSpecText(root);
       const files = [];
-      for (const p of paths) files.push({ path: p, source: await readOriginal(root, p) });
-      const results = await runFix(root, files, { optionIds, customPrompt, specText });
-      res.json({ results });
+      const readFailures = [];
+      for (const p of paths) {
+        try {
+          files.push({ path: p, source: await readOriginal(root, p) });
+        } catch (err) {
+          readFailures.push({ path: p, status: 'fixFailed', error: String(err.message || err) });
+        }
+      }
+      const fixResults = await runFix(root, files, { optionIds, customPrompt, specText });
+      res.json({ results: [...readFailures, ...fixResults] });
     } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
   });
 
@@ -80,17 +87,29 @@ export function createApp(rootDir) {
   });
 
   app.post('/api/apply', async (req, res) => {
-    try {
-      for (const p of req.body.paths || []) await applyDraft(root, p);
-      res.json({ ok: true });
-    } catch (err) { bad(res, String(err.message || err)); }
+    const results = [];
+    for (const p of req.body.paths || []) {
+      try {
+        await applyDraft(root, p);
+        results.push({ path: p, ok: true });
+      } catch (err) {
+        results.push({ path: p, ok: false, error: String(err.message || err) });
+      }
+    }
+    res.json({ results });
   });
 
   app.post('/api/discard', async (req, res) => {
-    try {
-      for (const p of req.body.paths || []) await discardDraft(root, p);
-      res.json({ ok: true });
-    } catch (err) { bad(res, String(err.message || err)); }
+    const results = [];
+    for (const p of req.body.paths || []) {
+      try {
+        await discardDraft(root, p);
+        results.push({ path: p, ok: true });
+      } catch (err) {
+        results.push({ path: p, ok: false, error: String(err.message || err) });
+      }
+    }
+    res.json({ results });
   });
 
   return app;
