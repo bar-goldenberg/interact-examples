@@ -7,37 +7,47 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <h1>Interact Validator</h1>
-    <div class="actions">
-      <button id="scanBtn">Scan / Diagnose</button>
-      <button id="selectAllBtn">Select all</button>
-      <span id="summary" class="summary"></span>
+  <header class="appbar">
+    <div class="brand"><span class="logo"></span> Interact Validator</div>
+    <div class="toolbar">
+      <div id="summary" class="stats"></div>
+      <button id="selectAllBtn" class="btn">Select all</button>
+      <button id="scanBtn" class="btn btn-primary">Scan</button>
     </div>
   </header>
   <main>
-    <section id="listPane">
-      <ul id="fileList"></ul>
-    </section>
-    <section id="detailPane">
-      <div class="tabs">
-        <button data-tab="preview" class="tab active">Preview</button>
-        <button data-tab="code" class="tab">Code</button>
-        <button data-tab="diff" class="tab">Diff</button>
+    <aside id="listPane">
+      <div class="list-head">
+        <input id="filter" class="search" type="search" placeholder="Filter files…" autocomplete="off" />
       </div>
-      <iframe id="preview" title="preview"></iframe>
-      <pre id="code" hidden></pre>
-      <div id="diff" hidden></div>
+      <ul id="fileList"></ul>
+    </aside>
+
+    <section id="detailPane">
+      <div class="detail-head">
+        <div class="segmented">
+          <button data-tab="preview" class="tab active">Preview</button>
+          <button data-tab="code" class="tab">Code</button>
+          <button data-tab="diff" class="tab">Diff</button>
+        </div>
+      </div>
+      <div class="viewport">
+        <iframe id="preview" title="preview"></iframe>
+        <pre id="code" hidden></pre>
+        <div id="diff" hidden></div>
+      </div>
     </section>
+
     <aside id="fixPane">
-      <h2>Fix options</h2>
+      <h2 class="panel-title">Fix options</h2>
       <form id="fixOptions"></form>
-      <textarea id="customPrompt" placeholder="Custom instructions (optional)"></textarea>
-      <button id="fixBtn">Fix selected</button>
+      <textarea id="customPrompt" placeholder="Custom instructions (optional)…"></textarea>
+      <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
       <div id="fixStatus"></div>
+      <div class="divider"></div>
       <div class="apply-actions">
-        <button id="applyBtn">Apply selected drafts</button>
-        <button id="discardBtn">Discard selected drafts</button>
+        <button id="applyBtn" class="btn">Apply drafts</button>
+        <button id="discardBtn" class="btn">Discard</button>
       </div>
     </aside>
   </main>
