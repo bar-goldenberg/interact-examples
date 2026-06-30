@@ -36,7 +36,10 @@ export async function fixFile(rootDir, relPath, opts) {
 }
 
 export async function runFix(rootDir, files, opts) {
-  const { concurrency = 4, ...rest } = opts;
-  return mapLimit(files, concurrency, (f) =>
-    fixFile(rootDir, f.path, { ...rest, source: f.source }));
+  const { concurrency = 4, onResult, ...rest } = opts;
+  return mapLimit(files, concurrency, async (f) => {
+    const result = await fixFile(rootDir, f.path, { ...rest, source: f.source });
+    if (onResult) onResult(result);
+    return result;
+  });
 }

@@ -1,17 +1,18 @@
 import { injectBase } from './preview.js';
 
-// category → status-dot modifier class
-const SDOT = {
-  'Outdated version': 's-outdated', 'Not using interact': 's-nointeract',
-  'Uses extra JS': 's-extrajs', 'Uses customEffect': 's-custom', 'Clean & current': 's-clean',
+const CAT_INFO = {
+  'Outdated version':  { dot: 's-outdated',  tip: 'Imports an old @wix/interact version, or uses outdated syntax (old tag, params.type/method, etc.).' },
+  'Uses extra JS':     { dot: 's-extrajs',   tip: 'Mixes in hand-written JS — event listeners, IntersectionObserver, .animate — instead of interact triggers.' },
+  'Uses customEffect': { dot: 's-custom',    tip: 'Uses a customEffect where a namedEffect or keyframeEffect might do the job.' },
+  'Not using interact':{ dot: 's-nointeract',tip: 'Does not import @wix/interact at all.' },
+  'Clean & current':   { dot: 's-clean',     tip: 'On the latest version with no issues detected.' },
 };
-// stable order for the summary chips
 const CAT_ORDER = ['Outdated version', 'Uses extra JS', 'Uses customEffect', 'Not using interact', 'Clean & current'];
 
-const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '' };
+const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '', tab: 'preview', progress: null };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
-const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 async function loadFiles() {
   const { files } = await api('/api/files');
@@ -22,9 +23,8 @@ async function loadFiles() {
 async function loadOptions() {
   const { options } = await api('/api/options');
   $('fixOptions').innerHTML = options.map((o) =>
-    `<label class="opt"><input type="checkbox" class="sel" name="opt" value="${esc(o.id)}" ${o.default ? 'checked' : ''}/>
-      <span>${esc(o.label)}</span></label>`
-  ).join('');
+    `<label class="opt"><input type="checkbox" class="cb" name="opt" value="${esc(o.id)}" ${o.default ? 'checked' : ''}/>
+      <span>${esc(o.label)}</span></label>`).join('');
 }
 
 function visibleFiles() {
@@ -34,26 +34,26 @@ function visibleFiles() {
 }
 
 function renderList() {
-  const rows = visibleFiles().map((f) => {
+  $('fileList').innerHTML = visibleFiles().map((f) => {
     const d = state.diag[f.path];
-    const dotClass = d ? (SDOT[d.category] || '') : '';
+    const dotClass = d ? (CAT_INFO[d.category]?.dot || '') : '';
     const draft = state.drafts.has(f.path) ? '<span class="draft-tag">draft</span>' : '';
     const checked = state.selected.has(f.path) ? 'checked' : '';
     const active = state.current === f.path ? ' active' : '';
     const title = d ? `${f.path} — ${d.category}` : f.path;
     return `<li data-path="${esc(f.path)}" class="${active.trim()}" title="${esc(title)}">
-      <input type="checkbox" class="sel" ${checked}/>
+      <input type="checkbox" class="cb" ${checked}/>
       <span class="status-dot ${dotClass}"></span>
       <span class="name">${esc(f.path)}</span>${draft}</li>`;
   }).join('');
-  $('fileList').innerHTML = rows;
 }
 
 function renderSummary(summary, total) {
-  const chips = CAT_ORDER.filter((c) => summary[c]).map((c) =>
-    `<span class="stat"><span class="dot ${SDOT[c]}"></span><b>${summary[c]}</b></span>`
-  ).join('');
-  $('summary').innerHTML = `<span class="stat"><b>${total}</b> files</span>${chips}`;
+  const chips = CAT_ORDER.filter((c) => summary[c]).map((c) => {
+    const i = CAT_INFO[c];
+    return `<span class="stat tip" data-tip="${esc(c)} — ${esc(i.tip)}"><span class="dot ${i.dot}"></span><b>${summary[c]}</b></span>`;
+  }).join('');
+  $('summary').innerHTML = `<span class="stat tip" data-tip="Total animation files scanned"><b>${total}</b> files</span>${chips}`;
 }
 
 async function scan() {
@@ -74,18 +74,26 @@ function baseHrefFor(path) {
   const slash = path.lastIndexOf('/');
   return slash === -1 ? '/' : '/' + path.slice(0, slash + 1);
 }
+const fetchSource = (kind, path) => api(`/api/${kind}?path=${encodeURIComponent(path)}`).then((r) => r.source);
+// the "working" source the Preview/Code tabs show: the draft if one exists, else the original
+const currentSource = (path) => fetchSource(state.drafts.has(path) ? 'draft' : 'file', path);
+const blankDoc = (label) => `<!doctype html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,system-ui,sans-serif;color:#b0b0b5;background:#fff;font-size:14px">${label}</body>`;
 
-async function showPreview(path, { draft = false } = {}) {
-  const url = draft ? `/api/draft?path=${encodeURIComponent(path)}`
-                    : `/api/file?path=${encodeURIComponent(path)}`;
-  const { source } = await api(url);
-  $('preview').srcdoc = injectBase(source, baseHrefFor(path));
-  $('code').textContent = source;
+async function showPreview(path) {
+  $('preview').srcdoc = injectBase(await currentSource(path), baseHrefFor(path));
 }
-
+async function showCode(path) {
+  $('code').textContent = await currentSource(path);
+}
+async function showCompare(path) {
+  const base = baseHrefFor(path);
+  $('cmpOrig').srcdoc = injectBase(await fetchSource('file', path), base);
+  if (state.drafts.has(path)) $('cmpDraft').srcdoc = injectBase(await fetchSource('draft', path), base);
+  else $('cmpDraft').srcdoc = blankDoc('No draft yet — fix this file first');
+}
 async function showDiff(path) {
   const res = await fetch(`/api/diff?path=${encodeURIComponent(path)}`);
-  if (!res.ok) { $('diff').innerHTML = '<div class="empty">No draft for this file yet.</div>'; return; }
+  if (!res.ok) { $('diff').innerHTML = '<div style="color:var(--text-3)">No draft for this file yet.</div>'; return; }
   const { parts } = await res.json();
   $('diff').innerHTML = parts.map((p) => {
     const safe = esc(p.value);
@@ -96,44 +104,101 @@ async function showDiff(path) {
 }
 
 function selectTab(tab) {
+  state.tab = tab;
   for (const b of document.querySelectorAll('.tab')) b.classList.toggle('active', b.dataset.tab === tab);
-  $('preview').hidden = tab !== 'preview';
-  $('code').hidden = tab !== 'code';
-  $('diff').hidden = tab !== 'diff';
-  if (!state.current) return;
-  if (tab === 'diff') showDiff(state.current);
-  if (tab === 'preview') showPreview(state.current, { draft: state.drafts.has(state.current) });
+  const has = !!state.current;
+  $('placeholder').hidden = has;
+  $('preview').hidden = !(has && tab === 'preview');
+  $('compare').hidden = !(has && tab === 'compare');
+  $('code').hidden = !(has && tab === 'code');
+  $('diff').hidden = !(has && tab === 'diff');
+  if (!has) return;
+  if (tab === 'preview') showPreview(state.current);
+  else if (tab === 'compare') showCompare(state.current);
+  else if (tab === 'code') showCode(state.current);
+  else if (tab === 'diff') showDiff(state.current);
+}
+
+// ── Live fix progress (SSE) ─────────────────────────
+let progTimer = null;
+function renderProgress() {
+  const p = state.progress;
+  if (!p) { $('fixProgress').innerHTML = ''; return; }
+  const elapsed = Math.round(((p.endedAt || Date.now()) - p.startedAt) / 1000);
+  const head = p.running
+    ? `<span class="spinner"></span><span>Working…</span><span class="count">${p.done}/${p.total} · ${elapsed}s</span>`
+    : `<span class="mk mk-ok">✓</span><span>Finished</span><span class="count">${p.done}/${p.total} · ${elapsed}s</span>`;
+  const items = [...p.items.entries()].map(([path, st]) => {
+    const mk = st.status === 'pending' ? '<span class="spinner"></span>'
+      : st.status === 'fixed' ? '<span class="mk mk-ok">✓</span>'
+      : st.status === 'needsReview' ? '<span class="mk mk-warn">⚠</span>'
+      : '<span class="mk mk-fail">✗</span>';
+    const t = `${path}${st.error ? ' — ' + st.error : ''}`;
+    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(path)}</span></div>`;
+  }).join('');
+  $('fixProgress').innerHTML = `<div class="prog-head">${head}</div><div class="prog-list">${items}</div>`;
+}
+
+function applyResult(r) {
+  if (!state.progress) return;
+  state.progress.items.set(r.path, { status: r.status, error: r.error });
+  state.progress.done++;
+  if (r.status !== 'fixFailed') state.drafts.add(r.path);
+  renderProgress();
+  renderList();
+}
+
+function handleFrame(frame) {
+  const ev = /event:\s*(.+)/.exec(frame);
+  const dt = /data:\s*([\s\S]+)/.exec(frame);
+  if (!ev || !dt) return;
+  if (ev[1].trim() !== 'result') return;
+  try { applyResult(JSON.parse(dt[1])); } catch { /* ignore malformed frame */ }
 }
 
 async function runFix() {
   const paths = [...state.selected];
-  if (!paths.length) { $('fixStatus').textContent = 'Select files first.'; return; }
+  if (!paths.length) { $('applyStatus').textContent = 'Select files first.'; return; }
   const optionIds = [...document.querySelectorAll('input[name=opt]:checked')].map((c) => c.value);
   const customPrompt = $('customPrompt').value;
-  $('fixBtn').disabled = true;
-  $('fixStatus').textContent = `Fixing ${paths.length} file(s)…`;
+  state.progress = { running: true, total: paths.length, done: 0, startedAt: Date.now(), endedAt: null,
+    items: new Map(paths.map((p) => [p, { status: 'pending' }])) };
+  $('fixBtn').disabled = true; $('applyStatus').textContent = '';
+  renderProgress();
+  progTimer = setInterval(renderProgress, 500);
   try {
-    const { results, error } = await api('/api/fix', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
+    const res = await fetch('/api/fix', {
+      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
       body: JSON.stringify({ paths, optionIds, customPrompt }) });
-    if (error) { $('fixStatus').textContent = `Error: ${error}`; return; }
-    for (const r of results) if (r.status !== 'fixFailed') state.drafts.add(r.path);
-    $('fixStatus').innerHTML = results.map((r) => {
-      const mark = r.status === 'fixed' ? '<span class="res-ok">✓</span>'
-        : r.status === 'needsReview' ? '<span class="res-warn">⚠</span>'
-        : '<span class="res-fail">✗</span>';
-      return `${mark} ${esc(r.path)}${r.error ? ` — ${esc(r.error)}` : ''}`;
-    }).join('\n');
-    renderList();
-    if (state.current && state.drafts.has(state.current)) selectTab('diff');
+    if (res.body && res.headers.get('content-type')?.includes('text/event-stream')) {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i;
+        while ((i = buf.indexOf('\n\n')) >= 0) { handleFrame(buf.slice(0, i)); buf = buf.slice(i + 2); }
+      }
+    } else {
+      const data = await res.json();
+      (data.results || []).forEach(applyResult);
+    }
   } finally {
+    state.progress.running = false;
+    state.progress.endedAt = Date.now();
+    clearInterval(progTimer);
+    renderProgress();
     $('fixBtn').disabled = false;
+    renderList();
+    if (state.current && state.drafts.has(state.current)) selectTab('compare');
   }
 }
 
 async function applyOrDiscard(endpoint) {
   const paths = [...state.selected].filter((p) => state.drafts.has(p));
-  if (!paths.length) { $('fixStatus').textContent = 'No drafts in selection.'; return; }
+  if (!paths.length) { $('applyStatus').textContent = 'No drafts in selection.'; return; }
   const data = await api(`/api/${endpoint}`, { method: 'POST',
     headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paths }) });
   const results = data.results || [];
@@ -143,22 +208,22 @@ async function applyOrDiscard(endpoint) {
   const verb = endpoint === 'apply' ? 'Applied' : 'Discarded';
   let msg = `${verb} ${succeeded.length} draft(s).`;
   if (failed.length) msg += ` Failed ${failed.length}: ${failed.map((r) => r.path).join(', ')}`;
-  $('fixStatus').textContent = msg;
+  $('applyStatus').textContent = msg;
   renderList();
-  if (state.current && succeeded.includes(state.current)) showPreview(state.current);
+  if (state.current && succeeded.includes(state.current)) selectTab(state.tab);
 }
 
 // ── events ──────────────────────────────────────────
 $('fileList').addEventListener('click', (e) => {
   const li = e.target.closest('li'); if (!li) return;
   const path = li.dataset.path;
-  if (e.target.classList.contains('sel')) {
+  if (e.target.classList.contains('cb')) {
     if (state.selected.has(path)) state.selected.delete(path); else state.selected.add(path);
     return;
   }
   state.current = path;
   renderList();
-  selectTab(document.querySelector('.tab.active')?.dataset.tab || 'preview');
+  selectTab(state.tab);
 });
 $('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderList(); });
 $('scanBtn').onclick = scan;

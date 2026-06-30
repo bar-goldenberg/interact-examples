@@ -7,50 +7,55 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="appbar">
-    <div class="brand"><span class="logo"></span> Interact Validator</div>
-    <div class="toolbar">
-      <div id="summary" class="stats"></div>
-      <button id="selectAllBtn" class="btn">Select all</button>
-      <button id="scanBtn" class="btn btn-primary">Scan</button>
+  <!-- Full-bleed viewport (behind the floating panels) -->
+  <div id="viewport">
+    <iframe id="preview" title="preview"></iframe>
+    <div id="compare" hidden>
+      <div class="cmp-col"><div class="cmp-label">Original</div><iframe id="cmpOrig" title="original"></iframe></div>
+      <div class="cmp-col"><div class="cmp-label">Draft</div><iframe id="cmpDraft" title="draft"></iframe></div>
     </div>
-  </header>
-  <main>
-    <aside id="listPane">
-      <div class="list-head">
-        <input id="filter" class="search" type="search" placeholder="Filter files…" autocomplete="off" />
-      </div>
-      <ul id="fileList"></ul>
-    </aside>
+    <pre id="code" hidden></pre>
+    <div id="diff" hidden></div>
+    <div id="placeholder"><div class="ic">◈</div><p>Select a file to preview</p></div>
+  </div>
 
-    <section id="detailPane">
-      <div class="detail-head">
-        <div class="segmented">
-          <button data-tab="preview" class="tab active">Preview</button>
-          <button data-tab="code" class="tab">Code</button>
-          <button data-tab="diff" class="tab">Diff</button>
-        </div>
-      </div>
-      <div class="viewport">
-        <iframe id="preview" title="preview"></iframe>
-        <pre id="code" hidden></pre>
-        <div id="diff" hidden></div>
-      </div>
-    </section>
+  <!-- Floating segmented tabs -->
+  <div id="tabs" class="glass">
+    <button data-tab="preview" class="tab active">Preview</button>
+    <button data-tab="compare" class="tab">Compare</button>
+    <button data-tab="code" class="tab">Code</button>
+    <button data-tab="diff" class="tab">Diff</button>
+  </div>
 
-    <aside id="fixPane">
-      <h2 class="panel-title">Fix options</h2>
-      <form id="fixOptions"></form>
-      <textarea id="customPrompt" placeholder="Custom instructions (optional)…"></textarea>
-      <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
-      <div id="fixStatus"></div>
-      <div class="divider"></div>
-      <div class="apply-actions">
-        <button id="applyBtn" class="btn">Apply drafts</button>
-        <button id="discardBtn" class="btn">Discard</button>
-      </div>
-    </aside>
-  </main>
+  <!-- Left panel: files -->
+  <aside id="listPane" class="glass">
+    <div class="brand"><span class="logo"></span> Interact Validator</div>
+    <div class="list-actions">
+      <button id="scanBtn" class="btn btn-primary">Scan</button>
+      <button id="selectAllBtn" class="btn">Select all</button>
+    </div>
+    <div id="summary"></div>
+    <div class="list-head">
+      <input id="filter" class="search" type="search" placeholder="Filter files…" autocomplete="off" />
+    </div>
+    <ul id="fileList"></ul>
+  </aside>
+
+  <!-- Right panel: fixes -->
+  <aside id="fixPane" class="glass">
+    <h2 class="panel-title">Fix options</h2>
+    <form id="fixOptions"></form>
+    <textarea id="customPrompt" placeholder="Custom instructions (optional)…"></textarea>
+    <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
+    <div id="fixProgress"></div>
+    <div class="divider"></div>
+    <div class="apply-actions">
+      <button id="applyBtn" class="btn">Apply selected</button>
+      <button id="discardBtn" class="btn">Discard selected</button>
+    </div>
+    <div id="applyStatus"></div>
+  </aside>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

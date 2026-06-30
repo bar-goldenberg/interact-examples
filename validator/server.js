@@ -58,19 +58,43 @@ export function createApp(rootDir) {
   });
 
   app.post('/api/fix', async (req, res) => {
-    try {
-      const { paths, optionIds = [], customPrompt = '' } = req.body;
-      if (!Array.isArray(paths) || !paths.length) return bad(res, 'paths required');
-      const specText = await loadSpecText(root);
-      const files = [];
-      const readFailures = [];
-      for (const p of paths) {
-        try {
-          files.push({ path: p, source: await readOriginal(root, p) });
-        } catch (err) {
-          readFailures.push({ path: p, status: 'fixFailed', error: String(err.message || err) });
-        }
+    const { paths, optionIds = [], customPrompt = '' } = req.body;
+    if (!Array.isArray(paths) || !paths.length) return bad(res, 'paths required');
+    const specText = await loadSpecText(root);
+
+    // Read sources defensively — a bad path becomes a fixFailed result.
+    const files = [];
+    const readFailures = [];
+    for (const p of paths) {
+      try {
+        files.push({ path: p, source: await readOriginal(root, p) });
+      } catch (err) {
+        readFailures.push({ path: p, status: 'fixFailed', error: String(err.message || err) });
       }
+    }
+
+    // Streaming mode: emit a result per file as it finishes (Server-Sent
+    // Events) so the UI can show live progress. Opt-in via Accept header.
+    if ((req.headers.accept || '').includes('text/event-stream')) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      });
+      const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      send('start', { total: paths.length, paths });
+      for (const rf of readFailures) send('result', rf);
+      try {
+        await runFix(root, files, { optionIds, customPrompt, specText, onResult: (r) => send('result', r) });
+        send('done', { ok: true });
+      } catch (err) {
+        send('error', { error: String(err.message || err) });
+      }
+      return res.end();
+    }
+
+    // Non-streaming mode (default): one JSON response with all results.
+    try {
       const fixResults = await runFix(root, files, { optionIds, customPrompt, specText });
       res.json({ results: [...readFailures, ...fixResults] });
     } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
