@@ -1,13 +1,25 @@
 import { injectBase } from './preview.js';
 
-const CAT_INFO = {
-  'Outdated version':  { dot: 's-outdated',  tip: 'Imports an old @wix/interact version, or uses outdated syntax (old tag, params.type/method, etc.).' },
-  'Uses extra JS':     { dot: 's-extrajs',   tip: 'Mixes in hand-written JS — event listeners, IntersectionObserver, .animate — instead of interact triggers.' },
-  'Uses customEffect': { dot: 's-custom',    tip: 'Uses a customEffect where a namedEffect or keyframeEffect might do the job.' },
-  'Not using interact':{ dot: 's-nointeract',tip: 'Does not import @wix/interact at all.' },
-  'Clean & current':   { dot: 's-clean',     tip: 'On the latest version with no issues detected.' },
+// Version state — mutually exclusive (green / yellow / red).
+const VER = {
+  clean:    { cls: 'green',  label: 'Latest version', tip: 'Uses @wix/interact pinned to the latest version, with no outdated syntax.' },
+  outdated: { cls: 'yellow', label: 'Old version / syntax', tip: 'Uses @wix/interact but on an old or unpinned version, or with outdated syntax.' },
+  none:     { cls: 'red',    label: 'No interact', tip: 'Does not use @wix/interact at all.' },
 };
-const CAT_ORDER = ['Outdated version', 'Uses extra JS', 'Uses customEffect', 'Not using interact', 'Clean & current'];
+function versionState(d) {
+  if (!d.usesInteract) return 'none';
+  if (d.isLatest && (d.oldSyntaxMarkers?.length || 0) === 0) return 'clean';
+  return 'outdated';
+}
+// Per-file indicators: version dot + additive flags (purple customEffect, blue JS).
+function indicatorsHTML(d) {
+  if (!d) return '';
+  const v = VER[versionState(d)];
+  let h = `<span class="ind ${v.cls}" title="${esc(v.label)}"></span>`;
+  if (d.usesCustomEffect) h += `<span class="ind purple" title="Uses customEffect"></span>`;
+  if (d.usesExtraJs) h += `<span class="js-badge" title="JavaScript animation not tied to a customEffect">JS</span>`;
+  return h;
+}
 
 const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '', mode: 'preview', version: 'current', progress: null };
 const $ = (id) => document.getElementById(id);
@@ -36,34 +48,46 @@ function visibleFiles() {
 function renderList() {
   $('fileList').innerHTML = visibleFiles().map((f) => {
     const d = state.diag[f.path];
-    const dotClass = d ? (CAT_INFO[d.category]?.dot || '') : '';
     const draft = state.drafts.has(f.path) ? '<span class="draft-tag">draft</span>' : '';
     const checked = state.selected.has(f.path) ? 'checked' : '';
     const active = state.current === f.path ? ' active' : '';
-    const title = d ? `${f.path} — ${d.category}` : f.path;
+    const title = d ? `${f.path} — ${VER[versionState(d)].label}` : f.path;
     return `<li data-path="${esc(f.path)}" class="${active.trim()}" title="${esc(title)}">
       <input type="checkbox" class="cb" ${checked}/>
-      <span class="status-dot ${dotClass}"></span>
-      <span class="name">${esc(f.path)}</span>${draft}</li>`;
+      <span class="name">${esc(f.path)}</span>
+      <span class="inds">${indicatorsHTML(d)}</span>${draft}</li>`;
   }).join('');
 }
 
-function renderSummary(summary, total) {
-  const chips = CAT_ORDER.filter((c) => summary[c]).map((c) => {
-    const i = CAT_INFO[c];
-    return `<span class="stat tip" data-tip="${esc(c)} — ${esc(i.tip)}"><span class="dot ${i.dot}"></span><b>${summary[c]}</b></span>`;
-  }).join('');
-  $('summary').innerHTML = `<span class="stat tip" data-tip="Total animation files scanned"><b>${total}</b> files</span>${chips}`;
+function renderSummary() {
+  const ds = Object.values(state.diag);
+  if (!ds.length) { $('summary').innerHTML = ''; return; }
+  let green = 0, yellow = 0, red = 0, purple = 0, js = 0;
+  for (const d of ds) {
+    const v = versionState(d);
+    if (v === 'clean') green++; else if (v === 'outdated') yellow++; else red++;
+    if (d.usesCustomEffect) purple++;
+    if (d.usesExtraJs) js++;
+  }
+  const chip = (cls, n, label, tip) =>
+    `<span class="stat tip" data-tip="${esc(label)} — ${esc(tip)}"><span class="ind ${cls}"></span><b>${n}</b></span>`;
+  $('summary').innerHTML =
+    `<span class="stat tip" data-tip="Total animation files scanned"><b>${ds.length}</b> files</span>` +
+    chip('green', green, VER.clean.label, VER.clean.tip) +
+    chip('yellow', yellow, VER.outdated.label, VER.outdated.tip) +
+    chip('red', red, VER.none.label, VER.none.tip) +
+    chip('purple', purple, 'customEffect', 'Files that use a customEffect.') +
+    `<span class="stat tip" data-tip="JavaScript animation — files with JS not tied to a customEffect"><span class="js-badge sm">JS</span><b>${js}</b></span>`;
 }
 
 async function scan() {
   $('scanBtn').disabled = true; $('scanBtn').textContent = 'Scanning…';
   try {
-    const { results, summary, total } = await api('/api/scan', {
+    const { results } = await api('/api/scan', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
     state.diag = {};
     for (const r of results) state.diag[r.path] = r;
-    renderSummary(summary, total);
+    renderSummary();
     renderList();
   } finally {
     $('scanBtn').disabled = false; $('scanBtn').textContent = 'Scan';

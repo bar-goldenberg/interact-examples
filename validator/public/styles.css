@@ -121,11 +121,19 @@ body {
 }
 .tip:hover::after { opacity: 1; transform: translateY(0); }
 
-.dot.s-outdated, .status-dot.s-outdated { background: var(--c-outdated); }
-.dot.s-extrajs, .status-dot.s-extrajs { background: var(--c-extrajs); }
-.dot.s-custom, .status-dot.s-custom { background: var(--c-custom); }
-.dot.s-nointeract, .status-dot.s-nointeract { background: var(--c-nointeract); }
-.dot.s-clean, .status-dot.s-clean { background: var(--c-clean); }
+/* Indicator dots (version + flags) */
+.ind { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.ind.green { background: var(--c-clean); }
+.ind.yellow { background: var(--c-extrajs); }
+.ind.red { background: var(--c-nointeract); }
+.ind.purple { background: var(--c-custom); }
+.js-badge {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  font-size: 8.5px; font-weight: 700; letter-spacing: .02em; line-height: 1; color: #cfe3ff;
+  background: rgba(96,165,250,0.22); border: 1px solid rgba(96,165,250,0.45);
+  padding: 2px 3px; border-radius: 4px;
+}
+.inds { display: inline-flex; align-items: center; gap: 5px; flex: none; }
 
 /* ── File list ───────────────────────────────────── */
 .search {
