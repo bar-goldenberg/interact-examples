@@ -78,13 +78,15 @@ function fileRow(f) {
     <span class="inds">${indicatorsHTML(d)}</span>${draft}</div>`;
 }
 
+const FOLDER_ICON = '<svg class="ficon" viewBox="0 0 20 20" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h3.379a1.5 1.5 0 0 1 1.06.44L9 5.5h7.5A1.5 1.5 0 0 1 18 7v7.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 14.5z"/></svg>';
+
 function renderNodes(node, depth, forceOpen) {
   const pad = (n) => `style="padding-left:${8 + n * 14}px"`;
   let html = '';
   for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
     const open = forceOpen || state.expanded.has(dir.path);
     html += `<div class="folder-row" data-folder="${esc(dir.path)}" ${pad(depth)}>
-      <span class="chev">${open ? '▾' : '▸'}</span><span class="fname">${esc(dir.name)}</span></div>`;
+      <span class="chev">${open ? '▾' : '▸'}</span>${FOLDER_ICON}<span class="fname">${esc(dir.name)}</span></div>`;
     if (open) html += `<div class="folder-children">${renderNodes(dir, depth + 1, forceOpen)}</div>`;
   }
   for (const f of node.files.sort((a, b) => a.file.localeCompare(b.file))) {
@@ -299,7 +301,10 @@ function renderActivity() {
     : '<option>— no agent runs yet —</option>';
   const body = $('activityBody');
   if (!paths.length) {
-    body.textContent = 'No agent output yet. Run a fix that needs the model — mechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning.';
+    const running = state.progress && state.progress.running;
+    body.textContent = running
+      ? 'Waiting for the model to start streaming…\n\nThe claude CLI takes a few seconds to spin up before the first token. If nothing appears after that, your validator server may predate this feature — restart it (Ctrl-C, then `npm start`).'
+      : 'No agent output yet. Run a fix that needs the model.\n\nMechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning — only semantic fixes (convert to interact, convert customEffect, remove JS) or a custom prompt call the model.';
   } else {
     body.textContent = state.logs.get(state.activity.file) || '(waiting for output…)';
     body.scrollTop = body.scrollHeight;

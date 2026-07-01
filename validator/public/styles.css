@@ -147,6 +147,7 @@ body {
 .folder-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: var(--radius-xs); cursor: pointer; color: var(--text-2); transition: background .12s; user-select: none; }
 .folder-row:hover { background: var(--fill-1); color: var(--text); }
 .folder-row .chev { width: 12px; font-size: 10px; flex: none; opacity: .8; }
+.folder-row .ficon { flex: none; color: #6f86ff; opacity: .9; margin-right: 1px; }
 .folder-row .fname { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .file-row { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: var(--radius-xs); cursor: pointer; transition: background .12s; }
 .file-row:hover { background: var(--fill-1); }
