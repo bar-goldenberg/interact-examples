@@ -142,12 +142,17 @@ body {
 }
 .search::placeholder { color: var(--text-3); }
 .search:focus { outline: none; border-color: var(--accent-soft); background: var(--fill-2); }
-#fileList { list-style: none; overflow-y: auto; flex: 1; padding: 0 8px 12px; }
-#fileList li { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: var(--radius-xs); cursor: pointer; transition: background .12s; }
-#fileList li:hover { background: var(--fill-1); }
-#fileList li.active { background: var(--accent-soft); }
-#fileList .name { flex: 1; min-width: 0; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
-#fileList li.active .name { color: #fff; }
+/* ── File tree ───────────────────────────────────── */
+#fileTree { overflow-y: auto; flex: 1; padding: 0 8px 12px; }
+.folder-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: var(--radius-xs); cursor: pointer; color: var(--text-2); transition: background .12s; user-select: none; }
+.folder-row:hover { background: var(--fill-1); color: var(--text); }
+.folder-row .chev { width: 12px; font-size: 10px; flex: none; opacity: .8; }
+.folder-row .fname { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-row { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: var(--radius-xs); cursor: pointer; transition: background .12s; }
+.file-row:hover { background: var(--fill-1); }
+.file-row.active { background: var(--accent-soft); }
+.file-row .fname { flex: 1; min-width: 0; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-row.active .fname { color: #fff; }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--fill-3); }
 .draft-tag { font-size: 9.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: #cfe3ff; background: rgba(96,165,250,0.22); padding: 2px 6px; border-radius: 980px; flex: none; }
 
@@ -184,6 +189,34 @@ body {
 .mk-ok { color: var(--c-clean); } .mk-warn { color: var(--c-extrajs); } .mk-fail { color: var(--c-nointeract); }
 .spinner { width: 12px; height: 12px; border: 2px solid var(--fill-3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-ghost { background: transparent; border: 1px solid var(--hair); color: var(--text-2); }
+.btn-ghost:hover { background: var(--fill-1); color: var(--text); }
+
+/* ── Panel collapse ──────────────────────────────── */
+#listPane, #fixPane { transition: transform .28s cubic-bezier(0.4,0,0.2,1), opacity .2s; }
+#listPane.collapsed { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
+#fixPane.collapsed { transform: translateX(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+.edge-toggle {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 70;
+  width: 26px; height: 52px; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--text-2); cursor: pointer; border-radius: 12px; padding: 0;
+  transition: color .15s, background .15s;
+}
+.edge-toggle:hover { color: var(--text); background: var(--fill-2); }
+.edge-toggle.left { left: 8px; }
+.edge-toggle.right { right: 8px; }
+
+/* ── Agent activity modal ────────────────────────── */
+.modal-backdrop { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); }
+.modal { width: min(760px, 88vw); height: min(70vh, 640px); display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--hair); font-weight: 600; font-size: 13px; }
+.modal-head-actions { display: flex; align-items: center; gap: 10px; }
+.mini-select { font-family: var(--mono); font-size: 11.5px; color: var(--text); background: var(--fill-1); border: 1px solid var(--hair); border-radius: 7px; padding: 4px 8px; max-width: 320px; }
+.icon-btn { background: transparent; border: 0; color: var(--text-2); font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.icon-btn:hover { background: var(--fill-2); color: var(--text); }
+.modal-body { flex: 1; overflow: auto; margin: 0; padding: 16px 18px; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-2); white-space: pre-wrap; word-break: break-word; }
 
 /* ── Scrollbars ──────────────────────────────────── */
 ::-webkit-scrollbar { width: 9px; height: 9px; }

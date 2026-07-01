@@ -28,6 +28,10 @@
     </div>
   </div>
 
+  <!-- Edge toggles to collapse/expand the side panels -->
+  <button id="toggleLeft" class="edge-toggle left glass" title="Toggle file list">‹</button>
+  <button id="toggleRight" class="edge-toggle right glass" title="Toggle fix panel">›</button>
+
   <!-- Left panel: files -->
   <aside id="listPane" class="glass">
     <div class="brand"><span class="logo"></span> Interact Validator</div>
@@ -39,7 +43,7 @@
     <div class="list-head">
       <input id="filter" class="search" type="search" placeholder="Filter files…" autocomplete="off" />
     </div>
-    <ul id="fileList"></ul>
+    <div id="fileTree"></div>
   </aside>
 
   <!-- Right panel: fixes -->
@@ -47,6 +51,7 @@
     <h2 class="panel-title">Fix options</h2>
     <form id="fixOptions"></form>
     <textarea id="customPrompt" placeholder="Custom instructions (optional)…"></textarea>
+    <button id="activityBtn" class="btn btn-ghost btn-block">◧ Agent activity</button>
     <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
     <div id="fixProgress"></div>
     <div class="divider"></div>
@@ -56,6 +61,20 @@
     </div>
     <div id="applyStatus"></div>
   </aside>
+
+  <!-- Agent activity / reasoning modal -->
+  <div id="activityModal" class="modal-backdrop" hidden>
+    <div class="modal glass">
+      <div class="modal-head">
+        <span>Agent activity</span>
+        <div class="modal-head-actions">
+          <select id="activityFile" class="mini-select"></select>
+          <button id="activityClose" class="icon-btn" title="Close">✕</button>
+        </div>
+      </div>
+      <pre id="activityBody" class="modal-body"></pre>
+    </div>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>

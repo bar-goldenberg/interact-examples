@@ -11,7 +11,6 @@ function versionState(d) {
   if (d.isLatest && (d.oldSyntaxMarkers?.length || 0) === 0) return 'clean';
   return 'outdated';
 }
-// Per-file indicators: version dot + additive flags (purple customEffect, blue JS).
 function indicatorsHTML(d) {
   if (!d) return '';
   const v = VER[versionState(d)];
@@ -21,7 +20,13 @@ function indicatorsHTML(d) {
   return h;
 }
 
-const state = { files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null, filter: '', mode: 'preview', version: 'current', progress: null };
+const state = {
+  files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null,
+  filter: '', mode: 'preview', version: 'current', progress: null,
+  expanded: new Set(),                 // expanded folder paths
+  logs: new Map(),                     // path -> streamed agent output
+  activity: { open: false, file: null, follow: true },
+};
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -29,7 +34,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 async function loadFiles() {
   const { files } = await api('/api/files');
   state.files = files;
-  renderList();
+  renderTree();
 }
 
 async function loadOptions() {
@@ -45,18 +50,52 @@ function visibleFiles() {
   return state.files.filter((f) => f.path.toLowerCase().includes(q));
 }
 
-function renderList() {
-  $('fileList').innerHTML = visibleFiles().map((f) => {
-    const d = state.diag[f.path];
-    const draft = state.drafts.has(f.path) ? '<span class="draft-tag">draft</span>' : '';
-    const checked = state.selected.has(f.path) ? 'checked' : '';
-    const active = state.current === f.path ? ' active' : '';
-    const title = d ? `${f.path} — ${VER[versionState(d)].label}` : f.path;
-    return `<li data-path="${esc(f.path)}" class="${active.trim()}" title="${esc(title)}">
-      <input type="checkbox" class="cb" ${checked}/>
-      <span class="name">${esc(f.path)}</span>
-      <span class="inds">${indicatorsHTML(d)}</span>${draft}</li>`;
-  }).join('');
+// ── File tree ───────────────────────────────────────
+function buildTree(files) {
+  const root = { dirs: new Map(), files: [] };
+  for (const f of files) {
+    const parts = f.path.split('/');
+    let node = root, prefix = '';
+    for (let i = 0; i < parts.length - 1; i++) {
+      prefix = prefix ? `${prefix}/${parts[i]}` : parts[i];
+      if (!node.dirs.has(parts[i])) node.dirs.set(parts[i], { name: parts[i], path: prefix, dirs: new Map(), files: [] });
+      node = node.dirs.get(parts[i]);
+    }
+    node.files.push(f);
+  }
+  return root;
+}
+
+function fileRow(f) {
+  const d = state.diag[f.path];
+  const draft = state.drafts.has(f.path) ? '<span class="draft-tag">draft</span>' : '';
+  const checked = state.selected.has(f.path) ? 'checked' : '';
+  const active = state.current === f.path ? ' active' : '';
+  const title = d ? `${f.path} — ${VER[versionState(d)].label}` : f.path;
+  return `<div class="file-row${active}" data-path="${esc(f.path)}" title="${esc(title)}">
+    <input type="checkbox" class="cb" ${checked}/>
+    <span class="fname">${esc(f.file)}</span>
+    <span class="inds">${indicatorsHTML(d)}</span>${draft}</div>`;
+}
+
+function renderNodes(node, depth, forceOpen) {
+  const pad = (n) => `style="padding-left:${8 + n * 14}px"`;
+  let html = '';
+  for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+    const open = forceOpen || state.expanded.has(dir.path);
+    html += `<div class="folder-row" data-folder="${esc(dir.path)}" ${pad(depth)}>
+      <span class="chev">${open ? '▾' : '▸'}</span><span class="fname">${esc(dir.name)}</span></div>`;
+    if (open) html += `<div class="folder-children">${renderNodes(dir, depth + 1, forceOpen)}</div>`;
+  }
+  for (const f of node.files.sort((a, b) => a.file.localeCompare(b.file))) {
+    html += `<div ${pad(depth)} class="file-wrap">${fileRow(f)}</div>`;
+  }
+  return html;
+}
+
+function renderTree() {
+  const forceOpen = !!state.filter; // when filtering, reveal all matches
+  $('fileTree').innerHTML = renderNodes(buildTree(visibleFiles()), 0, forceOpen);
 }
 
 function renderSummary() {
@@ -88,12 +127,13 @@ async function scan() {
     state.diag = {};
     for (const r of results) state.diag[r.path] = r;
     renderSummary();
-    renderList();
+    renderTree();
   } finally {
     $('scanBtn').disabled = false; $('scanBtn').textContent = 'Scan';
   }
 }
 
+// ── Viewport (preview / code / diff) ────────────────
 function baseHrefFor(path) {
   const slash = path.lastIndexOf('/');
   return slash === -1 ? '/' : '/' + path.slice(0, slash + 1);
@@ -101,8 +141,6 @@ function baseHrefFor(path) {
 const fetchSource = (kind, path) => api(`/api/${kind}?path=${encodeURIComponent(path)}`).then((r) => r.source);
 const blankDoc = (label) => `<!doctype html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,system-ui,sans-serif;color:#b0b0b5;background:#fff;font-size:14px">${label}</body>`;
 
-// Resolve which file source to show for the chosen version. 'draft' with no
-// draft on disk yields null (callers render a placeholder).
 async function sourceFor(path, version) {
   if (version === 'draft') return state.drafts.has(path) ? fetchSource('draft', path) : null;
   return fetchSource('file', path);
@@ -120,12 +158,11 @@ async function renderDiff(path) {
   }).join('');
 }
 
-// Reflect state.mode + state.version into the viewport.
 async function render() {
   const { mode, version, current } = state;
   for (const b of document.querySelectorAll('#modeTabs .tab')) b.classList.toggle('active', b.dataset.mode === mode);
   for (const b of document.querySelectorAll('#verTabs .tab')) b.classList.toggle('active', b.dataset.ver === version);
-  $('topbar').classList.toggle('diff', mode === 'diff'); // hides version group for Diff
+  $('topbar').classList.toggle('diff', mode === 'diff');
 
   const has = !!current;
   $('placeholder').hidden = has;
@@ -135,12 +172,10 @@ async function render() {
   if (!has) return;
 
   if (mode === 'diff') { renderDiff(current); return; }
-
   const src = await sourceFor(current, version);
   if (mode === 'preview') {
-    $('preview').srcdoc = src === null ? blankDoc('No draft yet — fix this file first')
-      : injectBase(src, baseHrefFor(current));
-  } else { // code
+    $('preview').srcdoc = src === null ? blankDoc('No draft yet — fix this file first') : injectBase(src, baseHrefFor(current));
+  } else {
     $('code').textContent = src === null ? 'No draft yet — fix this file first.' : src;
   }
 }
@@ -161,7 +196,8 @@ function renderProgress() {
       : '<span class="mk mk-fail">✗</span>';
     const t = `${path}${st.error ? ' — ' + st.error : ''}`;
     const via = st.via ? `<span class="via">${esc(st.via)}</span>` : '';
-    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(path)}</span>${via}</div>`;
+    const short = path.split('/').pop();
+    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(short)}</span>${via}</div>`;
   }).join('');
   $('fixProgress').innerHTML = `<div class="prog-head">${head}</div><div class="prog-list">${items}</div>`;
 }
@@ -172,15 +208,23 @@ function applyResult(r) {
   state.progress.done++;
   if (r.status !== 'fixFailed') state.drafts.add(r.path);
   renderProgress();
-  renderList();
+  renderTree();
+}
+
+function appendLog(path, text) {
+  state.logs.set(path, (state.logs.get(path) || '') + text);
+  if (state.activity.follow) state.activity.file = path;
+  if (state.activity.open) renderActivity();
 }
 
 function handleFrame(frame) {
   const ev = /event:\s*(.+)/.exec(frame);
   const dt = /data:\s*([\s\S]+)/.exec(frame);
   if (!ev || !dt) return;
-  if (ev[1].trim() !== 'result') return;
-  try { applyResult(JSON.parse(dt[1])); } catch { /* ignore malformed frame */ }
+  let data; try { data = JSON.parse(dt[1]); } catch { return; }
+  const type = ev[1].trim();
+  if (type === 'result') applyResult(data);
+  else if (type === 'log') appendLog(data.path, data.text);
 }
 
 async function runFix() {
@@ -190,6 +234,9 @@ async function runFix() {
   const customPrompt = $('customPrompt').value;
   state.progress = { running: true, total: paths.length, done: 0, startedAt: Date.now(), endedAt: null,
     items: new Map(paths.map((p) => [p, { status: 'pending' }])) };
+  state.logs = new Map();
+  state.activity.follow = true;
+  if (state.activity.open) renderActivity();
   $('fixBtn').disabled = true; $('applyStatus').textContent = '';
   renderProgress();
   progTimer = setInterval(renderProgress, 500);
@@ -218,8 +265,7 @@ async function runFix() {
     clearInterval(progTimer);
     renderProgress();
     $('fixBtn').disabled = false;
-    renderList();
-    // surface the freshly-written draft for the open file
+    renderTree();
     if (state.current && state.drafts.has(state.current)) state.version = 'draft';
     render();
   }
@@ -238,38 +284,74 @@ async function applyOrDiscard(endpoint) {
   let msg = `${verb} ${succeeded.length} draft(s).`;
   if (failed.length) msg += ` Failed ${failed.length}: ${failed.map((r) => r.path).join(', ')}`;
   $('applyStatus').textContent = msg;
-  renderList();
-  // the draft is gone for applied/discarded files — fall back to Current
+  renderTree();
   if (state.current && succeeded.includes(state.current)) state.version = 'current';
   render();
 }
 
+// ── Agent activity modal ────────────────────────────
+function renderActivity() {
+  const paths = [...state.logs.keys()];
+  if (state.activity.file && !state.logs.has(state.activity.file)) state.activity.file = null;
+  if (!state.activity.file && paths.length) state.activity.file = paths[paths.length - 1];
+  $('activityFile').innerHTML = paths.length
+    ? paths.map((p) => `<option value="${esc(p)}" ${p === state.activity.file ? 'selected' : ''}>${esc(p.split('/').pop())}</option>`).join('')
+    : '<option>— no agent runs yet —</option>';
+  const body = $('activityBody');
+  if (!paths.length) {
+    body.textContent = 'No agent output yet. Run a fix that needs the model — mechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning.';
+  } else {
+    body.textContent = state.logs.get(state.activity.file) || '(waiting for output…)';
+    body.scrollTop = body.scrollHeight;
+  }
+}
+function openActivity() { state.activity.open = true; $('activityModal').hidden = false; renderActivity(); }
+function closeActivity() { state.activity.open = false; $('activityModal').hidden = true; }
+
 // ── events ──────────────────────────────────────────
-$('fileList').addEventListener('click', (e) => {
-  const li = e.target.closest('li'); if (!li) return;
-  const path = li.dataset.path;
+$('fileTree').addEventListener('click', (e) => {
+  const folder = e.target.closest('.folder-row');
+  if (folder) {
+    const p = folder.dataset.folder;
+    if (state.expanded.has(p)) state.expanded.delete(p); else state.expanded.add(p);
+    renderTree();
+    return;
+  }
+  const row = e.target.closest('.file-row');
+  if (!row) return;
+  const path = row.dataset.path;
   if (e.target.classList.contains('cb')) {
     if (state.selected.has(path)) state.selected.delete(path); else state.selected.add(path);
     return;
   }
   state.current = path;
-  renderList();
+  renderTree();
   render();
 });
-$('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderList(); });
+$('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderTree(); });
 $('scanBtn').onclick = scan;
 $('selectAllBtn').onclick = () => {
   const vis = visibleFiles();
   const allSelected = vis.length && vis.every((f) => state.selected.has(f.path));
   if (allSelected) vis.forEach((f) => state.selected.delete(f.path));
   else vis.forEach((f) => state.selected.add(f.path));
-  renderList();
+  renderTree();
 };
 $('fixBtn').onclick = runFix;
 $('applyBtn').onclick = () => applyOrDiscard('apply');
 $('discardBtn').onclick = () => applyOrDiscard('discard');
 for (const b of document.querySelectorAll('#modeTabs .tab')) b.onclick = () => { state.mode = b.dataset.mode; render(); };
 for (const b of document.querySelectorAll('#verTabs .tab')) b.onclick = () => { state.version = b.dataset.ver; render(); };
+
+// panel collapse
+$('toggleLeft').onclick = () => $('listPane').classList.toggle('collapsed');
+$('toggleRight').onclick = () => $('fixPane').classList.toggle('collapsed');
+
+// activity modal
+$('activityBtn').onclick = openActivity;
+$('activityClose').onclick = closeActivity;
+$('activityModal').addEventListener('click', (e) => { if (e.target.id === 'activityModal') closeActivity(); });
+$('activityFile').onchange = (e) => { state.activity.file = e.target.value; state.activity.follow = false; renderActivity(); };
 
 loadFiles();
 loadOptions();
