@@ -15,6 +15,10 @@ function pinInteract(src) {
 }
 
 const renameTag = (src) => src.replace(/wix-interact-element/g, 'interact-element');
+// The old <wix-interact-element> bound via data-wix-path; the public
+// <interact-element> binds via data-interact-key (same value → the interaction
+// key). Renaming the tag without this leaves elements unbound (nothing animates).
+const renameKeyAttr = (src) => src.replace(/data-wix-path/g, 'data-interact-key');
 const fixTypo = (src) => src.replace(/useCutsomElement/g, 'useCustomElement');
 const renameOffsetUnit = (src) =>
   src.replace(new RegExp(`\\btype(\\s*):(\\s*)(['"\`])(${UNITS})\\3`, 'g'), 'unit$1:$2$3$4$3');
@@ -30,6 +34,7 @@ export function applyCodemods(source, optionIds = []) {
   }
   if (optionIds.includes('migrateSyntax')) {
     steps.push(['Renamed wix-interact-element → interact-element', renameTag]);
+    steps.push(['Renamed data-wix-path → data-interact-key', renameKeyAttr]);
     steps.push(['Fixed useCutsomElement typo', fixTypo]);
     steps.push(['Renamed range-offset type → unit', renameOffsetUnit]);
   }

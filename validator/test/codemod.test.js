@@ -38,6 +38,13 @@ test('migrateSyntax renames the tag and fixes the typo', () => {
   assert.equal(applied.length, 2);
 });
 
+test('migrateSyntax migrates data-wix-path → data-interact-key alongside the tag', () => {
+  const { output } = applyCodemods('<wix-interact-element data-wix-path=".card"><div></div></wix-interact-element>', ['migrateSyntax']);
+  assert.match(output, /<interact-element data-interact-key="\.card">/);
+  assert.doesNotMatch(output, /wix-interact-element/);
+  assert.doesNotMatch(output, /data-wix-path/);
+});
+
 test('migrateSyntax renames range-offset type→unit but not a namedEffect type', () => {
   const { output } = applyCodemods("offset: { value: 0, type: 'percentage' }, namedEffect: { type: 'FadeIn' }", ['migrateSyntax']);
   assert.match(output, /value: 0, unit: 'percentage'/);

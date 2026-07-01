@@ -29,6 +29,7 @@ function findExtraJs(source) {
 function findOldSyntaxMarkers(source) {
   const markers = [];
   if (/wix-interact-element/.test(source)) markers.push('wix-interact-element tag (use interact-element)');
+  if (/data-wix-path/.test(source)) markers.push('data-wix-path attribute (use data-interact-key)');
   if (/\bmethod\s*:/.test(source)) markers.push('params.method (use stateAction on the effect)');
   if (/\btype\s*:\s*['"`](once|repeat|alternate|state)['"`]/.test(source)) markers.push('params.type play-mode (use triggerType on the effect)');
   if (/\btype\s*:\s*['"`](percentage|px|vh|vw|vmin|vmax|em|rem)['"`]/.test(source)) markers.push('range offset {value,type} (use unit)');
