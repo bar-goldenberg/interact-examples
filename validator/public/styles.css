@@ -179,6 +179,7 @@ body {
 .prog-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
 .prog-item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-2); font-family: var(--mono); }
 .prog-item .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+.via { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); flex: none; }
 .mk { width: 14px; text-align: center; flex: none; }
 .mk-ok { color: var(--c-clean); } .mk-warn { color: var(--c-extrajs); } .mk-fail { color: var(--c-nointeract); }
 .spinner { width: 12px; height: 12px; border: 2px solid var(--fill-3); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex: none; }

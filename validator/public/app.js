@@ -160,14 +160,15 @@ function renderProgress() {
       : st.status === 'needsReview' ? '<span class="mk mk-warn">⚠</span>'
       : '<span class="mk mk-fail">✗</span>';
     const t = `${path}${st.error ? ' — ' + st.error : ''}`;
-    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(path)}</span></div>`;
+    const via = st.via ? `<span class="via">${esc(st.via)}</span>` : '';
+    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(path)}</span>${via}</div>`;
   }).join('');
   $('fixProgress').innerHTML = `<div class="prog-head">${head}</div><div class="prog-list">${items}</div>`;
 }
 
 function applyResult(r) {
   if (!state.progress) return;
-  state.progress.items.set(r.path, { status: r.status, error: r.error });
+  state.progress.items.set(r.path, { status: r.status, error: r.error, via: r.via });
   state.progress.done++;
   if (r.status !== 'fixFailed') state.drafts.add(r.path);
   renderProgress();
