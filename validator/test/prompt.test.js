@@ -19,7 +19,7 @@ test('buildPrompt embeds selected fragments, custom prompt, spec, and source', (
   });
   assert.match(system, /SPEC-RULES/);
   assert.match(system, /ONLY the complete rewritten HTML/i);
-  assert.match(user, /2\.4\.0/);            // updateVersion fragment mentions target version
+  assert.match(user, /2\.5\.1/);            // updateVersion fragment mentions target version
   assert.match(user, /triggerType|stateAction/); // migrateSyntax fragment mentions renames
   assert.match(user, /keep the colors/);
   assert.match(user, /SRC/);

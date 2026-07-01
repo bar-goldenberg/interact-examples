@@ -10,7 +10,7 @@ import { readDraft } from '../lib/drafts.js';
 const root = () => mkdtemp(join(tmpdir(), 'iv-fix-'));
 const SPEC = 'spec';
 // a clean, latest-version, no-customEffect snippet
-const CLEAN = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+const CLEAN = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
   Interact.create({ interactions:[{ key:'a', trigger:'hover',
     effects:[{ namedEffect:{type:'FadeIn'}, duration:300, triggerType:'once' }] }] });`;
 
@@ -40,14 +40,14 @@ test('updateVersion is done by codemod (no agent) and pins the version', async (
   assert.equal(res.via, 'script');
   assert.equal(res.status, 'fixed');
   const draft = await readDraft(r, 'A.html');
-  assert.match(draft, /@wix\/interact@2\.4\.0/);
+  assert.match(draft, /@wix\/interact@2\.5\.1\/web/);
   assert.doesNotMatch(draft, /@1\.79\.0/);
 });
 
 test('migrateSyntax with only a tag rename is done by codemod (no agent)', async () => {
   const r = await root();
   const src = `<wix-interact-element data-interact-key="a"><div>x</div></wix-interact-element>
-    import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+    import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     Interact.create({ interactions:[{ key:'a', trigger:'hover',
       effects:[{ namedEffect:{type:'FadeIn'}, duration:300, triggerType:'once' }] }] });`;
   let agentCalled = false;
@@ -62,7 +62,7 @@ test('migrateSyntax with only a tag rename is done by codemod (no agent)', async
 
 test('migrateSyntax with play-mode still needs the agent', async () => {
   const r = await root();
-  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     Interact.create({ interactions:[{ key:'a', trigger:'hover', params:{ method:'toggle' },
       effects:[{ customEffect:()=>{} }] }] });`;
   let agentCalled = false;
@@ -119,7 +119,7 @@ test('fixFile reports needsReview when the agent draft is still outdated', async
 
 test('fixFile reports needsReview when convertCustomEffect requested but draft still uses customEffect', async () => {
   const r = await root();
-  const draftWithCustomEffect = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+  const draftWithCustomEffect = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     Interact.create({ interactions:[{ key:'a', trigger:'hover',
       effects:[{ customEffect: (el, p) => { el.style.opacity = p; }, duration:300, triggerType:'once' }] }] });`;
   const res = await fixFile(r, 'H.html', {

@@ -2,27 +2,39 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyCodemods } from '../lib/codemod.js';
 
-test('updateVersion pins an old explicit version', () => {
+test('updateVersion pins an old explicit version to @latest/web', () => {
   const { output, applied } = applyCodemods("from 'https://esm.sh/@wix/interact@1.79.0'", ['updateVersion']);
-  assert.match(output, /@wix\/interact@2\.4\.0/);
+  assert.match(output, /@wix\/interact@2\.5\.1\/web/);
   assert.doesNotMatch(output, /@1\.79\.0/);
   assert.equal(applied.length, 1);
 });
 
-test('updateVersion pins an unpinned import', () => {
+test('updateVersion pins an unpinned import and adds /web', () => {
   const { output } = applyCodemods("from 'https://esm.sh/@wix/interact'", ['updateVersion']);
-  assert.match(output, /@wix\/interact@2\.4\.0'/);
+  assert.match(output, /@wix\/interact@2\.5\.1\/web'/);
 });
 
-test('updateVersion preserves a /web subpath', () => {
+test('updateVersion normalizes a versionless /web subpath', () => {
   const { output } = applyCodemods("from 'https://esm.sh/@wix/interact/web'", ['updateVersion']);
-  assert.match(output, /@wix\/interact@2\.4\.0\/web/);
+  assert.match(output, /@wix\/interact@2\.5\.1\/web/);
 });
 
-test('updateVersion leaves an already-latest import unchanged (no-op)', () => {
-  const { output, applied } = applyCodemods("from 'https://esm.sh/@wix/interact@2.4.0'", ['updateVersion']);
-  assert.match(output, /@wix\/interact@2\.4\.0/);
+test('updateVersion normalizes a versioned import that lacks /web', () => {
+  const { output } = applyCodemods("from 'https://esm.sh/@wix/interact@2.4.0'", ['updateVersion']);
+  assert.match(output, /@wix\/interact@2\.5\.1\/web/);
+  assert.doesNotMatch(output, /@2\.4\.0/);
+});
+
+test('updateVersion leaves an already-correct import unchanged (no-op)', () => {
+  const { output, applied } = applyCodemods("from 'https://esm.sh/@wix/interact@2.5.1/web'", ['updateVersion']);
+  assert.match(output, /@wix\/interact@2\.5\.1\/web/);
   assert.equal(applied.length, 0);
+});
+
+test('updateVersion does not touch @wix/interact mentioned in prose/comments', () => {
+  const src = "// driven by @wix/interact's pointerMove trigger";
+  const { output } = applyCodemods(src, ['updateVersion']);
+  assert.equal(output, src);
 });
 
 test('updateVersion does not touch @wix/motion-presets', () => {

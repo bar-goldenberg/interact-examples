@@ -4,14 +4,16 @@ import { LATEST_VERSION } from './constants.js';
 // touches an unrelated `type:` key (e.g. namedEffect: { type: 'FadeIn' }).
 const UNITS = 'percentage|px|em|rem|vh|vw|vmin|vmax';
 
-// Pin every @wix/interact import to the latest version.
+// Pin every @wix/interact import to the latest version AND the /web subpath.
+// Matches the specifier only when it follows a quote or slash (import URL /
+// bare specifier), so prose mentions of "@wix/interact" in comments are left
+// alone. Any existing @version and/or /subpath is normalized to @LATEST/web.
+const PIN_TARGET = `@wix/interact@${LATEST_VERSION}/web`;
 function pinInteract(src) {
-  return src
-    // already-versioned imports → bump
-    .replace(/@wix\/interact@\d+\.\d+\.\d+/g, `@wix/interact@${LATEST_VERSION}`)
-    // unpinned imports (not followed by @version, a word char, or a hyphen) → pin.
-    // A trailing "/web" style subpath is preserved (lookahead allows "/").
-    .replace(/@wix\/interact(?!@)(?![\w-])/g, `@wix/interact@${LATEST_VERSION}`);
+  return src.replace(
+    /(?<=['"`/])@wix\/interact(?:@\d+\.\d+\.\d+)?(?:\/[\w.-]+)?/g,
+    PIN_TARGET,
+  );
 }
 
 const renameTag = (src) => src.replace(/wix-interact-element/g, 'interact-element');

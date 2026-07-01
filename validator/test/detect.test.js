@@ -5,7 +5,7 @@ import { detect } from '../lib/detect.js';
 
 const clean = `
 <script type="module">
-  import { Interact } from 'https://esm.sh/@wix/interact@2.4.0';
+  import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
   Interact.create({ interactions: [{ key:'a', trigger:'hover',
     effects:[{ namedEffect:{ type:'FadeIn' }, duration:300, triggerType:'once' }] }] });
 </script>
@@ -14,7 +14,7 @@ const clean = `
 test('clean current file', () => {
   const d = detect('X.html', clean);
   assert.equal(d.usesInteract, true);
-  assert.equal(d.version, '2.4.0');
+  assert.equal(d.version, '2.5.1');
   assert.equal(d.isLatest, true);
   assert.equal(d.usesCustomEffect, false);
   assert.equal(d.usesExtraJs, false);
@@ -38,7 +38,7 @@ test('not using interact', () => {
 });
 
 test('old syntax markers flag a latest-version file as outdated', () => {
-  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     Interact.create({ interactions:[{ key:'a', trigger:'hover',
       params:{ method:'toggle' }, effects:[{ customEffect:()=>{} }] }] });
     <wix-interact-element data-interact-key="a"></wix-interact-element>`;
@@ -49,7 +49,7 @@ test('old syntax markers flag a latest-version file as outdated', () => {
 });
 
 test('extra js detection', () => {
-  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     window.addEventListener('scroll', () => {});
     new IntersectionObserver(() => {});
     el.animate([], 300);`;
@@ -62,7 +62,7 @@ test('extra js detection', () => {
 });
 
 test('customEffect on a latest, no-extra-js file', () => {
-  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.4.0';
+  const src = `import {Interact} from 'https://esm.sh/@wix/interact@2.5.1/web';
     Interact.create({ interactions:[{ key:'a', trigger:'pointerMove',
       effects:[{ customEffect:(el,p)=>{} }] }] });`;
   const d = detect('U.html', src);

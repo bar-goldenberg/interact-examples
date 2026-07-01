@@ -1,5 +1,6 @@
-export const LATEST_VERSION = '2.4.0';
-export const INTERACT_CDN = `https://esm.sh/@wix/interact@${LATEST_VERSION}`;
+export const LATEST_VERSION = '2.5.1';
+// The /web subpath is required — it exports the <interact-element> custom element.
+export const INTERACT_CDN = `https://esm.sh/@wix/interact@${LATEST_VERSION}/web`;
 export const PRESETS_CDN = 'https://esm.sh/@wix/motion-presets';
 export const DRAFTS_DIR = '.drafts';
 
