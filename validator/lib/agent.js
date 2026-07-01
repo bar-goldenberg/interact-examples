@@ -4,12 +4,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 
-// Strips a fenced code block (```html … ``` or bare ``` … ```) if one is
-// present anywhere in the text; otherwise returns the trimmed text unchanged.
+// Extract just the HTML document from a model response. Handles two kinds of
+// stray wrapping: (1) a ```html … ``` fence, and (2) prose the model prepends
+// or appends (e.g. "per the output contract, here it is:"). If the text
+// contains an HTML document, everything before <!DOCTYPE html>/<html> and
+// after the final </html> is dropped. A fragment without those markers is
+// returned trimmed (after fence removal) unchanged.
 export function extractHtml(text) {
-  const t = String(text).trim();
+  let t = String(text).trim();
   const fence = t.match(/```(?:html)?\s*\n([\s\S]*?)\n```/i);
-  return (fence ? fence[1] : t).trim();
+  if (fence) t = fence[1].trim();
+  const start = t.search(/<!doctype html>|<html[\s>]/i);
+  if (start > 0) t = t.slice(start);
+  const end = t.toLowerCase().lastIndexOf('</html>');
+  if (end !== -1) t = t.slice(0, end + '</html>'.length);
+  return t.trim();
 }
 
 // One-shot rewrite via the local `claude` CLI (reuses the machine's
