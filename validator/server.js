@@ -85,7 +85,9 @@ export function createApp(rootDir) {
       send('start', { total: paths.length, paths });
       for (const rf of readFailures) send('result', rf);
       try {
-        await runFix(root, files, { optionIds, customPrompt, specText, onResult: (r) => send('result', r) });
+        await runFix(root, files, { optionIds, customPrompt, specText,
+          onResult: (r) => send('result', r),
+          onLog: (path, text, kind) => send('log', { path, text, kind }) });
         send('done', { ok: true });
       } catch (err) {
         send('error', { error: String(err.message || err) });

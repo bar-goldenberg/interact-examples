@@ -22,7 +22,7 @@ export async function mapLimit(items, limit, fn) {
 }
 
 export async function fixFile(rootDir, relPath, opts) {
-  const { source, optionIds = [], customPrompt, specText, model, runAgent = realRunAgent } = opts;
+  const { source, optionIds = [], customPrompt, specText, model, onLog, runAgent = realRunAgent } = opts;
   try {
     // 1. Deterministic pass: pin version, rename tag/typo/offset-unit.
     const { output: codemodOut, applied } = applyCodemods(source, optionIds);
@@ -42,7 +42,8 @@ export async function fixFile(rootDir, relPath, opts) {
     if (needsAgent) {
       const diagnosis = detect(relPath, codemodOut);
       const { system, user } = buildPrompt({ diagnosis, source: codemodOut, optionIds, customPrompt, specText });
-      html = extractHtml(await runAgent(system, user, { model }));
+      const onDelta = onLog ? (text, kind) => onLog(relPath, text, kind) : undefined;
+      html = extractHtml(await runAgent(system, user, { model, onDelta }));
       via = 'agent';
     } else {
       html = codemodOut;

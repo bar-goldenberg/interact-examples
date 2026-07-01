@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createInterface } from 'node:readline';
 
 // Strips a fenced code block (```html … ``` or bare ``` … ```) if one is
 // present anywhere in the text; otherwise returns the trimmed text unchanged.
@@ -11,56 +12,52 @@ export function extractHtml(text) {
   return (fence ? fence[1] : t).trim();
 }
 
-// Collect a child process's stdout/stderr, feeding `stdin` to it.
-function spawnCollect(cmd, args, stdin) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
-    let stdout = '', stderr = '';
-    child.stdout.on('data', (c) => { stdout += c; });
-    child.stderr.on('data', (c) => { stderr += c; });
-    child.on('error', reject);
-    child.on('close', (code) => resolve({ code, stdout, stderr }));
-    child.stdin.on('error', () => {}); // ignore EPIPE if the CLI exits early
-    child.stdin.write(stdin);
-    child.stdin.end();
-  });
-}
-
 // One-shot rewrite via the local `claude` CLI (reuses the machine's
-// `claude login` — no API key). The system prompt goes to a temp file to
-// dodge arg-size limits; the user prompt is piped on stdin. Tools are
-// stripped via --exclude-dynamic-system-prompt-sections so it's a pure
-// text-in / text-out LLM call. Returns the assistant's final text.
-export async function runAgent(system, user, { model } = {}) {
-  const dir = await mkdtemp(join(tmpdir(), 'iv-agent-'));
-  const sysFile = join(dir, 'system.txt');
-  await writeFile(sysFile, system, 'utf8');
+// `claude login` — no API key). Uses stream-json so we can surface the
+// model's reasoning/output live via the onDelta callback. The system prompt
+// goes to a temp file (arg-size limits); the user prompt is piped on stdin.
+// Tools are stripped via --exclude-dynamic-system-prompt-sections so it is a
+// pure text-in / text-out call. Returns the assistant's final text.
+//   onDelta(text, kind)  kind ∈ { 'text', 'thinking' } — called per token chunk.
+export function runAgent(system, user, { model, onDelta } = {}) {
+  return new Promise((resolve, reject) => {
+    (async () => {
+      const dir = await mkdtemp(join(tmpdir(), 'iv-agent-'));
+      const sysFile = join(dir, 'system.txt');
+      await writeFile(sysFile, system, 'utf8');
 
-  const args = ['-p', '--output-format', 'json',
-    '--system-prompt-file', sysFile,
-    '--exclude-dynamic-system-prompt-sections'];
-  if (model) args.push('--model', model);
+      const args = ['-p', '--output-format', 'stream-json', '--include-partial-messages',
+        '--verbose', '--system-prompt-file', sysFile, '--exclude-dynamic-system-prompt-sections'];
+      if (model) args.push('--model', model);
 
-  try {
-    const { code, stdout, stderr } = await spawnCollect('claude', args, user);
-    if (code !== 0) throw new Error(`claude exited ${code}: ${stderr.slice(0, 500)}`);
-    let parsed;
-    try {
-      parsed = JSON.parse(stdout);
-    } catch {
-      throw new Error(`could not parse claude output: ${stdout.slice(0, 300)}`);
-    }
-    // `--output-format json` yields an array of messages; the final result
-    // lives in the element with type 'result'. Older CLIs returned that
-    // object directly, so handle both shapes.
-    const result = Array.isArray(parsed)
-      ? parsed.find((m) => m && m.type === 'result')
-      : parsed;
-    if (!result || result.is_error || typeof result.result !== 'string') {
-      throw new Error(`claude error: ${result?.subtype || result?.error || 'no result field'}`);
-    }
-    return result.result;
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+      const child = spawn('claude', args, { stdio: ['pipe', 'pipe', 'pipe'] });
+      let stderr = '', resultText = null, resultErr = null;
+      const rl = createInterface({ input: child.stdout });
+
+      rl.on('line', (line) => {
+        if (!line.trim()) return;
+        let m; try { m = JSON.parse(line); } catch { return; }
+        if (m.type === 'stream_event' && m.event?.type === 'content_block_delta') {
+          const d = m.event.delta;
+          if (d?.type === 'text_delta' && d.text) onDelta?.(d.text, 'text');
+          else if (d?.type === 'thinking_delta' && d.thinking) onDelta?.(d.thinking, 'thinking');
+        } else if (m.type === 'result') {
+          if (!m.is_error && typeof m.result === 'string') resultText = m.result;
+          else resultErr = m.subtype || m.error || 'agent error';
+        }
+      });
+      child.stderr.on('data', (c) => { stderr += c; });
+      child.stdin.on('error', () => {}); // ignore EPIPE if the CLI exits early
+      child.stdin.write(user); child.stdin.end();
+
+      child.on('error', async (err) => { await rm(dir, { recursive: true, force: true }); reject(err); });
+      child.on('close', async (code) => {
+        await rm(dir, { recursive: true, force: true });
+        if (code !== 0) return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 500)}`));
+        if (resultErr) return reject(new Error(`claude error: ${resultErr}`));
+        if (resultText === null) return reject(new Error('claude produced no result'));
+        resolve(resultText);
+      });
+    })().catch(reject);
+  });
 }
