@@ -362,8 +362,11 @@ function renderActivity() {
       ? 'Waiting for the model to start streaming…\n\nThe claude CLI takes a few seconds to spin up before the first token. If nothing appears after that, your validator server may predate this feature — restart it (Ctrl-C, then `npm start`).'
       : 'No agent output yet. Run a fix or a convert that needs the model.\n\nMechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning.';
   } else {
+    // Stick to the bottom only if the user is already there — otherwise leave
+    // their scroll position alone so they can read back while it streams.
+    const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 40;
     body.textContent = state.logs.get(state.activity.file) || '(waiting for output…)';
-    body.scrollTop = body.scrollHeight;
+    if (atBottom) body.scrollTop = body.scrollHeight;
   }
 }
 function openActivity() { state.activity.open = true; $('activityModal').hidden = false; renderActivity(); }
@@ -420,6 +423,30 @@ for (const b of document.querySelectorAll('#viewTabs .vt')) b.onclick = () => {
   renderTree();
   render();
 };
+// Up/Down arrows navigate the visible tree rows (skips collapsed folders).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  const rows = [...document.querySelectorAll('#fileTree .file-row')];
+  if (!rows.length) return;
+  e.preventDefault();
+  const attr = state.view === 'examples' ? 'path' : 'ppath';
+  const cur = state.view === 'examples' ? state.current : state.currentPrompt;
+  let idx = rows.findIndex((r) => r.dataset[attr] === cur);
+  if (idx < 0) idx = 0;
+  else if (e.key === 'ArrowDown') idx = Math.min(idx + 1, rows.length - 1);
+  else idx = Math.max(idx - 1, 0);
+  const p = rows[idx].dataset[attr];
+  if (state.view === 'examples') state.current = p; else state.currentPrompt = p;
+  renderTree();
+  render();
+  requestAnimationFrame(() => {
+    [...document.querySelectorAll('#fileTree .file-row')]
+      .find((r) => r.dataset[attr] === p)?.scrollIntoView({ block: 'nearest' });
+  });
+});
+
 $('toggleLeft').onclick = () => $('listPane').classList.toggle('collapsed');
 $('toggleRight').onclick = () => $('fixPane').classList.toggle('collapsed');
 $('activityBtn').onclick = openActivity;
