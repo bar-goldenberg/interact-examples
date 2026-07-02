@@ -87,3 +87,17 @@ test('apply partial batch: valid path succeeds, missing path fails, always 200',
   assert.equal(after.source, 'PATCHED');
   server.close();
 });
+
+test('GET /api/prompts lists generated guidelines and /api/prompt reads one', async () => {
+  const root = await repo();
+  const { writePrompt } = await import('../lib/prompts.js');
+  await writePrompt(root, 'G/A.html', '# A Guideline\n\ntext');
+  const { base, server } = await start(root);
+  const list = await (await fetch(`${base}/api/prompts`)).json();
+  assert.ok(list.files.some((f) => f.path === 'G/A.md'), 'prompt should be listed');
+  const one = await (await fetch(`${base}/api/prompt?path=${encodeURIComponent('G/A.md')}`)).json();
+  assert.match(one.source, /# A Guideline/);
+  const missing = await fetch(`${base}/api/prompt?path=${encodeURIComponent('G/nope.md')}`);
+  assert.equal(missing.status, 404);
+  server.close();
+});

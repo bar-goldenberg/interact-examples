@@ -5,6 +5,9 @@ import { listAnimationFiles } from './lib/files.js';
 import { detect } from './lib/detect.js';
 import { readOriginal, readDraft, computeDiff, applyDraft, discardDraft } from './lib/drafts.js';
 import { runFix } from './lib/fix.js';
+import { runConvert } from './lib/convert.js';
+import { listPrompts, readPrompt } from './lib/prompts.js';
+import { loadConvertSkill } from './lib/skill.js';
 import { FIX_OPTIONS } from './lib/prompt.js';
 import { loadSpecText } from './lib/spec.js';
 
@@ -136,6 +139,51 @@ export function createApp(rootDir) {
       }
     }
     res.json({ results });
+  });
+
+  // ── Prompts (convert-to-prompt output) ─────────────
+  app.get('/api/prompts', async (_req, res) => {
+    res.json({ files: await listPrompts(root) });
+  });
+
+  app.get('/api/prompt', async (req, res) => {
+    try {
+      const source = await readPrompt(root, String(req.query.path));
+      if (source === null) return res.status(404).json({ error: 'no prompt' });
+      res.json({ source });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/convert', async (req, res) => {
+    const { paths } = req.body;
+    if (!Array.isArray(paths) || !paths.length) return bad(res, 'paths required');
+    const { skill, exemplar } = await loadConvertSkill();
+
+    const files = [];
+    const readFailures = [];
+    for (const p of paths) {
+      try { files.push({ path: p, source: await readOriginal(root, p) }); }
+      catch (err) { readFailures.push({ path: p, status: 'failed', error: String(err.message || err) }); }
+    }
+
+    if ((req.headers.accept || '').includes('text/event-stream')) {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+      const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      send('start', { total: paths.length, paths });
+      for (const rf of readFailures) send('result', rf);
+      try {
+        await runConvert(root, files, { skill, exemplar,
+          onResult: (r) => send('result', r),
+          onLog: (path, text) => send('log', { path, text }) });
+        send('done', { ok: true });
+      } catch (err) { send('error', { error: String(err.message || err) }); }
+      return res.end();
+    }
+
+    try {
+      const results = await runConvert(root, files, { skill, exemplar });
+      res.json({ results: [...readFailures, ...results] });
+    } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
   });
 
   return app;
