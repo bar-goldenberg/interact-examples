@@ -1,4 +1,5 @@
 import { injectBase } from './preview.js';
+import { mdToHtml } from './md.js';
 
 // Version state — mutually exclusive (green / yellow / red).
 const VER = {
@@ -23,20 +24,15 @@ function indicatorsHTML(d) {
 const state = {
   files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null,
   filter: '', mode: 'preview', version: 'current', progress: null,
-  expanded: new Set(),                 // expanded folder paths
-  logs: new Map(),                     // path -> streamed agent output
-  activity: { open: false, file: null, follow: true },
+  expanded: new Set(), logs: new Map(), activity: { open: false, file: null, follow: true },
+  view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered',
 };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-async function loadFiles() {
-  const { files } = await api('/api/files');
-  state.files = files;
-  renderTree();
-}
-
+async function loadFiles() { state.files = (await api('/api/files')).files; renderTree(); }
+async function loadPrompts() { state.prompts = (await api('/api/prompts')).files; if (state.view === 'prompts') renderTree(); }
 async function loadOptions() {
   const { options } = await api('/api/options');
   $('fixOptions').innerHTML = options.map((o) =>
@@ -44,13 +40,11 @@ async function loadOptions() {
       <span>${esc(o.label)}</span></label>`).join('');
 }
 
-function visibleFiles() {
-  if (!state.filter) return state.files;
-  const q = state.filter.toLowerCase();
-  return state.files.filter((f) => f.path.toLowerCase().includes(q));
-}
+const matchesFilter = (list) => state.filter ? list.filter((f) => f.path.toLowerCase().includes(state.filter.toLowerCase())) : list;
+const visibleFiles = () => matchesFilter(state.files);
+const visiblePrompts = () => matchesFilter(state.prompts);
 
-// ── File tree ───────────────────────────────────────
+// ── File tree (shared by both views) ────────────────
 function buildTree(files) {
   const root = { dirs: new Map(), files: [] };
   for (const f of files) {
@@ -65,6 +59,7 @@ function buildTree(files) {
   }
   return root;
 }
+const FOLDER_ICON = '<svg class="ficon" viewBox="0 0 20 20" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h3.379a1.5 1.5 0 0 1 1.06.44L9 5.5h7.5A1.5 1.5 0 0 1 18 7v7.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 14.5z"/></svg>';
 
 function fileRow(f) {
   const d = state.diag[f.path];
@@ -77,27 +72,35 @@ function fileRow(f) {
     <span class="fname">${esc(f.file)}</span>
     <span class="inds">${indicatorsHTML(d)}</span>${draft}</div>`;
 }
+function promptRow(f) {
+  const active = state.currentPrompt === f.path ? ' active' : '';
+  return `<div class="file-row${active}" data-ppath="${esc(f.path)}" title="${esc(f.path)}">
+    <span class="fname">${esc(f.file)}</span><span class="md-badge">md</span></div>`;
+}
 
-const FOLDER_ICON = '<svg class="ficon" viewBox="0 0 20 20" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h3.379a1.5 1.5 0 0 1 1.06.44L9 5.5h7.5A1.5 1.5 0 0 1 18 7v7.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 14.5z"/></svg>';
-
-function renderNodes(node, depth, forceOpen) {
+function renderNodes(node, depth, forceOpen, expanded, rowFn) {
   const pad = (n) => `style="padding-left:${8 + n * 14}px"`;
   let html = '';
   for (const dir of [...node.dirs.values()].sort((a, b) => a.name.localeCompare(b.name))) {
-    const open = forceOpen || state.expanded.has(dir.path);
+    const open = forceOpen || expanded.has(dir.path);
     html += `<div class="folder-row" data-folder="${esc(dir.path)}" ${pad(depth)}>
       <span class="chev">${open ? '▾' : '▸'}</span>${FOLDER_ICON}<span class="fname">${esc(dir.name)}</span></div>`;
-    if (open) html += `<div class="folder-children">${renderNodes(dir, depth + 1, forceOpen)}</div>`;
+    if (open) html += `<div class="folder-children">${renderNodes(dir, depth + 1, forceOpen, expanded, rowFn)}</div>`;
   }
   for (const f of node.files.sort((a, b) => a.file.localeCompare(b.file))) {
-    html += `<div ${pad(depth)} class="file-wrap">${fileRow(f)}</div>`;
+    html += `<div ${pad(depth)} class="file-wrap">${rowFn(f)}</div>`;
   }
   return html;
 }
 
 function renderTree() {
-  const forceOpen = !!state.filter; // when filtering, reveal all matches
-  $('fileTree').innerHTML = renderNodes(buildTree(visibleFiles()), 0, forceOpen);
+  const isEx = state.view === 'examples';
+  const files = isEx ? visibleFiles() : visiblePrompts();
+  const expanded = isEx ? state.expanded : state.promptExpanded;
+  const rowFn = isEx ? fileRow : promptRow;
+  const empty = !isEx && !files.length
+    ? '<div style="padding:16px;color:var(--text-3);font-size:12px;line-height:1.5">No prompts yet. Select example(s) and click <b>Convert to prompt</b>.</div>' : '';
+  $('fileTree').innerHTML = empty || renderNodes(buildTree(files), 0, !!state.filter, expanded, rowFn);
 }
 
 function renderSummary() {
@@ -124,8 +127,7 @@ function renderSummary() {
 async function scan() {
   $('scanBtn').disabled = true; $('scanBtn').textContent = 'Scanning…';
   try {
-    const { results } = await api('/api/scan', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+    const { results } = await api('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
     state.diag = {};
     for (const r of results) state.diag[r.path] = r;
     renderSummary();
@@ -135,19 +137,16 @@ async function scan() {
   }
 }
 
-// ── Viewport (preview / code / diff) ────────────────
-function baseHrefFor(path) {
-  const slash = path.lastIndexOf('/');
-  return slash === -1 ? '/' : '/' + path.slice(0, slash + 1);
-}
+// ── Viewport ────────────────────────────────────────
+function baseHrefFor(path) { const s = path.lastIndexOf('/'); return s === -1 ? '/' : '/' + path.slice(0, s + 1); }
 const fetchSource = (kind, path) => api(`/api/${kind}?path=${encodeURIComponent(path)}`).then((r) => r.source);
+const fetchPrompt = (path) => api(`/api/prompt?path=${encodeURIComponent(path)}`).then((r) => r.source);
 const blankDoc = (label) => `<!doctype html><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,system-ui,sans-serif;color:#b0b0b5;background:#fff;font-size:14px">${label}</body>`;
 
 async function sourceFor(path, version) {
   if (version === 'draft') return state.drafts.has(path) ? fetchSource('draft', path) : null;
   return fetchSource('file', path);
 }
-
 async function renderDiff(path) {
   const res = await fetch(`/api/diff?path=${encodeURIComponent(path)}`);
   if (!res.ok) { $('diff').innerHTML = '<div style="color:var(--text-3)">No draft for this file yet — fix it first.</div>'; return; }
@@ -160,29 +159,57 @@ async function renderDiff(path) {
   }).join('');
 }
 
-async function render() {
-  const { mode, version, current } = state;
-  for (const b of document.querySelectorAll('#modeTabs .tab')) b.classList.toggle('active', b.dataset.mode === mode);
-  for (const b of document.querySelectorAll('#verTabs .tab')) b.classList.toggle('active', b.dataset.ver === version);
-  $('topbar').classList.toggle('diff', mode === 'diff');
+function renderTopbar() {
+  const mt = $('modeTabs'), vt = $('verTabs');
+  if (state.view === 'examples') {
+    mt.innerHTML = ['preview', 'code', 'diff'].map((m) =>
+      `<button data-mode="${m}" class="tab${state.mode === m ? ' active' : ''}">${m[0].toUpperCase() + m.slice(1)}</button>`).join('');
+    vt.style.display = '';
+    for (const b of vt.querySelectorAll('.tab')) b.classList.toggle('active', b.dataset.ver === state.version);
+    $('topbar').classList.toggle('diff', state.mode === 'diff');
+  } else {
+    mt.innerHTML = [['rendered', 'Rendered'], ['raw', 'Raw']].map(([m, lbl]) =>
+      `<button data-mode="${m}" class="tab${state.promptMode === m ? ' active' : ''}">${lbl}</button>`).join('');
+    vt.style.display = 'none';
+    $('topbar').classList.remove('diff');
+  }
+}
 
+async function render() {
+  renderTopbar();
+  $('placeholder').querySelector('p').textContent = state.view === 'prompts' ? 'Select a prompt to view' : 'Select a file to preview';
+  if (state.view === 'prompts') return renderPromptView();
+  return renderExampleView();
+}
+
+async function renderExampleView() {
+  const { mode, version, current } = state;
+  $('markdown').hidden = true;
   const has = !!current;
   $('placeholder').hidden = has;
   $('preview').hidden = !(has && mode === 'preview');
   $('code').hidden = !(has && mode === 'code');
   $('diff').hidden = !(has && mode === 'diff');
   if (!has) return;
-
   if (mode === 'diff') { renderDiff(current); return; }
   const src = await sourceFor(current, version);
-  if (mode === 'preview') {
-    $('preview').srcdoc = src === null ? blankDoc('No draft yet — fix this file first') : injectBase(src, baseHrefFor(current));
-  } else {
-    $('code').textContent = src === null ? 'No draft yet — fix this file first.' : src;
-  }
+  if (mode === 'preview') $('preview').srcdoc = src === null ? blankDoc('No draft yet — fix this file first') : injectBase(src, baseHrefFor(current));
+  else $('code').textContent = src === null ? 'No draft yet — fix this file first.' : src;
 }
 
-// ── Live fix progress (SSE) ─────────────────────────
+async function renderPromptView() {
+  $('preview').hidden = true; $('diff').hidden = true;
+  const has = !!state.currentPrompt;
+  $('placeholder').hidden = has;
+  $('markdown').hidden = !(has && state.promptMode === 'rendered');
+  $('code').hidden = !(has && state.promptMode === 'raw');
+  if (!has) return;
+  const src = await fetchPrompt(state.currentPrompt);
+  if (state.promptMode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
+  else $('code').textContent = src;
+}
+
+// ── Live progress (SSE) ─────────────────────────────
 let progTimer = null;
 function renderProgress() {
   const p = state.progress;
@@ -198,10 +225,51 @@ function renderProgress() {
       : '<span class="mk mk-fail">✗</span>';
     const t = `${path}${st.error ? ' — ' + st.error : ''}`;
     const via = st.via ? `<span class="via">${esc(st.via)}</span>` : '';
-    const short = path.split('/').pop();
-    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(short)}</span>${via}</div>`;
+    return `<div class="prog-item">${mk}<span class="nm" title="${esc(t)}">${esc(path.split('/').pop())}</span>${via}</div>`;
   }).join('');
   $('fixProgress').innerHTML = `<div class="prog-head">${head}</div><div class="prog-list">${items}</div>`;
+}
+
+function appendLog(path, text) {
+  state.logs.set(path, (state.logs.get(path) || '') + text);
+  if (state.activity.follow) state.activity.file = path;
+  if (state.activity.open) renderActivity();
+}
+
+async function streamSSE(res, onEvent) {
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const frame = buf.slice(0, i); buf = buf.slice(i + 2);
+      const ev = /event:\s*(.+)/.exec(frame);
+      const dt = /data:\s*([\s\S]+)/.exec(frame);
+      if (!ev || !dt) continue;
+      let d; try { d = JSON.parse(dt[1]); } catch { continue; }
+      onEvent(ev[1].trim(), d);
+    }
+  }
+}
+
+function startRun(paths) {
+  state.progress = { running: true, total: paths.length, done: 0, startedAt: Date.now(), endedAt: null,
+    items: new Map(paths.map((p) => [p, { status: 'pending' }])) };
+  state.logs = new Map();
+  state.activity.follow = true;
+  if (state.activity.open) renderActivity();
+  renderProgress();
+  progTimer = setInterval(renderProgress, 500);
+}
+function endRun() {
+  state.progress.running = false;
+  state.progress.endedAt = Date.now();
+  clearInterval(progTimer);
+  renderProgress();
 }
 
 function applyResult(r) {
@@ -212,21 +280,12 @@ function applyResult(r) {
   renderProgress();
   renderTree();
 }
-
-function appendLog(path, text) {
-  state.logs.set(path, (state.logs.get(path) || '') + text);
-  if (state.activity.follow) state.activity.file = path;
-  if (state.activity.open) renderActivity();
-}
-
-function handleFrame(frame) {
-  const ev = /event:\s*(.+)/.exec(frame);
-  const dt = /data:\s*([\s\S]+)/.exec(frame);
-  if (!ev || !dt) return;
-  let data; try { data = JSON.parse(dt[1]); } catch { return; }
-  const type = ev[1].trim();
-  if (type === 'result') applyResult(data);
-  else if (type === 'log') appendLog(data.path, data.text);
+function applyConvertResult(r) {
+  if (!state.progress) return;
+  const status = r.status === 'converted' ? 'fixed' : r.status === 'failed' ? 'fixFailed' : r.status;
+  state.progress.items.set(r.path, { status, error: r.error, via: r.via });
+  state.progress.done++;
+  renderProgress();
 }
 
 async function runFix() {
@@ -234,56 +293,53 @@ async function runFix() {
   if (!paths.length) { $('applyStatus').textContent = 'Select files first.'; return; }
   const optionIds = [...document.querySelectorAll('input[name=opt]:checked')].map((c) => c.value);
   const customPrompt = $('customPrompt').value;
-  state.progress = { running: true, total: paths.length, done: 0, startedAt: Date.now(), endedAt: null,
-    items: new Map(paths.map((p) => [p, { status: 'pending' }])) };
-  state.logs = new Map();
-  state.activity.follow = true;
-  if (state.activity.open) renderActivity();
-  $('fixBtn').disabled = true; $('applyStatus').textContent = '';
-  renderProgress();
-  progTimer = setInterval(renderProgress, 500);
+  startRun(paths);
+  $('fixBtn').disabled = true; $('convertBtn').disabled = true; $('applyStatus').textContent = '';
   try {
     const res = await fetch('/api/fix', {
       method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
       body: JSON.stringify({ paths, optionIds, customPrompt }) });
     if (res.body && res.headers.get('content-type')?.includes('text/event-stream')) {
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf = '';
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        let i;
-        while ((i = buf.indexOf('\n\n')) >= 0) { handleFrame(buf.slice(0, i)); buf = buf.slice(i + 2); }
-      }
-    } else {
-      const data = await res.json();
-      (data.results || []).forEach(applyResult);
-    }
+      await streamSSE(res, (type, d) => { if (type === 'result') applyResult(d); else if (type === 'log') appendLog(d.path, d.text); });
+    } else { (await res.json()).results?.forEach(applyResult); }
   } finally {
-    state.progress.running = false;
-    state.progress.endedAt = Date.now();
-    clearInterval(progTimer);
-    renderProgress();
-    $('fixBtn').disabled = false;
+    endRun();
+    $('fixBtn').disabled = false; $('convertBtn').disabled = false;
     renderTree();
-    if (state.current && state.drafts.has(state.current)) state.version = 'draft';
+    if (state.view === 'examples' && state.current && state.drafts.has(state.current)) state.version = 'draft';
     render();
+  }
+}
+
+async function runConvert() {
+  const paths = [...state.selected];
+  if (!paths.length) { $('applyStatus').textContent = 'Select example files first.'; return; }
+  startRun(paths);
+  $('fixBtn').disabled = true; $('convertBtn').disabled = true; $('applyStatus').textContent = '';
+  try {
+    const res = await fetch('/api/convert', {
+      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+      body: JSON.stringify({ paths }) });
+    if (res.body && res.headers.get('content-type')?.includes('text/event-stream')) {
+      await streamSSE(res, (type, d) => { if (type === 'result') applyConvertResult(d); else if (type === 'log') appendLog(d.path, d.text); });
+    } else { (await res.json()).results?.forEach(applyConvertResult); }
+  } finally {
+    endRun();
+    $('fixBtn').disabled = false; $('convertBtn').disabled = false;
+    await loadPrompts();
+    $('applyStatus').textContent += '  Prompts updated — see the Prompts tab.';
   }
 }
 
 async function applyOrDiscard(endpoint) {
   const paths = [...state.selected].filter((p) => state.drafts.has(p));
   if (!paths.length) { $('applyStatus').textContent = 'No drafts in selection.'; return; }
-  const data = await api(`/api/${endpoint}`, { method: 'POST',
-    headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paths }) });
+  const data = await api(`/api/${endpoint}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ paths }) });
   const results = data.results || [];
   const succeeded = results.filter((r) => r.ok).map((r) => r.path);
   const failed = results.filter((r) => !r.ok);
   for (const p of succeeded) state.drafts.delete(p);
-  const verb = endpoint === 'apply' ? 'Applied' : 'Discarded';
-  let msg = `${verb} ${succeeded.length} draft(s).`;
+  let msg = `${endpoint === 'apply' ? 'Applied' : 'Discarded'} ${succeeded.length} draft(s).`;
   if (failed.length) msg += ` Failed ${failed.length}: ${failed.map((r) => r.path).join(', ')}`;
   $('applyStatus').textContent = msg;
   renderTree();
@@ -304,7 +360,7 @@ function renderActivity() {
     const running = state.progress && state.progress.running;
     body.textContent = running
       ? 'Waiting for the model to start streaming…\n\nThe claude CLI takes a few seconds to spin up before the first token. If nothing appears after that, your validator server may predate this feature — restart it (Ctrl-C, then `npm start`).'
-      : 'No agent output yet. Run a fix that needs the model.\n\nMechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning — only semantic fixes (convert to interact, convert customEffect, remove JS) or a custom prompt call the model.';
+      : 'No agent output yet. Run a fix or a convert that needs the model.\n\nMechanical fixes (version pin, tag rename) are done by the deterministic codemod and produce no reasoning.';
   } else {
     body.textContent = state.logs.get(state.activity.file) || '(waiting for output…)';
     body.scrollTop = body.scrollHeight;
@@ -317,42 +373,55 @@ function closeActivity() { state.activity.open = false; $('activityModal').hidde
 $('fileTree').addEventListener('click', (e) => {
   const folder = e.target.closest('.folder-row');
   if (folder) {
+    const set = state.view === 'examples' ? state.expanded : state.promptExpanded;
     const p = folder.dataset.folder;
-    if (state.expanded.has(p)) state.expanded.delete(p); else state.expanded.add(p);
+    if (set.has(p)) set.delete(p); else set.add(p);
     renderTree();
     return;
   }
   const row = e.target.closest('.file-row');
   if (!row) return;
-  const path = row.dataset.path;
-  if (e.target.classList.contains('cb')) {
-    if (state.selected.has(path)) state.selected.delete(path); else state.selected.add(path);
-    return;
+  if (state.view === 'examples') {
+    const path = row.dataset.path;
+    if (e.target.classList.contains('cb')) {
+      if (state.selected.has(path)) state.selected.delete(path); else state.selected.add(path);
+      return;
+    }
+    state.current = path; renderTree(); render();
+  } else {
+    state.currentPrompt = row.dataset.ppath; renderTree(); render();
   }
-  state.current = path;
-  renderTree();
-  render();
 });
 $('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderTree(); });
 $('scanBtn').onclick = scan;
 $('selectAllBtn').onclick = () => {
   const vis = visibleFiles();
-  const allSelected = vis.length && vis.every((f) => state.selected.has(f.path));
-  if (allSelected) vis.forEach((f) => state.selected.delete(f.path));
-  else vis.forEach((f) => state.selected.add(f.path));
+  const all = vis.length && vis.every((f) => state.selected.has(f.path));
+  if (all) vis.forEach((f) => state.selected.delete(f.path)); else vis.forEach((f) => state.selected.add(f.path));
   renderTree();
 };
 $('fixBtn').onclick = runFix;
+$('convertBtn').onclick = runConvert;
 $('applyBtn').onclick = () => applyOrDiscard('apply');
 $('discardBtn').onclick = () => applyOrDiscard('discard');
-for (const b of document.querySelectorAll('#modeTabs .tab')) b.onclick = () => { state.mode = b.dataset.mode; render(); };
-for (const b of document.querySelectorAll('#verTabs .tab')) b.onclick = () => { state.version = b.dataset.ver; render(); };
-
-// panel collapse
+$('modeTabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  if (state.view === 'examples') state.mode = b.dataset.mode; else state.promptMode = b.dataset.mode;
+  render();
+});
+$('verTabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  state.version = b.dataset.ver; render();
+});
+for (const b of document.querySelectorAll('#viewTabs .vt')) b.onclick = () => {
+  state.view = b.dataset.view;
+  for (const x of document.querySelectorAll('#viewTabs .vt')) x.classList.toggle('active', x === b);
+  if (state.view === 'prompts') loadPrompts();
+  renderTree();
+  render();
+};
 $('toggleLeft').onclick = () => $('listPane').classList.toggle('collapsed');
 $('toggleRight').onclick = () => $('fixPane').classList.toggle('collapsed');
-
-// activity modal
 $('activityBtn').onclick = openActivity;
 $('activityClose').onclick = closeActivity;
 $('activityModal').addEventListener('click', (e) => { if (e.target.id === 'activityModal') closeActivity(); });
@@ -360,3 +429,5 @@ $('activityFile').onchange = (e) => { state.activity.file = e.target.value; stat
 
 loadFiles();
 loadOptions();
+loadPrompts();
+renderTopbar();

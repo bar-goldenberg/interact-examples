@@ -67,6 +67,28 @@ body {
 #placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--text-3); }
 #placeholder .ic { font-size: 52px; opacity: .35; }
 
+/* Rendered markdown (prompt guideline view) */
+#markdown { inset: 68px 332px 16px 322px; overflow: auto; padding: 26px 30px;
+  background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--hair); border-radius: var(--radius); box-shadow: var(--shadow);
+  color: var(--text); font-size: 13.5px; line-height: 1.6; }
+#markdown h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.02em; }
+#markdown h2 { font-size: 16px; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--hair); }
+#markdown h3 { font-size: 13.5px; margin: 18px 0 6px; }
+#markdown p { margin: 8px 0; color: var(--text-2); }
+#markdown ul, #markdown ol { margin: 8px 0; padding-left: 22px; color: var(--text-2); }
+#markdown li { margin: 3px 0; }
+#markdown code { font-family: var(--mono); font-size: 12px; background: var(--fill-2); padding: 1px 5px; border-radius: 5px; color: #e6c07b; }
+#markdown pre.md-code { background: rgba(0,0,0,0.35); border: 1px solid var(--hair); border-radius: var(--radius-xs); padding: 12px 14px; overflow: auto; margin: 10px 0; }
+#markdown pre.md-code code { background: none; padding: 0; color: #d6deeb; }
+#markdown table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12.5px; }
+#markdown th, #markdown td { border: 1px solid var(--hair); padding: 7px 10px; text-align: left; vertical-align: top; }
+#markdown th { background: var(--fill-1); font-weight: 600; }
+#markdown td { color: var(--text-2); }
+#markdown hr { border: 0; border-top: 1px solid var(--hair); margin: 18px 0; }
+#markdown a { color: #6f9bff; }
+#markdown strong { color: var(--text); }
+
 /* ── Floating tab groups (top center) ────────────── */
 #topbar { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 10px; }
 #topbar.diff #verTabs { display: none; }
@@ -142,8 +164,17 @@ body {
 }
 .search::placeholder { color: var(--text-3); }
 .search:focus { outline: none; border-color: var(--accent-soft); background: var(--fill-2); }
+/* ── Examples / Prompts view tabs ────────────────── */
+.view-tabs { display: flex; gap: 4px; padding: 0 16px 10px; }
+.vt { flex: 1; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-2);
+  background: var(--fill-1); border: 0; border-radius: var(--radius-xs); padding: 6px 0; cursor: pointer; transition: all .15s; }
+.vt:hover { background: var(--fill-2); color: var(--text); }
+.vt.active { background: var(--fill-3); color: var(--text); }
+
 /* ── File tree ───────────────────────────────────── */
 #fileTree { overflow-y: auto; flex: 1; padding: 0 8px 12px; }
+.md-badge { font-size: 9.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; flex: none;
+  color: #c9b8ff; background: rgba(168,85,247,0.2); padding: 2px 6px; border-radius: 980px; }
 .folder-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: var(--radius-xs); cursor: pointer; color: var(--text-2); transition: background .12s; user-select: none; }
 .folder-row:hover { background: var(--fill-1); color: var(--text); }
 .folder-row .chev { width: 12px; font-size: 10px; flex: none; opacity: .8; }

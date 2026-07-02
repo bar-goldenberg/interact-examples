@@ -12,6 +12,7 @@
     <iframe id="preview" title="preview"></iframe>
     <pre id="code" hidden></pre>
     <div id="diff" hidden></div>
+    <div id="markdown" class="md-view" hidden></div>
     <div id="placeholder"><div class="ic">◈</div><p>Select a file to preview</p></div>
   </div>
 
@@ -43,6 +44,10 @@
     <div class="list-head">
       <input id="filter" class="search" type="search" placeholder="Filter files…" autocomplete="off" />
     </div>
+    <div id="viewTabs" class="view-tabs">
+      <button data-view="examples" class="vt active">Examples</button>
+      <button data-view="prompts" class="vt">Prompts</button>
+    </div>
     <div id="fileTree"></div>
   </aside>
 
@@ -53,6 +58,7 @@
     <textarea id="customPrompt" placeholder="Custom instructions (optional)…"></textarea>
     <button id="activityBtn" class="btn btn-ghost btn-block">◧ Agent activity</button>
     <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
+    <button id="convertBtn" class="btn btn-block">Convert to prompt</button>
     <div id="fixProgress"></div>
     <div class="divider"></div>
     <div class="apply-actions">
