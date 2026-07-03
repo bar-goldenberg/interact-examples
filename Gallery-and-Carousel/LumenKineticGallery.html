@@ -1,0 +1,1677 @@
+<!--
+  LUMEN — a kinetic light gallery.
+  Every animation on the page is one declarative @wix/interact config —
+  no manual event listeners, no scroll handlers, no rAF loops.
+
+  Demonstrates: viewEnter sequences (staggered char/card/line entrances),
+  split-flap char roll (entrance + hover, a la landonorris.com), scroll-driven
+  effects (ParallaxScroll, PanScroll marquee, SkewPanScroll, per-char scatter
+  over the h1's exit range, pinned 320vh scene over contain range, page
+  progress bar via a sentinel ViewTimeline subject), pointer effects
+  (Tilt3DMouse, AiryMouse, magnetic type via customEffect, traveling glare),
+  hover state transitions, and reduced-motion/touch conditions.
+
+  Note: for production, call generate(config, true) at build time and inject
+  the CSS into <head> for FOUC-free entrances (see @wix/interact docs).
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LUMEN — A Kinetic Light Gallery</title>
+<style>
+/* ============ LUMEN — design system ============ */
+
+:root {
+  --bg: #0a0a0f;
+  --bg-raised: #101017;
+  --ink: #ece7dd;
+  --muted: #8f8a99;
+  --hair: rgba(236, 231, 221, 0.14);
+  --accent: #e0a458;
+  --display: "Helvetica Neue", "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--display);
+  /* clip, never hidden — hidden would break ViewTimeline scroll scenes */
+  overflow-x: clip;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* Real boxes, not display:contents — the runtime's IntersectionObserver for
+   sequence triggers observes the custom element itself; a contents element
+   has a zero rect and never intersects. */
+interact-element { display: block; }
+.feature-wrap > interact-element { height: 100%; }
+
+a { color: inherit; text-decoration: none; }
+em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
+
+/* ---------- chrome ---------- */
+
+main { position: relative; }
+
+.scroll-track {
+  position: absolute;
+  top: 100vh;
+  left: 0;
+  width: 1px;
+  height: calc(100% - 200vh);
+  pointer-events: none;
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, #e0a458, #c4b5fd, #7dd3fc);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 120;
+}
+
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px clamp(20px, 4vw, 56px);
+  z-index: 100;
+  background: linear-gradient(rgba(10, 10, 15, 0.75), rgba(10, 10, 15, 0));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(#000 72%, transparent);
+  -webkit-mask-image: linear-gradient(#000 72%, transparent);
+}
+
+.wordmark {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+.wordmark sup { font-size: 8px; letter-spacing: 0; opacity: 0.6; }
+
+.nav-links { display: flex; gap: clamp(16px, 3vw, 40px); }
+.nav-links a {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.25s ease;
+}
+.nav-links a:hover { color: var(--ink); }
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%; height: 200%;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.index {
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.section-head h2 {
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 18vh 24px 12vh;
+}
+
+.orbs { position: absolute; inset: 0; overflow: clip; }
+.drift { position: absolute; }
+.drift-a { top: 6%; left: 8%; }
+.drift-b { bottom: -4%; right: 4%; }
+.drift-c { top: 42%; left: 56%; }
+
+.orb {
+  border-radius: 50%;
+  filter: blur(clamp(40px, 6vw, 80px));
+  opacity: 0.55;
+}
+.orb-a {
+  width: 52vmin; height: 52vmin;
+  background: radial-gradient(circle at 35% 35%, #ffb968, #b4532a 55%, transparent 72%);
+}
+.orb-b {
+  width: 64vmin; height: 64vmin;
+  background: radial-gradient(circle at 60% 40%, #a78bfa, #4c1d95 55%, transparent 72%);
+  opacity: 0.45;
+}
+.orb-c {
+  width: 38vmin; height: 38vmin;
+  background: radial-gradient(circle at 50% 50%, #7dd3fc, #0e7490 55%, transparent 74%);
+  opacity: 0.4;
+}
+
+.hero-inner { position: relative; z-index: 2; }
+
+.hero-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero-title {
+  font-size: clamp(4.5rem, 19vw, 16rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.02;
+  margin: 2vh 0 3vh;
+}
+.hero-title .char {
+  display: inline-block;
+  transform-origin: 50% 88%;
+  will-change: transform, opacity, filter;
+  /* smooths the pointer-magnet's per-frame inline transforms */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-title .char-scatter {
+  display: inline-block;
+  will-change: transform, filter;
+}
+.hero-title .char-core {
+  display: inline-block;
+  transform-origin: 50% 88%;
+  will-change: transform;
+}
+
+.hero-sub {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: var(--muted);
+  line-height: 1.7;
+}
+.hero-sub em { color: var(--ink); }
+
+.hero-hint {
+  margin-top: 7vh;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hint-line {
+  width: 1px; height: 56px;
+  background: linear-gradient(var(--ink), transparent);
+  opacity: 0.5;
+}
+
+/* ---------- marquee ---------- */
+
+.marquee {
+  padding: 9vh 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  overflow-x: clip;
+  display: grid;
+  gap: 2vh;
+}
+
+.m-row { white-space: nowrap; }
+.m-row .track { display: inline-block; will-change: transform; }
+.m-row span {
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.row-a { margin-left: -6%; }
+.row-b { margin-left: -14%; color: transparent; -webkit-text-stroke: 1px rgba(236, 231, 221, 0.35); }
+.row-b em { text-transform: none; }
+
+/* ---------- collection ---------- */
+
+.works { padding: 20vh clamp(20px, 4vw, 56px) 14vh; }
+.works .section-head { margin-bottom: 10vh; }
+
+.works-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(16px, 3vw, 48px);
+  row-gap: clamp(48px, 9vh, 120px);
+}
+
+interact-element.card { will-change: transform, opacity, filter; }
+.card.span-7 { grid-column: span 7; }
+.card.span-5 { grid-column: span 5; }
+.card.push { margin-top: 14vh; }
+
+.card-inner {
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+.card-media {
+  position: relative;
+  overflow: clip;
+  border-radius: 4px;
+  background: var(--bg-raised);
+  border: 1px solid var(--hair);
+}
+.span-7 .card-media { aspect-ratio: 4 / 3; }
+.span-5 .card-media { aspect-ratio: 3 / 4; }
+
+.art {
+  position: absolute;
+  inset: 0;
+  transform: scale(1);
+  will-change: transform;
+}
+
+.glare {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.card-meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding-top: 18px;
+  margin-top: 2px;
+  border-top: 1px solid var(--hair);
+  transform: translateZ(24px);
+}
+.card-meta h3 {
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.card-meta p { grid-row: 2; font-size: 13px; color: var(--muted); }
+.card-cta {
+  grid-row: 1 / 3;
+  align-self: center;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ---- the six works (pure CSS light studies) ---- */
+
+.art-helios {
+  background:
+    linear-gradient(rgba(10, 10, 15, 0) 55%, rgba(10, 10, 15, 0.55)),
+    radial-gradient(circle at 50% 60%, #ffe3b3 0 9%, rgba(255, 200, 120, 0.65) 16%, transparent 40%),
+    conic-gradient(from 180deg at 50% 60%, #140b26, #6d2a35 22%, #d96a2c 42%, #ffd9a0 50%, #d96a2c 58%, #6d2a35 78%, #140b26);
+}
+.art-iris {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(196, 181, 253, 0.9) 0 4%, transparent 5%),
+    repeating-radial-gradient(circle at 50% 46%, rgba(196, 181, 253, 0.5) 0 1.5px, transparent 1.5px 22px),
+    radial-gradient(circle at 50% 46%, #4c1d95 0%, #1b0b33 55%, #0d0618 100%);
+}
+.art-signal {
+  background:
+    radial-gradient(70% 55% at 50% 52%, rgba(125, 211, 252, 0.5), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(125, 211, 252, 0.8) 0 2px, transparent 2px 17px),
+    linear-gradient(#04141c, #020a10);
+}
+.art-vermilion {
+  background:
+    radial-gradient(circle at 50% 38%, #ffd9a0 0 5%, transparent 6.5%),
+    radial-gradient(130% 85% at 50% 105%, #ff4d2e, #a3170c 55%, #2b0705 90%),
+    #1a0504;
+}
+.art-nocturne {
+  background:
+    radial-gradient(circle at 72% 26%, #dfe6ff 0 5.5%, rgba(223, 230, 255, 0.25) 8%, transparent 16%),
+    radial-gradient(1.5px 1.5px at 22% 34%, #cfd8ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 18%, #cfd8ff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 62%, #aebcf0 50%, transparent 51%),
+    radial-gradient(1px 1px at 82% 48%, #cfd8ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 14% 72%, #8fa2e0 50%, transparent 51%),
+    linear-gradient(#0a1330, #04060f 80%);
+}
+.art-ember {
+  background:
+    radial-gradient(60% 45% at 38% 68%, rgba(255, 122, 61, 0.85), rgba(140, 35, 10, 0.5) 55%, transparent 80%),
+    repeating-linear-gradient(135deg, #170b07 0 16px, #221009 16px 32px),
+    #120805;
+}
+
+/* ---------- roll title (split-flap interstitial) ---------- */
+
+.roll-band {
+  padding: 20vh 24px;
+  text-align: center;
+  border-top: 1px solid var(--hair);
+}
+
+.roll-heading {
+  font-size: clamp(2.4rem, 8.5vw, 8rem);
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.roll-heading .rchar {
+  display: inline-block;
+  overflow: clip;
+  height: 1em;
+  line-height: 1;
+  vertical-align: baseline;
+}
+.roll-heading .roll-outer,
+.roll-heading .roll-stack {
+  display: block;
+  will-change: transform;
+}
+.roll-heading .roll-glyph {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+/* the last word — "light" — carries the accent */
+.roll-heading .rchar:nth-last-child(-n + 5) { color: var(--accent); }
+
+/* ---------- AURORA pinned scene ---------- */
+
+.feature-wrap { height: 320vh; position: relative; }
+
+.feature-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: clip;
+  display: grid;
+  place-items: center;
+  border-top: 1px solid var(--hair);
+}
+
+.f-layer { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+.f-orb { position: absolute; border-radius: 50%; }
+.f-orb-1 {
+  width: 70vmin; height: 70vmin; top: 8%; right: -12%;
+  background: radial-gradient(circle at 40% 40%, rgba(110, 231, 183, 0.5), rgba(13, 148, 136, 0.25) 55%, transparent 72%);
+  filter: blur(50px);
+}
+.f-orb-2 {
+  width: 40vmin; height: 40vmin; bottom: 6%; left: -6%;
+  background: radial-gradient(circle at 50% 50%, rgba(196, 181, 253, 0.55), rgba(91, 33, 182, 0.3) 55%, transparent 74%);
+  filter: blur(44px);
+}
+.f-orb-3 {
+  width: 22vmin; height: 22vmin; top: 16%; left: 18%;
+  background: radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.5), transparent 70%);
+  filter: blur(30px);
+}
+
+.feature-ring {
+  position: absolute;
+  width: 66vmin; height: 66vmin;
+  border-radius: 50%;
+  border: 1px solid rgba(236, 231, 221, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(236, 231, 221, 0.05), 0 0 120px rgba(125, 211, 252, 0.08);
+  will-change: transform, opacity;
+}
+.feature-ring::before {
+  content: "";
+  position: absolute;
+  top: -4px; left: 50%;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.feature-center { position: relative; text-align: center; z-index: 2; padding: 0 24px; }
+
+.feature-word {
+  font-size: clamp(4rem, 15vw, 13rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  background: linear-gradient(100deg, #6ee7b7, #7dd3fc 38%, #c4b5fd 68%, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  will-change: transform, opacity, filter;
+}
+
+.feature-caption { max-width: 44ch; margin: 5vh auto 0; will-change: transform, opacity; }
+.feature-caption p { font-size: clamp(1rem, 1.5vw, 1.2rem); color: var(--muted); line-height: 1.7; }
+.feature-caption em { color: var(--ink); }
+.caption-detail {
+  margin-top: 18px;
+  font-size: 11px !important;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+/* ---------- statement ---------- */
+
+.statement {
+  padding: 24vh 0;
+  overflow-x: clip;
+  border-top: 1px solid var(--hair);
+  text-align: center;
+}
+
+.s-line {
+  font-size: clamp(3.4rem, 11vw, 10rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(236, 231, 221, 0.3);
+  will-change: transform;
+}
+
+.credo { padding: 9vh 24px; }
+.credo-list { list-style: none; display: grid; gap: 2.4vh; }
+.credo-list li { overflow: clip; }
+.credo-list li span {
+  display: inline-block;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.7rem, 4vw, 3.2rem);
+  line-height: 1.25;
+  will-change: transform, opacity;
+}
+.credo-list li:nth-child(3) span { color: var(--muted); }
+
+/* ---------- footer ---------- */
+
+.footer {
+  position: relative;
+  padding: 20vh clamp(20px, 4vw, 56px) 8vh;
+  border-top: 1px solid var(--hair);
+}
+
+.footer-stack { display: grid; justify-items: start; }
+.footer-stack > * { will-change: transform, opacity; }
+
+.footer-title {
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 6vh;
+}
+
+.cta-zone { padding: 34px; margin: -34px 0 6vh -34px; display: inline-block; }
+.cta-mag {
+  display: inline-block;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.cta-core {
+  display: inline-block;
+  padding: 1.15em 2.8em;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background-color: transparent;
+  color: var(--ink);
+}
+
+.footer-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  width: 100%;
+  max-width: 760px;
+  padding-top: 6vh;
+  border-top: 1px solid var(--hair);
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.foot-label {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.colophon {
+  margin-top: 10vh;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 62ch;
+  line-height: 1.8;
+}
+.colophon a { border-bottom: 1px solid var(--hair); color: var(--ink); }
+
+.badge {
+  position: absolute;
+  right: clamp(20px, 5vw, 72px);
+  bottom: 10vh;
+  width: 128px; height: 128px;
+  display: grid;
+  place-items: center;
+}
+.badge-disc { width: 100%; height: 100%; will-change: transform; }
+.badge-disc text {
+  fill: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.badge-dot {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .card.span-7, .card.span-5 { grid-column: 1 / -1; }
+  .card.push { margin-top: 0; }
+  .span-5 .card-media { aspect-ratio: 4 / 3; }
+  .footer-cols { grid-template-columns: 1fr; }
+  .badge { position: static; margin-top: 8vh; }
+  .footer { display: grid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+</style>
+</head>
+<body>
+
+
+<interact-element data-interact-key="nav">
+  <header class="nav">
+    <a class="wordmark" href="#top">LUMEN<sup>®</sup></a>
+    <nav class="nav-links">
+      <a href="#collection">Collection</a>
+      <a href="#aurora">Aurora</a>
+      <a href="#visit">Visit</a>
+    </nav>
+  </header>
+</interact-element>
+
+<main id="top">
+    <interact-element data-interact-key="scroll-track">
+      <div class="scroll-track" aria-hidden="true">
+        <!-- fixed-position, so its visual placement is independent of this wrapper -->
+        <div class="progress-bar"></div>
+      </div>
+    </interact-element>
+
+    <!-- ============ HERO ============ -->
+    <interact-element data-interact-key="hero">
+      <section class="hero">
+        <div class="orbs" aria-hidden="true">
+          <div class="drift drift-a"><div class="orb orb-a"></div></div>
+          <div class="drift drift-b"><div class="orb orb-b"></div></div>
+          <div class="drift drift-c"><div class="orb orb-c"></div></div>
+        </div>
+        <div class="hero-inner">
+          <p class="hero-eyebrow">Gallery for light &amp; motion — Tel Aviv</p>
+          <interact-element data-interact-key="hero-title">
+            <h1 class="hero-title"><span class="split">LUMEN</span></h1>
+          </interact-element>
+          <p class="hero-sub">
+            Six luminous works on the edge of <em>stillness</em> and <em>motion</em>.
+            <br />Selected pieces, 2024–2026.
+          </p>
+          <p class="hero-hint">Scroll<span class="hint-line"></span></p>
+        </div>
+      </section>
+    </interact-element>
+
+    <!-- ============ MARQUEE ============ -->
+    <interact-element data-interact-key="marquee">
+      <section class="marquee" aria-hidden="true">
+        <div class="m-row row-a">
+          <div class="track">
+            <span>Light — Motion — Form — Color — Light — Motion — Form — Color — Light — Motion — Form — Color —&nbsp;</span>
+          </div>
+        </div>
+        <div class="m-row row-b">
+          <div class="track">
+            <span><em>Six works — one room — no screens — Six works — one room — no screens — Six works — one room — no screens —</em>&nbsp;</span>
+          </div>
+        </div>
+      </section>
+    </interact-element>
+
+    <!-- ============ COLLECTION ============ -->
+    <interact-element data-interact-key="works">
+      <section class="works" id="collection">
+        <interact-element data-interact-key="head-works">
+          <header class="section-head">
+            <p class="index">01 — The Collection</p>
+            <h2>Selected <em>works</em></h2>
+          </header>
+        </interact-element>
+
+        <div class="works-grid">
+          <interact-element data-interact-key="card-1" class="card span-7">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-helios"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Helios Descending</h3>
+                <p>Projected light on linen — 2026</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+
+          <interact-element data-interact-key="card-2" class="card span-5 push">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-iris"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Iris, Repeating</h3>
+                <p>Refraction study — 2025</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+
+          <interact-element data-interact-key="card-3" class="card span-5">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-signal"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Signal Fade</h3>
+                <p>Phosphor on glass — 2025</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+
+          <interact-element data-interact-key="card-4" class="card span-7 push">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-vermilion"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Vermilion Field</h3>
+                <p>Pigment and sodium light — 2024</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+
+          <interact-element data-interact-key="card-5" class="card span-7">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-nocturne"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Nocturne No. 3</h3>
+                <p>Moonlight recording — 2025</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+
+          <interact-element data-interact-key="card-6" class="card span-5 push">
+            <article class="card-inner">
+              <figure class="card-media"><div class="art art-ember"></div><div class="glare" aria-hidden="true"></div></figure>
+              <div class="card-meta">
+                <h3>Ember Study</h3>
+                <p>Slow fire, long exposure — 2026</p>
+                <span class="card-cta">View piece ↗</span>
+              </div>
+            </article>
+          </interact-element>
+        </div>
+      </section>
+    </interact-element>
+
+    <!-- ============ ROLL TITLE — split-flap interstitial ============ -->
+    <interact-element data-interact-key="roll-title">
+      <section class="roll-band" aria-label="Step into the light">
+        <h2 class="roll-heading"><span class="split-roll">Step into the light</span></h2>
+      </section>
+    </interact-element>
+
+    <!-- ============ AURORA — pinned scene ============ -->
+    <section class="feature-wrap" id="aurora">
+      <interact-element data-interact-key="feature">
+        <div class="feature-stage">
+          <div class="f-layer f-layer-far" aria-hidden="true">
+            <div class="f-orb f-orb-1"></div>
+          </div>
+          <div class="feature-ring" aria-hidden="true"></div>
+          <div class="feature-center">
+            <interact-element data-interact-key="head-feature">
+              <p class="index">02 — Installation</p>
+            </interact-element>
+            <h2 class="feature-word">AURORA</h2>
+            <div class="feature-caption">
+              <p>
+                A single beam, folded through forty panes of hand-poured glass.
+                <em>The room decides the rest.</em>
+              </p>
+              <p class="caption-detail">Main hall — continuous, dusk to midnight</p>
+            </div>
+          </div>
+          <div class="f-layer f-layer-near" aria-hidden="true">
+            <div class="f-orb f-orb-2"></div>
+            <div class="f-orb f-orb-3"></div>
+          </div>
+        </div>
+      </interact-element>
+    </section>
+
+    <!-- ============ STATEMENT ============ -->
+    <interact-element data-interact-key="statement">
+      <section class="statement" aria-label="Gallery credo">
+        <p class="s-line line-l">Light is material</p>
+        <interact-element data-interact-key="credo">
+          <div class="credo">
+            <ul class="credo-list">
+              <li><span>Motion is language.</span></li>
+              <li><span>Form is memory.</span></li>
+              <li><span>Everything else is noise.</span></li>
+            </ul>
+          </div>
+        </interact-element>
+        <p class="s-line line-r">Form is memory</p>
+      </section>
+    </interact-element>
+
+    <!-- ============ FOOTER / VISIT ============ -->
+    <interact-element data-interact-key="footer">
+      <footer class="footer" id="visit">
+        <div class="footer-stack">
+          <interact-element data-interact-key="head-visit">
+            <p class="index">03 — Visit</p>
+          </interact-element>
+          <h2 class="footer-title">See it <em>in person</em></h2>
+          <interact-element data-interact-key="cta">
+            <div class="cta-zone">
+              <div class="cta-mag">
+                <a class="cta-core" href="#top">Book a visit</a>
+              </div>
+            </div>
+          </interact-element>
+          <div class="footer-cols">
+            <div>
+              <p class="foot-label">Address</p>
+              <p>12 Shvil HaMeretz<br />Tel Aviv–Yafo</p>
+            </div>
+            <div>
+              <p class="foot-label">Hours</p>
+              <p>Tue–Sat, dusk to midnight<br />Closed in daylight</p>
+            </div>
+            <div>
+              <p class="foot-label">Contact</p>
+              <p>hello@lumen.gallery<br />+972 3 000 0000</p>
+            </div>
+          </div>
+          <p class="colophon">
+            © <span id="year"></span> LUMEN Gallery — every animation on this page is one declarative
+            <a href="https://github.com/wix/interact">@wix/interact</a> config. No event listeners were written.
+          </p>
+        </div>
+        <div class="badge" aria-hidden="true">
+          <svg class="badge-disc" viewBox="0 0 120 120">
+            <defs><path id="ring" d="M 60,60 m -46,0 a 46,46 0 1,1 92,0 a 46,46 0 1,1 -92,0" /></defs>
+            <text>
+              <textPath href="#ring">LUMEN GALLERY · EST. 2026 · LIGHT IN MOTION ·</textPath>
+            </text>
+          </svg>
+          <span class="badge-dot"></span>
+        </div>
+      </footer>
+    </interact-element>
+
+  </main>
+
+<div class="grain" aria-hidden="true"></div>
+<script type="module">
+import { Interact, generate } from 'https://esm.sh/@wix/interact/web';
+import * as presets from 'https://esm.sh/@wix/motion-presets';
+import { splitText } from '@wix/splittext'; // unpublished — bundle from the interact monorepo
+
+/**
+ * LUMEN — a kinetic light gallery.
+ * Every animation on the page is declared here as a single @wix/interact config:
+ * no manual event listeners, no scroll handlers, no rAF loops in app code.
+ */
+
+const pct = (value) => ({ offset: { value, unit: 'percentage' } });
+const range = (name, value) => ({ name, ...pct(value) });
+
+/* ---- custom pointer-driven effects (things CSS can't express) ---- */
+
+/* Paints the traveling highlight; visibility is a hover state in CSS, so it
+   can never get stuck lit (hitArea 'self' sends no event after the pointer
+   leaves the element). */
+function glareEffect(element, progress) {
+  const x = progress.x * 100;
+  const y = progress.y * 100;
+  element.style.background = `radial-gradient(340px circle at ${x}% ${y}%, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 42%, transparent 68%)`;
+}
+
+/* The element's untransformed center in viewport coords: its rect minus the
+   translate it already carries — otherwise the effect feeds back into its own
+   distance reading and oscillates. */
+function restCenter(element) {
+  const t = getComputedStyle(element).transform;
+  const m = t === 'none' ? { m41: 0, m42: 0 } : new DOMMatrix(t);
+  const r = element.getBoundingClientRect();
+  return { x: r.left + r.width / 2 - m.m41, y: r.top + r.height / 2 - m.m42 };
+}
+
+/* Pointer tracked over the whole viewport (hitArea 'root') so distance
+   falloff — not a missing leave event — brings elements back to rest. */
+function magneticEffect(element, progress) {
+  const c = restCenter(element);
+  const dx = progress.x * window.innerWidth - c.x;
+  const dy = progress.y * window.innerHeight - c.y;
+  const dist = Math.hypot(dx, dy) || 1;
+  const falloff = Math.max(0, 1 - dist / 240);
+  const pull = falloff * falloff * 30;
+  element.style.transform = `translate(${(dx / dist) * pull}px, ${(dy / dist) * pull}px)`;
+}
+
+function charMagnetEffect(element, progress) {
+  const c = restCenter(element);
+  const dx = c.x - progress.x * window.innerWidth;
+  const dy = c.y - progress.y * window.innerHeight;
+  const dist = Math.hypot(dx, dy) || 1;
+  const falloff = Math.max(0, 1 - dist / 260);
+  const push = falloff * falloff * 34;
+  const nx = dx / dist;
+  element.style.transform = `translate(${nx * push}px, ${(dy / dist) * push}px) rotate(${nx * falloff * 5}deg)`;
+}
+
+/* Deterministic per-letter trajectories for the scroll dissolve */
+const SCATTER = [
+  { x: -16, y: -34, r: -26, blur: 6 },
+  { x: -7, y: -16, r: 10, blur: 3 },
+  { x: 3, y: -40, r: -6, blur: 8 },
+  { x: 10, y: -20, r: 18, blur: 4 },
+  { x: 18, y: -30, r: -14, blur: 6 },
+];
+
+/* Char count of the roll title — must match the markup. splittext wraps
+   spaces as elements too, so nth-child indexes every char 1..N; a "roll" on
+   a space span is invisible and reads as a word-gap pause in the stagger. */
+const ROLL_TEXT = 'Step into the light';
+const ROLL_COUNT = ROLL_TEXT.length;
+
+/* ---- config ---- */
+
+function buildConfig() {
+  const interactions = [];
+
+  /* Reading-progress hairline. The subject is a sentinel spanning
+     top:100vh → bottom:-100vh of the page, so its cover range maps 1:1
+     onto the document's scrollable distance. */
+  interactions.push({
+    key: 'scroll-track',
+    trigger: 'viewProgress',
+    effects: [
+      {
+        selector: '.progress-bar',
+        keyframeEffect: {
+          name: 'progress-fill',
+          keyframes: [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+        },
+        rangeStart: range('cover', 0),
+        rangeEnd: range('cover', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Nav slides down once on load */
+  interactions.push({
+    key: 'nav',
+    trigger: 'viewEnter',
+    params: { threshold: 0 },
+    effects: [
+      {
+        conditions: ['motion-ok'],
+        duration: 900,
+        delay: 350,
+        easing: 'cubicOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'nav-in',
+          keyframes: [
+            { opacity: 0, transform: 'translateY(-18px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+        },
+      },
+    ],
+  });
+
+  /* Hero headline — split chars rise out of a blur, staggered as a sequence */
+  interactions.push({
+    key: 'hero-title',
+    trigger: 'viewEnter',
+    params: { threshold: 0.35 },
+    sequences: [
+      {
+        offset: 42,
+        offsetEasing: 'quadOut',
+        delay: 150,
+        /* splittext nests chars inside an aria-hidden wrapper (next to an
+           sr-only text copy) — the wrapper is the real list container */
+        effects: [
+          {
+            effectId: 'char-in',
+            listContainer: '.split [data-splittext-wrapper]',
+            conditions: ['motion-ok'],
+          },
+        ],
+      },
+    ],
+  });
+
+  /* The word dissolves into light as you scroll away — every letter takes
+     its own trajectory, on its own slice of the h1's exit range */
+  interactions.push({
+    key: 'hero-title',
+    trigger: 'viewProgress',
+    conditions: ['motion-ok'],
+    effects: SCATTER.map((s, i) => ({
+      selector: `.char:nth-child(${i + 1}) .char-scatter`,
+      keyframeEffect: {
+        name: `char-scatter-${i + 1}`,
+        keyframes: [
+          { transform: 'translate(0, 0) rotate(0deg)', filter: 'blur(0px)' },
+          {
+            transform: `translate(${s.x}vw, ${s.y}vh) rotate(${s.r}deg)`,
+            filter: `blur(${s.blur}px)`,
+          },
+        ],
+      },
+      rangeStart: range('exit', i * 4),
+      rangeEnd: range('exit', 72 + i * 7),
+      easing: 'quadIn',
+      fill: 'both',
+    })),
+  });
+
+  /* Letters bend away from the pointer — magnetic type */
+  interactions.push({
+    key: 'hero-title',
+    trigger: 'pointerMove',
+    params: { hitArea: 'root' },
+    conditions: ['motion-ok', 'hover-fine'],
+    effects: SCATTER.map((_, i) => ({
+      selector: `.char:nth-child(${i + 1})`,
+      customEffect: charMagnetEffect,
+    })),
+  });
+
+  /* …and a wave ripples across the letters on every hover.
+     One effect per char with a stepped delay — sequences don't yet play for
+     event triggers in the web integration, so the stagger is explicit. */
+  interactions.push({
+    key: 'hero-title',
+    trigger: 'hover',
+    conditions: ['hover-fine'],
+    effects: Array.from({ length: 5 }, (_, i) => ({
+      conditions: ['motion-ok'],
+      selector: `.split .char:nth-child(${i + 1}) .char-core`,
+      triggerType: 'repeat',
+      duration: 520,
+      delay: i * 48,
+      easing: 'sineInOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: `char-wave-${i + 1}`,
+        keyframes: [
+          { transform: 'translateY(0) rotate(0deg) scale(1)' },
+          { transform: 'translateY(-0.14em) rotate(-3.5deg) scale(1.04)', offset: 0.4 },
+          { transform: 'translateY(0) rotate(0deg) scale(1)' },
+        ],
+      },
+    })),
+  });
+
+  /* Hero supporting copy floats in after the headline */
+  interactions.push({
+    key: 'hero',
+    trigger: 'viewEnter',
+    params: { threshold: 0.2 },
+    effects: [
+      {
+        conditions: ['motion-ok'],
+        selector: '.hero-eyebrow',
+        duration: 900,
+        delay: 250,
+        easing: 'cubicOut',
+        fill: 'backwards',
+        namedEffect: { type: 'FadeIn' },
+      },
+      {
+        conditions: ['motion-ok'],
+        selector: '.hero-sub',
+        duration: 1000,
+        delay: 950,
+        easing: 'cubicOut',
+        fill: 'backwards',
+        namedEffect: { type: 'FloatIn', direction: 'bottom' },
+      },
+      {
+        conditions: ['motion-ok'],
+        selector: '.hero-hint',
+        duration: 900,
+        delay: 1350,
+        easing: 'cubicOut',
+        fill: 'backwards',
+        namedEffect: { type: 'FadeIn' },
+      },
+    ],
+  });
+
+  /* Aurora orbs breathe forever… */
+  interactions.push({
+    key: 'hero',
+    trigger: 'viewEnter',
+    params: { threshold: 0 },
+    conditions: ['motion-ok'],
+    effects: [
+      {
+        selector: '.orb-a',
+        duration: 9000,
+        iterations: Infinity,
+        alternate: true,
+        easing: 'sineInOut',
+        namedEffect: { type: 'Breathe', direction: 'center', distance: { value: 30, unit: 'px' } },
+      },
+      {
+        selector: '.orb-b',
+        duration: 12000,
+        delay: 600,
+        iterations: Infinity,
+        alternate: true,
+        easing: 'sineInOut',
+        namedEffect: { type: 'Breathe', direction: 'vertical', distance: { value: 44, unit: 'px' } },
+      },
+      {
+        selector: '.orb-c',
+        duration: 15000,
+        delay: 1200,
+        iterations: Infinity,
+        alternate: true,
+        easing: 'sineInOut',
+        namedEffect: { type: 'Breathe', direction: 'horizontal', distance: { value: 38, unit: 'px' } },
+      },
+    ],
+  });
+
+  /* …and drift after the pointer at three depths (root hit-area = whole viewport) */
+  interactions.push({
+    key: 'hero',
+    trigger: 'pointerMove',
+    params: { hitArea: 'root' },
+    conditions: ['motion-ok', 'hover-fine'],
+    effects: [
+      {
+        selector: '.drift-a',
+        namedEffect: { type: 'AiryMouse', distance: { value: 55, unit: 'px' } },
+        transitionDuration: 1100,
+        transitionEasing: 'easeOut',
+        fill: 'both',
+      },
+      {
+        selector: '.drift-b',
+        namedEffect: { type: 'AiryMouse', distance: { value: 120, unit: 'px' }, inverted: true },
+        transitionDuration: 1600,
+        transitionEasing: 'easeOut',
+        fill: 'both',
+      },
+      {
+        selector: '.drift-c',
+        namedEffect: { type: 'AiryMouse', distance: { value: 200, unit: 'px' } },
+        transitionDuration: 2200,
+        transitionEasing: 'easeOut',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Hero content lifts away into a blur as you scroll past it */
+  interactions.push({
+    key: 'hero',
+    trigger: 'viewProgress',
+    conditions: ['motion-ok'],
+    effects: [
+      {
+        selector: '.hero-inner',
+        keyframeEffect: {
+          name: 'hero-out',
+          keyframes: [
+            { transform: 'translateY(0)', opacity: 1, filter: 'blur(0px)' },
+            { transform: 'translateY(-14vh)', opacity: 0, filter: 'blur(12px)' },
+          ],
+        },
+        rangeStart: range('exit', 5),
+        rangeEnd: range('exit', 80),
+        easing: 'linear',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Scroll-driven double marquee — rows pan in opposite directions */
+  interactions.push({
+    key: 'marquee',
+    trigger: 'viewProgress',
+    conditions: ['motion-ok'],
+    effects: [
+      {
+        selector: '.row-a .track',
+        namedEffect: { type: 'PanScroll', direction: 'left', distance: { value: 18, unit: 'percentage' }, range: 'continuous' },
+        rangeStart: range('cover', 0),
+        rangeEnd: range('cover', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+      {
+        selector: '.row-b .track',
+        namedEffect: { type: 'PanScroll', direction: 'right', distance: { value: 18, unit: 'percentage' }, range: 'continuous' },
+        rangeStart: range('cover', 0),
+        rangeEnd: range('cover', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Collection cards cascade in as a staggered sequence */
+  interactions.push({
+    key: 'works',
+    trigger: 'viewEnter',
+    params: { threshold: 0.08 },
+    sequences: [
+      {
+        offset: 120,
+        offsetEasing: 'cubicOut',
+        effects: [{ effectId: 'card-in', listContainer: '.works-grid', conditions: ['motion-ok'] }],
+      },
+    ],
+  });
+
+  /* Per-card: 3D tilt + traveling glare + hover lift (6 cards) */
+  for (let i = 1; i <= 6; i++) {
+    const key = `card-${i}`;
+    interactions.push({
+      key,
+      trigger: 'pointerMove',
+      params: { hitArea: 'self' },
+      conditions: ['motion-ok', 'hover-fine'],
+      effects: [
+        {
+          selector: '.card-inner',
+          namedEffect: { type: 'Tilt3DMouse', angle: 6, perspective: 1000 },
+          transitionDuration: 220,
+          transitionEasing: 'easeOut',
+          fill: 'both',
+        },
+        { selector: '.glare', customEffect: glareEffect },
+      ],
+    });
+    interactions.push({
+      key,
+      trigger: 'hover',
+      conditions: ['hover-fine'],
+      effects: [
+        {
+          selector: '.art',
+          stateAction: 'toggle',
+          transition: {
+            duration: 800,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            styleProperties: [{ name: 'transform', value: 'scale(1.055)' }],
+          },
+        },
+        {
+          selector: '.card-cta',
+          stateAction: 'toggle',
+          transition: {
+            duration: 400,
+            easing: 'ease-out',
+            styleProperties: [
+              { name: 'opacity', value: '1' },
+              { name: 'transform', value: 'translateY(0px)' },
+            ],
+          },
+        },
+        {
+          selector: '.glare',
+          stateAction: 'toggle',
+          transition: {
+            duration: 350,
+            easing: 'ease-out',
+            styleProperties: [{ name: 'opacity', value: '1' }],
+          },
+        },
+      ],
+    });
+  }
+
+  /* Section headings share one entrance */
+  for (const key of ['head-works', 'head-feature', 'head-visit']) {
+    interactions.push({
+      key,
+      trigger: 'viewEnter',
+      params: { threshold: 0.4 },
+      effects: [
+        {
+          conditions: ['motion-ok'],
+          duration: 1000,
+          easing: 'expoOut',
+          fill: 'backwards',
+          keyframeEffect: {
+            name: `head-in-${key}`,
+            keyframes: [
+              { opacity: 0, transform: 'translateY(42px)', filter: 'blur(6px)' },
+              { opacity: 1, transform: 'translateY(0)', filter: 'blur(0px)' },
+            ],
+          },
+        },
+      ],
+    });
+  }
+
+  /* Split-flap interstitial — chars roll up into view, staggered */
+  interactions.push({
+    key: 'roll-title',
+    trigger: 'viewEnter',
+    params: { threshold: 0.5 },
+    sequences: [
+      {
+        offset: 34,
+        offsetEasing: 'quadOut',
+        effects: [
+          {
+            effectId: 'roll-in',
+            listContainer: '.split-roll [data-splittext-wrapper]',
+            selector: '.roll-outer',
+            conditions: ['motion-ok'],
+          },
+        ],
+      },
+    ],
+  });
+
+  /* On hover the whole line rolls over once — each char's twin glyph lands
+     in its place, so the rewind on leave is invisible */
+  interactions.push({
+    key: 'roll-title',
+    trigger: 'hover',
+    conditions: ['hover-fine'],
+    effects: Array.from({ length: ROLL_COUNT }, (_, i) => ({
+      conditions: ['motion-ok'],
+      selector: `.rchar:nth-child(${i + 1}) .roll-stack`,
+      triggerType: 'repeat',
+      duration: 440,
+      delay: i * 26,
+      easing: 'cubicInOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: `roll-hover-${i + 1}`,
+        keyframes: [{ transform: 'translateY(0)' }, { transform: 'translateY(-50%)' }],
+      },
+    })),
+  });
+
+  /* AURORA — pinned scene: one sticky viewport, four layers choreographed on scroll */
+  interactions.push({
+    key: 'feature',
+    trigger: 'viewProgress',
+    conditions: ['motion-ok'],
+    effects: [
+      {
+        selector: '.feature-word',
+        keyframeEffect: {
+          name: 'word-grow',
+          keyframes: [
+            { transform: 'scale(0.5)', opacity: 0.1, filter: 'blur(10px)' },
+            { transform: 'scale(1)', opacity: 1, filter: 'blur(0px)' },
+          ],
+        },
+        rangeStart: range('contain', 0),
+        rangeEnd: range('contain', 42),
+        easing: 'quadOut',
+        fill: 'both',
+      },
+      {
+        selector: '.feature-ring',
+        keyframeEffect: {
+          name: 'ring-turn',
+          keyframes: [
+            { transform: 'rotate(0deg) scale(0.7)', opacity: 0.2 },
+            { transform: 'rotate(150deg) scale(1.15)', opacity: 1 },
+          ],
+        },
+        rangeStart: range('contain', 0),
+        rangeEnd: range('contain', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+      {
+        selector: '.f-layer-near',
+        keyframeEffect: {
+          name: 'layer-near',
+          keyframes: [{ transform: 'translateY(26vh)' }, { transform: 'translateY(-26vh)' }],
+        },
+        rangeStart: range('contain', 0),
+        rangeEnd: range('contain', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+      {
+        selector: '.f-layer-far',
+        keyframeEffect: {
+          name: 'layer-far',
+          keyframes: [{ transform: 'translateY(12vh)' }, { transform: 'translateY(-12vh)' }],
+        },
+        rangeStart: range('contain', 0),
+        rangeEnd: range('contain', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+      {
+        selector: '.feature-caption',
+        keyframeEffect: {
+          name: 'caption-in',
+          keyframes: [
+            { opacity: 0, transform: 'translateY(46px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+        },
+        rangeStart: range('contain', 52),
+        rangeEnd: range('contain', 74),
+        easing: 'quadOut',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Statement lines shear past each other as the section scrolls */
+  interactions.push({
+    key: 'statement',
+    trigger: 'viewProgress',
+    conditions: ['motion-ok'],
+    effects: [
+      {
+        selector: '.line-l',
+        namedEffect: { type: 'SkewPanScroll', direction: 'left', skew: 6, range: 'continuous' },
+        rangeStart: range('cover', 0),
+        rangeEnd: range('cover', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+      {
+        selector: '.line-r',
+        namedEffect: { type: 'SkewPanScroll', direction: 'right', skew: 6, range: 'continuous' },
+        rangeStart: range('cover', 0),
+        rangeEnd: range('cover', 100),
+        easing: 'linear',
+        fill: 'both',
+      },
+    ],
+  });
+
+  /* Credo — three lines wipe up out of their own clip boxes */
+  interactions.push({
+    key: 'credo',
+    trigger: 'viewEnter',
+    params: { threshold: 0.3 },
+    sequences: [
+      {
+        offset: 170,
+        offsetEasing: 'quadOut',
+        effects: [{ effectId: 'line-in', listContainer: '.credo-list', conditions: ['motion-ok'] }],
+      },
+    ],
+  });
+
+  /* Footer stack cascades in; the badge spins forever */
+  interactions.push({
+    key: 'footer',
+    trigger: 'viewEnter',
+    params: { threshold: 0.2 },
+    sequences: [
+      {
+        offset: 130,
+        offsetEasing: 'quadOut',
+        effects: [{ effectId: 'footer-in', listContainer: '.footer-stack', conditions: ['motion-ok'] }],
+      },
+    ],
+    effects: [
+      {
+        selector: '.badge-disc',
+        duration: 14000,
+        iterations: Infinity,
+        easing: 'linear',
+        conditions: ['motion-ok'],
+        namedEffect: { type: 'Spin', direction: 'clockwise' },
+      },
+    ],
+  });
+
+  /* Magnetic CTA — the pill leans toward a nearby pointer */
+  interactions.push({
+    key: 'cta',
+    trigger: 'pointerMove',
+    params: { hitArea: 'root' },
+    conditions: ['motion-ok', 'hover-fine'],
+    effects: [{ selector: '.cta-mag', customEffect: magneticEffect }],
+  });
+  interactions.push({
+    key: 'cta',
+    trigger: 'hover',
+    conditions: ['hover-fine'],
+    effects: [
+      {
+        selector: '.cta-core',
+        stateAction: 'toggle',
+        transition: {
+          duration: 350,
+          easing: 'ease-out',
+          styleProperties: [
+            { name: 'background-color', value: '#ece7dd' },
+            { name: 'color', value: '#0b0b10' },
+          ],
+        },
+      },
+    ],
+  });
+
+  return {
+    interactions,
+    effects: {
+      'char-in': {
+        duration: 1400,
+        easing: 'expoOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'char-in',
+          keyframes: [
+            {
+              opacity: 0,
+              transform: 'perspective(600px) translateY(1.15em) rotateX(-92deg) scale(1.25)',
+              filter: 'blur(18px)',
+              textShadow: '0 0 0 rgba(255, 214, 150, 0)',
+            },
+            {
+              opacity: 1,
+              transform: 'perspective(600px) translateY(-0.045em) rotateX(7deg) scale(1.01)',
+              filter: 'blur(1px)',
+              textShadow: '0 0 46px rgba(255, 214, 150, 0.85), 0 0 14px rgba(255, 236, 200, 0.6)',
+              offset: 0.72,
+            },
+            {
+              opacity: 1,
+              transform: 'perspective(600px) translateY(0) rotateX(0deg) scale(1)',
+              filter: 'blur(0px)',
+              textShadow: '0 0 0 rgba(255, 214, 150, 0)',
+            },
+          ],
+        },
+      },
+      'roll-in': {
+        duration: 750,
+        easing: 'expoOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'roll-in',
+          /* 50% of the two-glyph stack = one full glyph below the clip box */
+          keyframes: [{ transform: 'translateY(50%)' }, { transform: 'translateY(0)' }],
+        },
+      },
+      'card-in': {
+        duration: 1100,
+        easing: 'expoOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'card-in',
+          keyframes: [
+            { opacity: 0, transform: 'translateY(64px) scale(0.96)', filter: 'blur(8px)' },
+            { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0px)' },
+          ],
+        },
+      },
+      'line-in': {
+        duration: 1000,
+        easing: 'expoOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'line-in',
+          keyframes: [
+            { opacity: 0, transform: 'translateY(100%)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+        },
+      },
+      'footer-in': {
+        duration: 900,
+        easing: 'cubicOut',
+        fill: 'backwards',
+        keyframeEffect: {
+          name: 'footer-in',
+          keyframes: [
+            { opacity: 0, transform: 'translateY(34px)' },
+            { opacity: 1, transform: 'translateY(0)' },
+          ],
+        },
+      },
+    },
+    conditions: {
+      'motion-ok': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+      'hover-fine': { type: 'media', predicate: '(hover: hover) and (pointer: fine)' },
+    },
+  };
+}
+
+
+
+// Split the hero headline into chars *before* the runtime binds,
+// so the sequence stagger sees the char spans as list items.
+// Each char gets three layers because generated CSS applies effects via the
+// `animation:` shorthand — two effects on one element override each other:
+//   .char         → entrance flip + pointer-magnet (inline transform)
+//   .char-scatter → scroll-driven dissolve
+//   .char-core    → hover wave
+const { chars } = splitText('.split', { type: 'chars', wrapperClass: 'char' });
+for (const char of chars) {
+  const scatter = document.createElement('span');
+  scatter.className = 'char-scatter';
+  const core = document.createElement('span');
+  core.className = 'char-core';
+  core.append(...char.childNodes);
+  scatter.append(core);
+  char.append(scatter);
+}
+
+// The roll title: each char becomes a clipped box holding two stacked copies
+// of its glyph — the entrance rolls the outer layer up into view, hover rolls
+// the inner stack one glyph up (the twin lands in place, so the rewind on
+// leave is invisible). Two layers, because two generated `animation:`
+// shorthands on one element would override each other.
+const roll = splitText('.split-roll', { type: 'chars', wrapperClass: 'rchar' });
+console.log('DEBUG::roll', roll);
+for (const ch of roll.chars) {
+  const glyph = ch.textContent;
+  const outer = document.createElement('span');
+  outer.className = 'roll-outer';
+  const stack = document.createElement('span');
+  stack.className = 'roll-stack';
+  for (const dup of [false, true]) {
+    const g = document.createElement('span');
+    g.className = 'roll-glyph';
+    g.textContent = glyph;
+    if (dup) g.setAttribute('aria-hidden', 'true');
+    stack.append(g);
+  }
+  outer.append(stack);
+  ch.textContent = '';
+  ch.append(outer);
+}
+
+Interact.registerEffects(presets);
+Interact.create(buildConfig());
+
+const year = document.getElementById('year');
+if (year) year.textContent = String(new Date().getFullYear());
+
+
+// Inject the config's generated CSS (keyframes, view-timelines, FOUC rules).
+// In a real build this runs server-side / at build time instead.
+const style = document.createElement('style');
+style.textContent = generate(buildConfig(), true);
+document.head.prepend(style);
+</script>
+</body>
+</html>

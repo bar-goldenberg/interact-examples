@@ -23,7 +23,7 @@ A collection of `@wix/interact` animation examples — ~130 standalone HTML file
 
 | Directory | Count | Description |
 |-----------|-------|-------------|
-| `Gallery-and-Carousel/` | 41 | Gallery, carousel, and layout animations |
+| `Gallery-and-Carousel/` | 42 | Gallery, carousel, and layout animations |
 | `Typographic_interactions/` | 32 | Text and typography animations |
 | `Image_Background/` | 19 | Image/background effects (shape masks, reveals, slideshows) |
 | `Lists/` | 8 | List and repeater animations |
