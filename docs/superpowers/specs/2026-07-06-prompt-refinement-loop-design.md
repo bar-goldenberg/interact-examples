@@ -62,6 +62,22 @@ Verified read-only against `~/Documents/Dev/Wix/interact-xp`:
 | Finalize | "Close the loop" writes the working guideline back to the prompt's `.md`; history file remains |
 | interact-xp repo | **Read-only** — bundle from its source, never write to it |
 
+## HARD CONSTRAINT — interact-xp is read-only
+
+The interact-xp playground repo is **not ours**. Every task, script, and implementer MUST treat it
+as strictly read-only:
+
+- **Never** create, edit, delete, move, or overwrite any path under `PLAYGROUND_REPO`.
+- **Never** run a command with `PLAYGROUND_REPO` (or any subdir) as the working directory, and never
+  run build/install/format/checkout/generate commands against it (`npm`/`pnpm build|install`, `git`
+  writes, codegen, etc.) — not even to produce its `dist`.
+- Allowed interactions are ONLY: (a) reading files, (b) importing its **already-built** `dist`
+  modules, (c) esbuild reading its source while writing output **into `validator/`**, and (d) HTTP
+  requests to the dev server the user runs. All generated artifacts (bundled renderer, vendored
+  schema) are written under `validator/`, never under `PLAYGROUND_REPO`.
+- If something we need isn't already built in interact-xp, we bundle/derive it into the validator from
+  source — we do NOT build it in place.
+
 ## Architecture
 
 ```
