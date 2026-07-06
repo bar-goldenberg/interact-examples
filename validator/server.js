@@ -10,6 +10,9 @@ import { listPrompts, readPrompt } from './lib/prompts.js';
 import { loadConvertSkill } from './lib/skill.js';
 import { FIX_OPTIONS } from './lib/prompt.js';
 import { loadSpecText } from './lib/spec.js';
+import { listSections, generate, pingStatus } from './lib/playground.js';
+import { readLoop, recordRound, rollback, finalize } from './lib/loop-store.js';
+import { refineGuideline } from './lib/refine.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -18,6 +21,7 @@ export function createApp(rootDir) {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.use(express.static(join(__dirname, 'public')));
+  app.use('/vendor', express.static(join(__dirname, 'vendor')));
 
   const bad = (res, msg) => res.status(400).json({ error: msg });
 
@@ -184,6 +188,63 @@ export function createApp(rootDir) {
       const results = await runConvert(root, files, { skill, exemplar });
       res.json({ results: [...readFailures, ...results] });
     } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
+  });
+
+  app.get('/api/playground/status', async (_req, res) => { res.json({ up: await pingStatus({}) }); });
+
+  app.get('/api/playground/sections', async (_req, res) => {
+    const sections = await listSections();
+    res.json({ sections: sections.map((s) => ({ id: s.id })) });
+  });
+
+  app.get('/api/loop', async (req, res) => {
+    try { res.json(await readLoop(root, String(req.query.promptPath))); }
+    catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/loop/run', async (req, res) => {
+    const { promptPath, sections } = req.body;
+    if (!promptPath || !Array.isArray(sections) || !sections.length) return bad(res, 'promptPath and sections required');
+    const { working } = await readLoop(root, promptPath);
+    const all = await listSections();
+    const chosen = all.filter((s) => sections.includes(s.id));
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+    const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    send('start', { sections: chosen.map((s) => s.id) });
+    await Promise.all(chosen.map(async (s) => {
+      try {
+        const { config } = await generate({ html: s.html, css: s.css, guideline: working });
+        send('result', { id: s.id, config, html: s.html, css: s.css });
+      } catch (err) {
+        send('result', { id: s.id, error: String(err.message || err) });
+      }
+    }));
+    send('done', { ok: true });
+    res.end();
+  });
+
+  app.post('/api/loop/refine', async (req, res) => {
+    const { promptPath, score, notes, sections, configs } = req.body;
+    if (!promptPath) return bad(res, 'promptPath required');
+    const { working } = await readLoop(root, promptPath);
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+    const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    try {
+      const guideline = await refineGuideline({ guideline: working, score, notes, onDelta: (t) => send('log', { text: t }) });
+      await recordRound(root, promptPath, { guideline: working, sections: configs || [], score, notes, newWorking: guideline });
+      send('done', { guideline });
+    } catch (err) { send('error', { error: String(err.message || err) }); }
+    res.end();
+  });
+
+  app.post('/api/loop/finalize', async (req, res) => {
+    try { await finalize(root, String(req.body.promptPath)); res.json({ ok: true }); }
+    catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/loop/rollback', async (req, res) => {
+    try { res.json(await rollback(root, String(req.body.promptPath), Number(req.body.round))); }
+    catch (err) { bad(res, String(err.message || err)); }
   });
 
   return app;

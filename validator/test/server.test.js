@@ -101,3 +101,28 @@ test('GET /api/prompts lists generated guidelines and /api/prompt reads one', as
   assert.equal(missing.status, 404);
   server.close();
 });
+
+test('GET /api/loop returns working (defaults to the prompt md) and empty rounds', async () => {
+  const root = await repo();
+  const { writePrompt } = await import('../lib/prompts.js');
+  await writePrompt(root, 'G/A.html', '# Guide v0');   // → G/A.md
+  const { base, server } = await start(root);
+  const loop = await (await fetch(`${base}/api/loop?promptPath=${encodeURIComponent('G/A.md')}`)).json();
+  assert.equal(loop.working, '# Guide v0');
+  assert.deepEqual(loop.rounds, []);
+  server.close();
+});
+
+test('POST /api/loop/finalize writes working back to the prompt md', async () => {
+  const root = await repo();
+  const { writePrompt, readPrompt } = await import('../lib/prompts.js');
+  const { recordRound } = await import('../lib/loop-store.js');
+  await writePrompt(root, 'G/A.html', '# v0');
+  await recordRound(root, 'G/A.md', { guideline: '# v0', sections: [], score: 8, notes: '', newWorking: '# FINAL' });
+  const { base, server } = await start(root);
+  const r = await fetch(`${base}/api/loop/finalize`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: 'G/A.md' }) });
+  assert.equal(r.status, 200);
+  assert.equal(await readPrompt(root, 'G/A.md'), '# FINAL');
+  server.close();
+});
