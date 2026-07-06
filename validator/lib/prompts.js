@@ -34,6 +34,12 @@ export async function readPrompt(rootDir, rel) {
   }
 }
 
+export async function writePromptRaw(rootDir, rel, content) {
+  const abs = promptAbs(rootDir, rel);
+  await mkdir(dirname(abs), { recursive: true });
+  await writeFile(abs, content, 'utf8');
+}
+
 // List every .md guideline under the prompts dir, as { path, dir, file }
 // with paths relative to the prompts dir (mirrors the examples tree shape).
 export async function listPrompts(rootDir) {
