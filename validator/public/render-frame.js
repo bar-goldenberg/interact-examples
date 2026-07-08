@@ -2,7 +2,9 @@
 // @wix/interact-experience config, using the vendored renderer. The config is
 // embedded as a JSON string in a data attribute (script-tag-safe).
 export function buildRenderDoc({ html, css, config }) {
-  const safeConfig = String(config).replace(/<\/script>/gi, '<\\/script>');
+  // Neutralize any </script end-tag the HTML tokenizer would recognize —
+  // the closing "script" name can be followed by whitespace, "/", or ">".
+  const safeConfig = String(config).replace(/<\/script(?=[\s/>])/gi, '<\\/script');
   return `<!doctype html><html><head><meta charset="utf-8">
 <style>html,body{margin:0}${css || ''}</style></head>
 <body>

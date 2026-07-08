@@ -16,3 +16,14 @@ test('buildRenderDoc escapes a closing script tag in the config to avoid breakou
   assert.doesNotMatch(doc, /<\/script>\s*<\/script>/);   // the payload's </script> must be escaped
   assert.match(doc, /<\\\/script>/);
 });
+
+test('buildRenderDoc escapes </script> variants (whitespace, tab, slash, case) in the config', () => {
+  for (const variant of ['</script >', '</script\t>', '</script/>', '</SCRIPT>']) {
+    const doc = buildRenderDoc({ html: '', css: '', config: `{"x":"${variant}"}` });
+    // The raw, unescaped payload variant must not survive anywhere in the built doc
+    // (it would otherwise be recognized by the HTML tokenizer as a real closing tag).
+    assert.ok(!doc.includes(variant), `expected raw "${variant}" to be escaped, but found it unescaped in the doc`);
+    // The escaped form (backslash before the "/") must be present in its place.
+    assert.match(doc, new RegExp('<\\\\/script' + variant.slice('</script'.length).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
