@@ -382,7 +382,8 @@ function closeActivity() { state.activity.open = false; $('activityModal').hidde
 async function openLoop() {
   const p = state.currentPrompt;
   if (!p) return;
-  state.loop = { promptPath: p, sections: [], available: [], configs: {}, generating: false, active: true };
+  state.loop = { promptPath: p, sections: [], available: [], configs: {}, generating: false, active: true,
+    rounds: [], viewing: null, snapshot: null };
   $('markdown').hidden = true; $('code').hidden = true; $('preview').hidden = true; $('diff').hidden = true;
   $('placeholder').hidden = true; $('loopView').hidden = false;
   const [{ up }, { sections }, loop] = await Promise.all([
@@ -392,6 +393,7 @@ async function openLoop() {
   ]);
   state.loop.available = sections;   // [{ id, html, css }] — html/css power the original-layout preview
   if (!up) {
+    $('loopHead').innerHTML = '';
     $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>';
     $('loopGrid').innerHTML = '';
     $('roundsRail').innerHTML = '';
@@ -402,10 +404,28 @@ async function openLoop() {
   renderRounds(loop.rounds);
 }
 
+// The loop header: which iteration you're on (or viewing), inline status, and
+// the prompt-diff / back-to-current controls.
+function renderLoopHead() {
+  const n = (state.loop.rounds || []).length;
+  const v = state.loop.viewing;
+  const diffBtn = '<button id="promptDiffBtn" class="btn btn-ghost btn-mini" title="Diff the original .md against this guideline">Δ Prompt diff</button>';
+  $('loopHead').innerHTML = v === null
+    ? `<span class="round-badge">Round ${n + 1}</span>
+       <span class="loop-sub">${n === 0 ? 'first pass — original guideline' : `after ${n} refinement${n > 1 ? 's' : ''}`}</span>
+       <span id="loopStatus" class="loop-status"></span>${diffBtn}`
+    : `<span class="round-badge history">Viewing round ${v} of ${n}</span>
+       <span class="loop-sub">read-only — a past iteration</span>
+       <span id="loopStatus" class="loop-status"></span>${diffBtn}
+       <button id="backCurrentBtn" class="btn btn-primary btn-mini">Back to current →</button>`;
+}
+function loopStatus(msg) { const el = document.getElementById('loopStatus'); if (el) el.textContent = msg; }
+
 function renderSectionChips() {
+  const locked = state.loop.viewing !== null || state.loop.generating;
   $('loopSections').innerHTML = state.loop.available.map((s) =>
     `<span class="chip ${state.loop.sections.includes(s.id) ? 'on' : ''}" data-sec="${esc(s.id)}">${esc(s.id)}</span>`).join('')
-    + '<button id="genBtn" class="btn btn-primary" style="margin-left:auto">Generate</button>';
+    + `<button id="genBtn" class="btn btn-primary" style="margin-left:auto" ${locked ? 'disabled' : ''}>Generate</button>`;
 }
 
 // What to draw for a section cell: its animated config once generated, the
@@ -448,9 +468,10 @@ function renderGrid() {
 // pulsing "Agent thinking" affordance that opens the live reasoning modal.
 function setLoopBusy(action) {                 // action: 'refine' | 'generate' | null
   const busy = !!action;
-  $('refineBtn').disabled = busy;
-  $('regenBtn').disabled = busy;
-  const gen = document.getElementById('genBtn'); if (gen) gen.disabled = busy;
+  const lock = busy || state.loop.viewing !== null;   // viewing history keeps actions locked
+  $('refineBtn').disabled = lock;
+  $('regenBtn').disabled = lock;
+  const gen = document.getElementById('genBtn'); if (gen) gen.disabled = lock;
   $('refineBtn').innerHTML = action === 'refine' ? '<span class="spinner"></span>Refining…' : 'Refine prompt';
   $('regenBtn').innerHTML = action === 'generate' ? '<span class="spinner"></span>Generating…' : 'Generate again';
   const btn = $('loopActivityBtn');
@@ -460,6 +481,7 @@ function setLoopBusy(action) {                 // action: 'refine' | 'generate' 
 }
 
 async function loopGenerate() {
+  if (state.loop.viewing !== null) return;   // history is read-only
   const secs = state.loop.sections;
   if (!secs.length) return;
   state.loop.configs = {};
@@ -494,15 +516,15 @@ async function loopRefine() {
   state.activity.follow = true;                // modal tracks the refine stream
   let ok = false;
   setLoopBusy('refine');
-  $('applyStatus').textContent = 'Refining the guideline from your score + notes…';
+  loopStatus('Refining the guideline from your score + notes…');
   try {
     const res = await fetch('/api/loop/refine', {
       method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
       body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
     await streamSSE(res, (type, d) => {
       if (type === 'log') appendLog('refine', d.text);
-      else if (type === 'done') { ok = true; $('loopNotes').value = ''; $('applyStatus').textContent = 'Guideline refined — regenerating…'; loopRefreshRounds(); }
-      else if (type === 'error') { $('applyStatus').textContent = `Refine failed: ${d.error}`; }
+      else if (type === 'done') { ok = true; $('loopNotes').value = ''; loopRefreshRounds().then(() => loopStatus('Guideline refined — regenerating…')); }
+      else if (type === 'error') { loopStatus(`Refine failed: ${d.error}`); }
     });
   } finally {
     setLoopBusy(null);
@@ -517,23 +539,76 @@ async function loopRefreshRounds() {
 
 function renderRounds(rounds) {
   state.loop.rounds = rounds || [];
-  $('roundsRail').innerHTML = state.loop.rounds.map((r) =>
-    `<div class="round-row" data-round="${r.round}" title="${esc(r.notes || '')}">Round ${r.round}
+  const n = state.loop.rounds.length;
+  const cur = `<div class="round-row ${state.loop.viewing === null ? 'viewing' : ''}" data-current="1"
+      title="The live working guideline — where refinements land">
+      <span class="dot"></span>Current · round ${n + 1}<span class="sc">working</span></div>`;
+  const hist = [...state.loop.rounds].reverse().map((r) =>
+    `<div class="round-row ${state.loop.viewing === r.round ? 'viewing' : ''}" data-round="${r.round}" title="${esc(r.notes || '')}">Round ${r.round}
       <span class="sc">${r.score}/10</span>
-      <button class="btn rollback-btn" data-round="${r.round}" style="padding:2px 8px">rollback</button></div>`).join('')
-    + (state.loop.rounds.length ? '<button id="finalizeBtn" class="btn btn-block" style="margin-top:6px">Close loop (write to .md)</button>' : '');
+      <button class="btn rollback-btn" data-round="${r.round}" style="padding:2px 8px"
+        title="Make this round's guideline the working version">rollback</button></div>`).join('');
+  $('roundsRail').innerHTML = cur + hist
+    + (n ? '<button id="finalizeBtn" class="btn btn-block" style="margin-top:6px">Close loop (write to .md)</button>' : '');
+  renderLoopHead();
+}
+
+// Lock the feedback controls while viewing history (they belong to the past round).
+function setFeedbackLocked(locked) {
+  $('scoreRange').disabled = locked; $('loopNotes').disabled = locked;
+  $('refineBtn').disabled = locked; $('regenBtn').disabled = locked;
 }
 
 // Load a past round's stored outputs + feedback back into the view (read-only look).
 function viewRound(round) {
+  if (state.loop.generating) { loopStatus('Generation in progress — wait for it to finish.'); return; }
   const r = (state.loop.rounds || []).find((x) => x.round === round);
   if (!r) return;
+  if (state.loop.viewing === null) {           // leaving "current" — snapshot it for the way back
+    state.loop.snapshot = { sections: [...state.loop.sections], configs: { ...state.loop.configs },
+      score: $('scoreRange').value, notes: $('loopNotes').value };
+  }
+  state.loop.viewing = round;
   state.loop.configs = {};
   for (const s of r.sections) state.loop.configs[s.id] = { config: s.config, html: s.html, css: s.css };
   state.loop.sections = r.sections.map((s) => s.id);
-  renderSectionChips();
   $('scoreRange').value = r.score; $('scoreVal').textContent = r.score; $('loopNotes').value = r.notes || '';
+  setFeedbackLocked(true);
+  renderSectionChips();
   renderGrid();
+  renderRounds(state.loop.rounds);
+}
+
+// Return from a history view to the live working state.
+function backToCurrent() {
+  const snap = state.loop.snapshot;
+  state.loop.viewing = null;
+  if (snap) {
+    state.loop.sections = snap.sections; state.loop.configs = snap.configs;
+    $('scoreRange').value = snap.score; $('scoreVal').textContent = snap.score; $('loopNotes').value = snap.notes;
+    state.loop.snapshot = null;
+  }
+  setFeedbackLocked(false);
+  renderSectionChips();
+  renderGrid();
+  renderRounds(state.loop.rounds);
+}
+
+// Diff the original .md against the guideline in view (working, or a past round's).
+async function openPromptDiff() {
+  const v = state.loop.viewing;
+  const q = v === null ? '' : `&round=${v}`;
+  const d = await api(`/api/loop/diff?promptPath=${encodeURIComponent(state.loop.promptPath)}${q}`);
+  $('diffTitle').textContent = v === null
+    ? 'Original .md → current working guideline'
+    : `Original .md → guideline used in round ${v}`;
+  $('diffBody').innerHTML = d.error ? `<span>${esc(d.error)}</span>`
+    : !d.changed ? '<div style="color:var(--text-3);padding:8px">No differences — this guideline matches the original .md.</div>'
+    : d.parts.map((p) => {
+        const safe = esc(p.value);
+        return p.added ? `<ins>${safe}</ins>` : p.removed ? `<del>${safe}</del>` : `<span>${safe}</span>`;
+      }).join('');
+  $('diffModal').hidden = false;
 }
 
 // ── events ──────────────────────────────────────────
@@ -622,18 +697,38 @@ $('activityFile').onchange = (e) => { state.activity.file = e.target.value; stat
 function closeExpand() { $('expandModal').hidden = true; $('expandFrame').srcdoc = ''; }
 $('expandClose').onclick = closeExpand;
 $('expandModal').addEventListener('click', (e) => { if (e.target.id === 'expandModal') closeExpand(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('expandModal').hidden) closeExpand(); });
+
+// Prompt-diff modal
+$('diffClose').onclick = () => { $('diffModal').hidden = true; };
+$('diffModal').addEventListener('click', (e) => { if (e.target.id === 'diffModal') $('diffModal').hidden = true; });
+
+// Esc closes whichever modal is open (expand, diff, activity — in that order).
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('expandModal').hidden) return closeExpand();
+  if (!$('diffModal').hidden) { $('diffModal').hidden = true; return; }
+  if (!$('activityModal').hidden) closeActivity();
+});
 
 // event delegation
 $('loopSections').addEventListener('click', (e) => {
   if (e.target.id === 'genBtn') return loopGenerate();
   const chip = e.target.closest('.chip'); if (!chip) return;
+  if (state.loop.generating) return;                          // don't churn a run in flight
+  if (state.loop.viewing !== null) {                          // history is read-only
+    loopStatus('Viewing a past round — go back to current to change sections.');
+    return;
+  }
   const id = chip.dataset.sec;
   const i = state.loop.sections.indexOf(id);
   if (i >= 0) state.loop.sections.splice(i, 1);
   else if (state.loop.sections.length < 4) state.loop.sections.push(id);
   renderSectionChips();
   renderGrid();   // reflect the pick immediately — newly added sections show their original layout
+});
+$('loopHead').addEventListener('click', (e) => {
+  if (e.target.id === 'promptDiffBtn') return openPromptDiff();
+  if (e.target.id === 'backCurrentBtn') return backToCurrent();
 });
 // Expand a preview cell to full screen.
 $('loopGrid').addEventListener('click', (e) => {
@@ -651,17 +746,19 @@ $('loopActivityBtn').onclick = openActivity;
 $('roundsRail').addEventListener('click', async (e) => {
   if (e.target.id === 'finalizeBtn') {
     await api('/api/loop/finalize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath }) });
-    $('applyStatus').textContent = 'Loop closed — final guideline written to the .md.';
+    loopStatus('Loop closed — final guideline written to the .md.');
     return;
   }
   const rb = e.target.closest('.rollback-btn');
   if (rb) {
     await api('/api/loop/rollback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath, round: Number(rb.dataset.round) }) });
-    $('applyStatus').textContent = `Rolled back to round ${rb.dataset.round}'s guideline (working version).`;
+    loopStatus(`Working guideline set to round ${rb.dataset.round}'s version — Generate to see it.`);
     return;
   }
   const row = e.target.closest('.round-row');
-  if (row) viewRound(Number(row.dataset.round));
+  if (!row) return;
+  if (row.dataset.current) return backToCurrent();
+  viewRound(Number(row.dataset.round));
 });
 $('loopBtn').onclick = openLoop;
 

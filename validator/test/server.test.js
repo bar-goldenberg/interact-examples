@@ -127,6 +127,27 @@ test('POST /api/loop/finalize writes working back to the prompt md', async () =>
   server.close();
 });
 
+test('GET /api/loop/diff diffs the original md against working (and a given round)', async () => {
+  const root = await repo();
+  const { writePrompt } = await import('../lib/prompts.js');
+  const { recordRound } = await import('../lib/loop-store.js');
+  await writePrompt(root, 'G/A.html', 'line one\n');                    // → G/A.md
+  await recordRound(root, 'G/A.md', { guideline: 'line one\n', sections: [], score: 6, notes: '', newWorking: 'line two\n' });
+  const { base, server } = await start(root);
+  // vs working: original "line one" → working "line two"
+  const cur = await (await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/A.md')}`)).json();
+  assert.equal(cur.changed, true);
+  assert.ok(cur.parts.some((p) => p.removed && p.value.includes('line one')));
+  assert.ok(cur.parts.some((p) => p.added && p.value.includes('line two')));
+  // vs round 1's guideline (identical to the original) → unchanged
+  const r1 = await (await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/A.md')}&round=1`)).json();
+  assert.equal(r1.changed, false);
+  // unknown round → 400; missing prompt → 404
+  assert.equal((await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/A.md')}&round=9`)).status, 400);
+  assert.equal((await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/nope.md')}`)).status, 404);
+  server.close();
+});
+
 test('POST /api/loop/run rejects a path-escaping promptPath with 400 (no hung stream)', async () => {
   const { base, server } = await start(await repo());
   const res = await fetch(`${base}/api/loop/run`, {

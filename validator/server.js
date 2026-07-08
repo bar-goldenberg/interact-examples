@@ -204,6 +204,23 @@ export function createApp(rootDir) {
     catch (err) { bad(res, String(err.message || err)); }
   });
 
+  // Diff the original .md guideline against the current working version
+  // (default) or against the guideline a specific round ran with (?round=K).
+  app.get('/api/loop/diff', async (req, res) => {
+    try {
+      const promptPath = String(req.query.promptPath);
+      const [original, loop] = await Promise.all([readPrompt(root, promptPath), readLoop(root, promptPath)]);
+      if (original === null) return res.status(404).json({ error: 'no prompt' });
+      let target = loop.working ?? '';
+      if (req.query.round) {
+        const r = loop.rounds.find((x) => x.round === Number(req.query.round));
+        if (!r) return bad(res, `no round ${req.query.round}`);
+        target = r.guideline;
+      }
+      res.json({ changed: original !== target, parts: computeDiff(original, target) });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
   app.post('/api/loop/run', async (req, res) => {
     const { promptPath, sections } = req.body;
     if (!promptPath || !Array.isArray(sections) || !sections.length) return bad(res, 'promptPath and sections required');

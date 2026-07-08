@@ -14,7 +14,10 @@
     <div id="diff" hidden></div>
     <div id="markdown" class="md-view" hidden></div>
     <div id="loopView" hidden>
-      <div id="loopSections" class="loop-sections"></div>
+      <div class="loop-top">
+        <div id="loopHead" class="loop-head"></div>
+        <div id="loopSections" class="loop-sections"></div>
+      </div>
       <div id="loopGrid" class="loop-grid"></div>
       <div id="loopFeedback" class="loop-feedback" hidden>
         <div class="score-box">
@@ -98,6 +101,17 @@
         </div>
       </div>
       <pre id="activityBody" class="modal-body"></pre>
+    </div>
+  </div>
+
+  <!-- Prompt diff: original .md vs the working / a round's guideline -->
+  <div id="diffModal" class="modal-backdrop" hidden>
+    <div class="diff-shell glass">
+      <div class="modal-head">
+        <span id="diffTitle">Prompt diff</span>
+        <button id="diffClose" class="icon-btn" title="Close (Esc)">✕</button>
+      </div>
+      <pre id="diffBody" class="modal-body diff-body"></pre>
     </div>
   </div>
 
