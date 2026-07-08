@@ -224,6 +224,14 @@ body {
 
 .btn-ghost { background: transparent; border: 1px solid var(--hair); color: var(--text-2); }
 .btn-ghost:hover { background: var(--fill-1); color: var(--text); }
+/* "Agent thinking" affordance — pulses while the agent streams */
+.btn-activity { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-activity.live { border-color: var(--accent); color: #dbeafe; background: var(--accent-soft); }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none;
+  box-shadow: 0 0 0 0 rgba(59,130,246,0.6); animation: livepulse 1.3s ease-out infinite; }
+@keyframes livepulse { 0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.55); } 70% { box-shadow: 0 0 0 7px rgba(59,130,246,0); } 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); } }
+/* spinner sits inside buttons with a little breathing room */
+.btn .spinner { margin-right: 7px; vertical-align: -2px; }
 
 /* ── Panel collapse ──────────────────────────────── */
 #listPane, #fixPane { transition: transform .28s cubic-bezier(0.4,0,0.2,1), opacity .2s; }

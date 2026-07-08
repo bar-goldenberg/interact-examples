@@ -444,24 +444,45 @@ function renderGrid() {
   $('loopFeedback').hidden = Object.keys(state.loop.configs).length === 0;
 }
 
+// Toggle the loop's running state: spinner-in-button, disabled controls, and a
+// pulsing "Agent thinking" affordance that opens the live reasoning modal.
+function setLoopBusy(action) {                 // action: 'refine' | 'generate' | null
+  const busy = !!action;
+  $('refineBtn').disabled = busy;
+  $('regenBtn').disabled = busy;
+  const gen = document.getElementById('genBtn'); if (gen) gen.disabled = busy;
+  $('refineBtn').innerHTML = action === 'refine' ? '<span class="spinner"></span>Refining…' : 'Refine prompt';
+  $('regenBtn').innerHTML = action === 'generate' ? '<span class="spinner"></span>Generating…' : 'Generate again';
+  const btn = $('loopActivityBtn');
+  btn.classList.toggle('live', busy);
+  btn.querySelector('.live-dot').hidden = !busy;
+  btn.querySelector('.la-label').textContent = busy ? '◧ Agent thinking…' : '◧ Agent thinking';
+}
+
 async function loopGenerate() {
   const secs = state.loop.sections;
   if (!secs.length) return;
   state.loop.configs = {};
   state.loop.generating = true;
   state.logs = new Map();
+  state.activity.follow = true;                // modal tracks the newest stream
   renderGrid();
-  const res = await fetch('/api/loop/run', {
-    method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-    body: JSON.stringify({ promptPath: state.loop.promptPath, sections: secs }) });
-  await streamSSE(res, (type, d) => {
-    if (type === 'result') {
-      state.loop.configs[d.id] = d.error ? { error: d.error } : { config: d.config, html: d.html, css: d.css };
-      renderGrid();
-    } else if (type === 'log') appendLog(d.id || 'agent', d.text);
-  });
-  state.loop.generating = false;
-  renderGrid();
+  setLoopBusy('generate');
+  try {
+    const res = await fetch('/api/loop/run', {
+      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+      body: JSON.stringify({ promptPath: state.loop.promptPath, sections: secs }) });
+    await streamSSE(res, (type, d) => {
+      if (type === 'result') {
+        state.loop.configs[d.id] = d.error ? { error: d.error } : { config: d.config, html: d.html, css: d.css };
+        renderGrid();
+      } else if (type === 'log') appendLog(d.id || 'agent', d.text);
+    });
+  } finally {
+    state.loop.generating = false;
+    setLoopBusy(null);
+    renderGrid();
+  }
 }
 
 async function loopRefine() {
@@ -470,15 +491,22 @@ async function loopRefine() {
   const configs = Object.entries(state.loop.configs).filter(([, c]) => c && c.config)
     .map(([id, c]) => ({ id, config: c.config, html: c.html, css: c.css }));
   state.logs = new Map();
+  state.activity.follow = true;                // modal tracks the refine stream
   let ok = false;
-  const res = await fetch('/api/loop/refine', {
-    method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-    body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
-  await streamSSE(res, (type, d) => {
-    if (type === 'log') appendLog('refine', d.text);
-    else if (type === 'done') { ok = true; $('loopNotes').value = ''; loopRefreshRounds(); }
-    else if (type === 'error') { $('applyStatus').textContent = `Refine failed: ${d.error}`; }
-  });
+  setLoopBusy('refine');
+  $('applyStatus').textContent = 'Refining the guideline from your score + notes…';
+  try {
+    const res = await fetch('/api/loop/refine', {
+      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+      body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
+    await streamSSE(res, (type, d) => {
+      if (type === 'log') appendLog('refine', d.text);
+      else if (type === 'done') { ok = true; $('loopNotes').value = ''; $('applyStatus').textContent = 'Guideline refined — regenerating…'; loopRefreshRounds(); }
+      else if (type === 'error') { $('applyStatus').textContent = `Refine failed: ${d.error}`; }
+    });
+  } finally {
+    setLoopBusy(null);
+  }
   return ok;
 }
 
@@ -619,6 +647,7 @@ $('loopGrid').addEventListener('click', (e) => {
 $('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
 $('regenBtn').onclick = loopGenerate;
 $('refineBtn').onclick = async () => { if (await loopRefine()) await loopGenerate(); };
+$('loopActivityBtn').onclick = openActivity;
 $('roundsRail').addEventListener('click', async (e) => {
   if (e.target.id === 'finalizeBtn') {
     await api('/api/loop/finalize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath }) });
