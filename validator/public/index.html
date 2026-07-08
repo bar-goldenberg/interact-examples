@@ -13,6 +13,20 @@
     <pre id="code" hidden></pre>
     <div id="diff" hidden></div>
     <div id="markdown" class="md-view" hidden></div>
+    <div id="loopView" hidden>
+      <div id="loopSections" class="loop-sections"></div>
+      <div id="loopGrid" class="loop-grid"></div>
+      <div id="loopFeedback" class="loop-feedback" hidden>
+        <label>Score <b id="scoreVal">7</b>/10
+          <input id="scoreRange" type="range" min="1" max="10" value="7" />
+        </label>
+        <textarea id="loopNotes" placeholder="Holistic notes — what should improve across all sections?"></textarea>
+        <div class="loop-actions">
+          <button id="regenBtn" class="btn">Generate again</button>
+          <button id="refineBtn" class="btn btn-primary">Refine prompt</button>
+        </div>
+      </div>
+    </div>
     <div id="placeholder"><div class="ic">◈</div><p>Select a file to preview</p></div>
   </div>
 
@@ -59,6 +73,8 @@
     <button id="activityBtn" class="btn btn-ghost btn-block">◧ Agent activity</button>
     <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
     <button id="convertBtn" class="btn btn-block">Convert to prompt</button>
+    <button id="loopBtn" class="btn btn-block" hidden>Start refine loop</button>
+    <div id="roundsRail"></div>
     <div id="fixProgress"></div>
     <div class="divider"></div>
     <div class="apply-actions">

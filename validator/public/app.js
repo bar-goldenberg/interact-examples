@@ -1,5 +1,6 @@
 import { injectBase } from './preview.js';
 import { mdToHtml } from './md.js';
+import { buildRenderDoc } from './render-frame.js';
 
 // Version state — mutually exclusive (green / yellow / red).
 const VER = {
@@ -26,6 +27,7 @@ const state = {
   filter: '', mode: 'preview', version: 'current', progress: null,
   expanded: new Set(), logs: new Map(), activity: { open: false, file: null, follow: true },
   view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered',
+  loop: { promptPath: null, sections: [], available: [], configs: {}, active: false },
 };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
@@ -183,6 +185,8 @@ async function render() {
 }
 
 async function renderExampleView() {
+  $('loopView').hidden = true;
+  $('loopBtn').hidden = true;
   const { mode, version, current } = state;
   $('markdown').hidden = true;
   const has = !!current;
@@ -198,8 +202,10 @@ async function renderExampleView() {
 }
 
 async function renderPromptView() {
+  $('loopView').hidden = true;
   $('preview').hidden = true; $('diff').hidden = true;
   const has = !!state.currentPrompt;
+  $('loopBtn').hidden = !(state.view === 'prompts' && has);
   $('placeholder').hidden = has;
   $('markdown').hidden = !(has && state.promptMode === 'rendered');
   $('code').hidden = !(has && state.promptMode === 'raw');
@@ -372,6 +378,99 @@ function renderActivity() {
 function openActivity() { state.activity.open = true; $('activityModal').hidden = false; renderActivity(); }
 function closeActivity() { state.activity.open = false; $('activityModal').hidden = true; }
 
+// ── Prompt refinement loop ──────────────────────────
+async function openLoop() {
+  const p = state.currentPrompt;
+  if (!p) return;
+  state.loop = { promptPath: p, sections: [], available: [], configs: {}, active: true };
+  $('markdown').hidden = true; $('code').hidden = true; $('preview').hidden = true; $('diff').hidden = true;
+  $('placeholder').hidden = true; $('loopView').hidden = false;
+  const [{ up }, { sections }, loop] = await Promise.all([
+    api('/api/playground/status'),
+    api('/api/playground/sections'),
+    api(`/api/loop?promptPath=${encodeURIComponent(p)}`),
+  ]);
+  state.loop.available = sections.map((s) => s.id);
+  if (!up) { $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>'; return; }
+  renderSectionChips();
+  renderRounds(loop.rounds);
+}
+
+function renderSectionChips() {
+  $('loopSections').innerHTML = state.loop.available.map((id) =>
+    `<span class="chip ${state.loop.sections.includes(id) ? 'on' : ''}" data-sec="${esc(id)}">${esc(id)}</span>`).join('')
+    + '<button id="genBtn" class="btn btn-primary" style="margin-left:auto">Generate</button>';
+}
+
+function renderGrid() {
+  const cells = state.loop.sections.map((id) => {
+    const c = state.loop.configs[id];
+    const inner = c === undefined ? '<div class="err">…generating</div>'
+      : c.error ? `<div class="err">${esc(c.error)}</div>`
+      : `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc({ html: c.html, css: c.css, config: c.config }))}"></iframe>`;
+    return `<div class="loop-cell"><div class="cap">${esc(id)}</div>${inner}</div>`;
+  }).join('');
+  $('loopGrid').innerHTML = cells;
+  $('loopFeedback').hidden = !state.loop.sections.length || Object.keys(state.loop.configs).length === 0;
+}
+
+async function loopGenerate() {
+  const secs = state.loop.sections;
+  if (!secs.length) return;
+  state.loop.configs = {};
+  state.logs = new Map();
+  renderGrid();
+  const res = await fetch('/api/loop/run', {
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+    body: JSON.stringify({ promptPath: state.loop.promptPath, sections: secs }) });
+  await streamSSE(res, (type, d) => {
+    if (type === 'result') {
+      state.loop.configs[d.id] = d.error ? { error: d.error } : { config: d.config, html: d.html, css: d.css };
+      renderGrid();
+    } else if (type === 'log') appendLog(d.id || 'agent', d.text);
+  });
+  renderGrid();
+}
+
+async function loopRefine() {
+  const score = Number($('scoreRange').value);
+  const notes = $('loopNotes').value;
+  const configs = Object.entries(state.loop.configs).filter(([, c]) => c && c.config)
+    .map(([id, c]) => ({ id, config: c.config, html: c.html, css: c.css }));
+  state.logs = new Map();
+  const res = await fetch('/api/loop/refine', {
+    method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+    body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
+  await streamSSE(res, (type, d) => {
+    if (type === 'log') appendLog('refine', d.text);
+    else if (type === 'done') { $('loopNotes').value = ''; loopRefreshRounds(); }
+  });
+}
+
+async function loopRefreshRounds() {
+  const loop = await api(`/api/loop?promptPath=${encodeURIComponent(state.loop.promptPath)}`);
+  renderRounds(loop.rounds);
+}
+
+function renderRounds(rounds) {
+  state.loop.rounds = rounds || [];
+  $('roundsRail').innerHTML = state.loop.rounds.map((r) =>
+    `<div class="round-row" data-round="${r.round}" title="${esc(r.notes || '')}">Round ${r.round}
+      <span class="sc">${r.score}/10</span>
+      <button class="btn rollback-btn" data-round="${r.round}" style="padding:2px 8px">rollback</button></div>`).join('')
+    + (state.loop.rounds.length ? '<button id="finalizeBtn" class="btn btn-block" style="margin-top:6px">Close loop (write to .md)</button>' : '');
+}
+
+// Load a past round's stored outputs + feedback back into the view (read-only look).
+function viewRound(round) {
+  const r = (state.loop.rounds || []).find((x) => x.round === round);
+  if (!r) return;
+  state.loop.configs = {};
+  for (const s of r.sections) state.loop.configs[s.id] = { config: s.config, html: s.html, css: s.css };
+  $('scoreRange').value = r.score; $('scoreVal').textContent = r.score; $('loopNotes').value = r.notes || '';
+  renderGrid();
+}
+
 // ── events ──────────────────────────────────────────
 $('fileTree').addEventListener('click', (e) => {
   const folder = e.target.closest('.folder-row');
@@ -453,6 +552,36 @@ $('activityBtn').onclick = openActivity;
 $('activityClose').onclick = closeActivity;
 $('activityModal').addEventListener('click', (e) => { if (e.target.id === 'activityModal') closeActivity(); });
 $('activityFile').onchange = (e) => { state.activity.file = e.target.value; state.activity.follow = false; renderActivity(); };
+
+// event delegation
+$('loopSections').addEventListener('click', (e) => {
+  if (e.target.id === 'genBtn') return loopGenerate();
+  const chip = e.target.closest('.chip'); if (!chip) return;
+  const id = chip.dataset.sec;
+  const i = state.loop.sections.indexOf(id);
+  if (i >= 0) state.loop.sections.splice(i, 1);
+  else if (state.loop.sections.length < 4) state.loop.sections.push(id);
+  renderSectionChips();
+});
+$('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
+$('regenBtn').onclick = loopGenerate;
+$('refineBtn').onclick = async () => { await loopRefine(); await loopGenerate(); };
+$('roundsRail').addEventListener('click', async (e) => {
+  if (e.target.id === 'finalizeBtn') {
+    await api('/api/loop/finalize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath }) });
+    $('applyStatus').textContent = 'Loop closed — final guideline written to the .md.';
+    return;
+  }
+  const rb = e.target.closest('.rollback-btn');
+  if (rb) {
+    await api('/api/loop/rollback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath, round: Number(rb.dataset.round) }) });
+    $('applyStatus').textContent = `Rolled back to round ${rb.dataset.round}'s guideline (working version).`;
+    return;
+  }
+  const row = e.target.closest('.round-row');
+  if (row) viewRound(Number(row.dataset.round));
+});
+$('loopBtn').onclick = openLoop;
 
 loadFiles();
 loadOptions();
