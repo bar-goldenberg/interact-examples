@@ -205,36 +205,70 @@ export function createApp(rootDir) {
   app.post('/api/loop/run', async (req, res) => {
     const { promptPath, sections } = req.body;
     if (!promptPath || !Array.isArray(sections) || !sections.length) return bad(res, 'promptPath and sections required');
-    const { working } = await readLoop(root, promptPath);
-    const all = await listSections();
-    const chosen = all.filter((s) => sections.includes(s.id));
-    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-    const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    send('start', { sections: chosen.map((s) => s.id) });
-    await Promise.all(chosen.map(async (s) => {
-      try {
-        const { config } = await generate({ html: s.html, css: s.css, guideline: working });
-        send('result', { id: s.id, config, html: s.html, css: s.css });
-      } catch (err) {
-        send('result', { id: s.id, error: String(err.message || err) });
-      }
-    }));
-    send('done', { ok: true });
-    res.end();
+    // Resolve inputs defensively BEFORE committing to a response mode — a bad
+    // promptPath (e.g. path escape) yields a clean 400, not a hung stream.
+    let working, chosen;
+    try {
+      ({ working } = await readLoop(root, promptPath));
+      const all = await listSections();
+      chosen = all.filter((s) => sections.includes(s.id));
+    } catch (err) { return bad(res, String(err.message || err)); }
+
+    const runAll = async (onResult) => {
+      await Promise.all(chosen.map(async (s) => {
+        try {
+          const { config } = await generate({ html: s.html, css: s.css, guideline: working });
+          onResult({ id: s.id, config, html: s.html, css: s.css });
+        } catch (err) {
+          onResult({ id: s.id, error: String(err.message || err) });
+        }
+      }));
+    };
+
+    // Streaming (opt-in via Accept), mirroring /api/fix.
+    if ((req.headers.accept || '').includes('text/event-stream')) {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+      const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      send('start', { sections: chosen.map((s) => s.id) });
+      await runAll((r) => send('result', r));
+      send('done', { ok: true });
+      return res.end();
+    }
+
+    // Non-streaming (default): one JSON response with all section results.
+    try {
+      const results = [];
+      await runAll((r) => results.push(r));
+      res.json({ results });
+    } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
   });
 
   app.post('/api/loop/refine', async (req, res) => {
-    const { promptPath, score, notes, sections, configs } = req.body;
+    const { promptPath, score, notes, configs } = req.body;
     if (!promptPath) return bad(res, 'promptPath required');
-    const { working } = await readLoop(root, promptPath);
-    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-    const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    let working;
+    try { ({ working } = await readLoop(root, promptPath)); }
+    catch (err) { return bad(res, String(err.message || err)); }
+    const roundSections = Array.isArray(configs) ? configs : [];   // defensive: never persist a non-array
+
+    // Streaming (opt-in via Accept), mirroring /api/fix.
+    if ((req.headers.accept || '').includes('text/event-stream')) {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+      const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      try {
+        const guideline = await refineGuideline({ guideline: working, score, notes, onDelta: (t) => send('log', { text: t }) });
+        await recordRound(root, promptPath, { guideline: working, sections: roundSections, score, notes, newWorking: guideline });
+        send('done', { guideline });
+      } catch (err) { send('error', { error: String(err.message || err) }); }
+      return res.end();
+    }
+
+    // Non-streaming (default): one JSON response.
     try {
-      const guideline = await refineGuideline({ guideline: working, score, notes, onDelta: (t) => send('log', { text: t }) });
-      await recordRound(root, promptPath, { guideline: working, sections: configs || [], score, notes, newWorking: guideline });
-      send('done', { guideline });
-    } catch (err) { send('error', { error: String(err.message || err) }); }
-    res.end();
+      const guideline = await refineGuideline({ guideline: working, score, notes });
+      await recordRound(root, promptPath, { guideline: working, sections: roundSections, score, notes, newWorking: guideline });
+      res.json({ guideline });
+    } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
   });
 
   app.post('/api/loop/finalize', async (req, res) => {

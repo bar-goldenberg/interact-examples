@@ -126,3 +126,21 @@ test('POST /api/loop/finalize writes working back to the prompt md', async () =>
   assert.equal(await readPrompt(root, 'G/A.md'), '# FINAL');
   server.close();
 });
+
+test('POST /api/loop/run rejects a path-escaping promptPath with 400 (no hung stream)', async () => {
+  const { base, server } = await start(await repo());
+  const res = await fetch(`${base}/api/loop/run`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ promptPath: '../../etc/passwd', sections: ['x'] }) });
+  assert.equal(res.status, 400);
+  server.close();
+});
+
+test('POST /api/loop/refine rejects a path-escaping promptPath with 400', async () => {
+  const { base, server } = await start(await repo());
+  const res = await fetch(`${base}/api/loop/refine`, {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ promptPath: '../../etc/passwd', score: 5, notes: 'n' }) });
+  assert.equal(res.status, 400);
+  server.close();
+});
