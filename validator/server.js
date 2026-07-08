@@ -217,7 +217,8 @@ export function createApp(rootDir) {
     const runAll = async (onResult) => {
       await Promise.all(chosen.map(async (s) => {
         try {
-          const { config } = await generate({ html: s.html, css: s.css, guideline: working });
+          // Model sees the sanitized markup; the client renders the real one.
+          const { config } = await generate({ html: s.promptHtml || s.html, css: s.css, guideline: working });
           onResult({ id: s.id, config, html: s.html, css: s.css });
         } catch (err) {
           onResult({ id: s.id, error: String(err.message || err) });

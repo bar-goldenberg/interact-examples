@@ -17,7 +17,7 @@ test('assemblePayload routes guideline→userPromptExample, instruction→userPr
   assert.match(calls[0].userPrompt, /Apply the animation pattern/);
 });
 
-test('listSections reads section html/css (sanitized preferred)', async () => {
+test('listSections returns raw html for render and sanitized promptHtml for the model', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'iv-sec-'));
   await mkdir(join(dir, 'cards'), { recursive: true });
   await writeFile(join(dir, 'cards', 'section.html'), '<raw>');
@@ -27,11 +27,13 @@ test('listSections reads section html/css (sanitized preferred)', async () => {
   await writeFile(join(dir, 'hero', 'section.html'), '<hero>');
   const secs = await listSections(dir);
   const cards = secs.find((s) => s.id === 'cards');
-  assert.equal(cards.html, '<clean>');   // sanitized preferred
+  assert.equal(cards.html, '<raw>');          // real markup → rendered
+  assert.equal(cards.promptHtml, '<clean>');  // sanitized copy → model prompt
   assert.equal(cards.css, '.c{}');
   const hero = secs.find((s) => s.id === 'hero');
   assert.equal(hero.html, '<hero>');
-  assert.equal(hero.css, '');             // missing css → empty
+  assert.equal(hero.promptHtml, '<hero>');    // no sanitized file → falls back to raw
+  assert.equal(hero.css, '');                 // missing css → empty
 });
 
 test('generate POSTs the payload and returns config+sessionId', async () => {

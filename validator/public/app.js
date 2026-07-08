@@ -382,7 +382,7 @@ function closeActivity() { state.activity.open = false; $('activityModal').hidde
 async function openLoop() {
   const p = state.currentPrompt;
   if (!p) return;
-  state.loop = { promptPath: p, sections: [], available: [], configs: {}, active: true };
+  state.loop = { promptPath: p, sections: [], available: [], configs: {}, generating: false, active: true };
   $('markdown').hidden = true; $('code').hidden = true; $('preview').hidden = true; $('diff').hidden = true;
   $('placeholder').hidden = true; $('loopView').hidden = false;
   const [{ up }, { sections }, loop] = await Promise.all([
@@ -398,6 +398,7 @@ async function openLoop() {
     return;
   }
   renderSectionChips();
+  renderGrid();
   renderRounds(loop.rounds);
 }
 
@@ -408,21 +409,29 @@ function renderSectionChips() {
 }
 
 function renderGrid() {
-  const cells = state.loop.sections.map((id) => {
-    const c = state.loop.configs[id];
-    const inner = c === undefined ? '<div class="err">…generating</div>'
-      : c.error ? `<div class="err">${esc(c.error)}</div>`
-      : `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc({ html: c.html, css: c.css, config: c.config }))}"></iframe>`;
-    return `<div class="loop-cell"><div class="cap">${esc(id)}</div>${inner}</div>`;
-  }).join('');
-  $('loopGrid').innerHTML = cells;
-  $('loopFeedback').hidden = !state.loop.sections.length || Object.keys(state.loop.configs).length === 0;
+  const secs = state.loop.sections;
+  const started = Object.keys(state.loop.configs).length > 0 || state.loop.generating;
+  if (!secs.length) {
+    $('loopGrid').innerHTML = '<div class="loop-empty">Pick a few sections above, then hit Generate.</div>';
+  } else if (!started) {
+    $('loopGrid').innerHTML = `<div class="loop-empty">${secs.length} section${secs.length > 1 ? 's' : ''} selected — hit Generate to run the guideline.</div>`;
+  } else {
+    $('loopGrid').innerHTML = secs.map((id) => {
+      const c = state.loop.configs[id];
+      const inner = c === undefined ? '<div class="gen"><span class="spinner"></span>Generating…</div>'
+        : c.error ? `<div class="err">${esc(c.error)}</div>`
+        : `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc({ html: c.html, css: c.css, config: c.config }))}"></iframe>`;
+      return `<div class="loop-cell"><div class="cap">${esc(id)}</div>${inner}</div>`;
+    }).join('');
+  }
+  $('loopFeedback').hidden = !secs.length || Object.keys(state.loop.configs).length === 0;
 }
 
 async function loopGenerate() {
   const secs = state.loop.sections;
   if (!secs.length) return;
   state.loop.configs = {};
+  state.loop.generating = true;
   state.logs = new Map();
   renderGrid();
   const res = await fetch('/api/loop/run', {
@@ -434,6 +443,7 @@ async function loopGenerate() {
       renderGrid();
     } else if (type === 'log') appendLog(d.id || 'agent', d.text);
   });
+  state.loop.generating = false;
   renderGrid();
 }
 
@@ -572,6 +582,8 @@ $('loopSections').addEventListener('click', (e) => {
   if (i >= 0) state.loop.sections.splice(i, 1);
   else if (state.loop.sections.length < 4) state.loop.sections.push(id);
   renderSectionChips();
+  // Refresh the hint before a run starts; leave live previews alone mid-review.
+  if (!Object.keys(state.loop.configs).length && !state.loop.generating) renderGrid();
 });
 $('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
 $('regenBtn').onclick = loopGenerate;

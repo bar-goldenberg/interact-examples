@@ -22,9 +22,14 @@ export async function listSections(sectionsDir = SECTIONS_DIR) {
     if (!e.isDirectory()) continue;
     const dir = join(sectionsDir, e.name);
     const read = async (f) => { try { return await readFile(join(dir, f), 'utf8'); } catch { return null; } };
-    const html = (await read('section.sanitized.html')) ?? (await read('section.html'));
+    // `html` is the real section markup (what we RENDER); `promptHtml` is the
+    // injection-safe sanitized copy (what the MODEL sees, mirroring the
+    // playground app itself). Same DOM shape, so generated selectors match.
+    const raw = await read('section.html');
+    const sanitized = await read('section.sanitized.html');
+    const html = raw ?? sanitized;
     if (html === null) continue;
-    out.push({ id: e.name, html, css: (await read('section.css')) ?? '' });
+    out.push({ id: e.name, html, promptHtml: sanitized ?? html, css: (await read('section.css')) ?? '' });
   }
   return out.sort((a, b) => a.id.localeCompare(b.id));
 }

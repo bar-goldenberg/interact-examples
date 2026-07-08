@@ -17,13 +17,15 @@
       <div id="loopSections" class="loop-sections"></div>
       <div id="loopGrid" class="loop-grid"></div>
       <div id="loopFeedback" class="loop-feedback" hidden>
-        <label>Score <b id="scoreVal">7</b>/10
+        <div class="score-box">
+          <div class="score-num"><b id="scoreVal">7</b><span class="den">/10</span></div>
           <input id="scoreRange" type="range" min="1" max="10" value="7" />
-        </label>
+          <div class="score-cap">Score this round</div>
+        </div>
         <textarea id="loopNotes" placeholder="Holistic notes — what should improve across all sections?"></textarea>
         <div class="loop-actions">
-          <button id="regenBtn" class="btn">Generate again</button>
           <button id="refineBtn" class="btn btn-primary">Refine prompt</button>
+          <button id="regenBtn" class="btn">Generate again</button>
         </div>
       </div>
     </div>
