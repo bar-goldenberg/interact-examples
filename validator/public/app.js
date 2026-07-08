@@ -391,7 +391,12 @@ async function openLoop() {
     api(`/api/loop?promptPath=${encodeURIComponent(p)}`),
   ]);
   state.loop.available = sections.map((s) => s.id);
-  if (!up) { $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>'; return; }
+  if (!up) {
+    $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>';
+    $('loopGrid').innerHTML = '';
+    $('roundsRail').innerHTML = '';
+    return;
+  }
   renderSectionChips();
   renderRounds(loop.rounds);
 }
@@ -438,13 +443,16 @@ async function loopRefine() {
   const configs = Object.entries(state.loop.configs).filter(([, c]) => c && c.config)
     .map(([id, c]) => ({ id, config: c.config, html: c.html, css: c.css }));
   state.logs = new Map();
+  let ok = false;
   const res = await fetch('/api/loop/refine', {
     method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
     body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
   await streamSSE(res, (type, d) => {
     if (type === 'log') appendLog('refine', d.text);
-    else if (type === 'done') { $('loopNotes').value = ''; loopRefreshRounds(); }
+    else if (type === 'done') { ok = true; $('loopNotes').value = ''; loopRefreshRounds(); }
+    else if (type === 'error') { $('applyStatus').textContent = `Refine failed: ${d.error}`; }
   });
+  return ok;
 }
 
 async function loopRefreshRounds() {
@@ -467,6 +475,8 @@ function viewRound(round) {
   if (!r) return;
   state.loop.configs = {};
   for (const s of r.sections) state.loop.configs[s.id] = { config: s.config, html: s.html, css: s.css };
+  state.loop.sections = r.sections.map((s) => s.id);
+  renderSectionChips();
   $('scoreRange').value = r.score; $('scoreVal').textContent = r.score; $('loopNotes').value = r.notes || '';
   renderGrid();
 }
@@ -565,7 +575,7 @@ $('loopSections').addEventListener('click', (e) => {
 });
 $('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
 $('regenBtn').onclick = loopGenerate;
-$('refineBtn').onclick = async () => { await loopRefine(); await loopGenerate(); };
+$('refineBtn').onclick = async () => { if (await loopRefine()) await loopGenerate(); };
 $('roundsRail').addEventListener('click', async (e) => {
   if (e.target.id === 'finalizeBtn') {
     await api('/api/loop/finalize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath }) });

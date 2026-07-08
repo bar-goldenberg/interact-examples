@@ -144,3 +144,12 @@ test('POST /api/loop/refine rejects a path-escaping promptPath with 400', async 
   assert.equal(res.status, 400);
   server.close();
 });
+
+test('GET /vendor/* responds with an Access-Control-Allow-Origin header (sandboxed iframe can import the renderer)', async () => {
+  const { base, server } = await start(await repo());
+  // The vendor dir/file exists in the real validator/vendor (committed in Task 1); request the runtime.
+  const res = await fetch(`${base}/vendor/render-runtime.js`);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('access-control-allow-origin'), '*');
+  server.close();
+});

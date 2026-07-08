@@ -21,7 +21,7 @@ export function createApp(rootDir) {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.use(express.static(join(__dirname, 'public')));
-  app.use('/vendor', express.static(join(__dirname, 'vendor')));
+  app.use('/vendor', (_req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }, express.static(join(__dirname, 'vendor')));
 
   const bad = (res, msg) => res.status(400).json({ error: msg });
 
