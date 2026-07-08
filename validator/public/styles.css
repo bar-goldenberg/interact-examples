@@ -249,6 +249,9 @@ body {
 .icon-btn { background: transparent; border: 0; color: var(--text-2); font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
 .icon-btn:hover { background: var(--fill-2); color: var(--text); }
 .modal-body { flex: 1; overflow: auto; margin: 0; padding: 16px 18px; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-2); white-space: pre-wrap; word-break: break-word; }
+/* Full-screen section preview */
+.expand-shell { width: 95vw; height: 93vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+#expandFrame { flex: 1; width: 100%; border: 0; background: #fff; display: block; }
 
 /* ── Scrollbars ──────────────────────────────────── */
 ::-webkit-scrollbar { width: 9px; height: 9px; }
@@ -276,6 +279,13 @@ body {
   overflow: hidden; background: #0e0e0f; }
 .loop-cell .cap { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 500;
   letter-spacing: .02em; color: var(--text-2); padding: 8px 12px; border-bottom: 1px solid var(--hair); }
+.loop-cell .cap-id { color: var(--text); }
+.cap-tag { font-size: 9.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 980px; background: var(--fill-2); color: var(--text-3); }
+.cap-tag.on { background: var(--accent-soft); color: #dbeafe; }
+.cap-expand { margin-left: auto; background: transparent; border: 0; color: var(--text-2); cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 3px 7px; border-radius: 6px; }
+.cap-expand:hover { background: var(--fill-2); color: var(--text); }
 .loop-cell iframe { width: 100%; height: clamp(340px, 52vh, 620px); border: 0; background: #fff; display: block; }
 .loop-cell .gen { display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 12px; padding: 28px 16px; }
 .loop-cell .err { color: #fca5a5; font-family: var(--mono); font-size: 11px; padding: 12px 16px; white-space: pre-wrap; }

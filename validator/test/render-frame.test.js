@@ -11,6 +11,17 @@ test('buildRenderDoc embeds section html, css, config, and imports the runtime',
   assert.match(doc, /interact-experience\\?\/1\.0|interact-experience/);
 });
 
+test('buildRenderDoc renders a static original (no runtime) when config is absent', () => {
+  for (const config of [null, undefined, '', '   ']) {
+    const doc = buildRenderDoc({ html: '<div class="card">hi</div>', css: '.card{color:blue}', config });
+    assert.match(doc, /<div class="card">hi<\/div>/);   // real markup shown
+    assert.match(doc, /\.card\{color:blue\}/);           // css applied
+    assert.doesNotMatch(doc, /createExperience/);        // no animation runtime
+    assert.doesNotMatch(doc, /render-runtime/);
+    assert.doesNotMatch(doc, /__config/);
+  }
+});
+
 test('buildRenderDoc escapes a closing script tag in the config to avoid breakout', () => {
   const doc = buildRenderDoc({ html: '', css: '', config: '{"x":"</script>"}' });
   assert.doesNotMatch(doc, /<\/script>\s*<\/script>/);   // the payload's </script> must be escaped

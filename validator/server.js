@@ -194,7 +194,9 @@ export function createApp(rootDir) {
 
   app.get('/api/playground/sections', async (_req, res) => {
     const sections = await listSections();
-    res.json({ sections: sections.map((s) => ({ id: s.id })) });
+    // Include the real (raw) html + css so the UI can preview a section's
+    // original layout before any guideline is generated against it.
+    res.json({ sections: sections.map((s) => ({ id: s.id, html: s.html, css: s.css })) });
   });
 
   app.get('/api/loop', async (req, res) => {

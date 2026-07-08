@@ -390,7 +390,7 @@ async function openLoop() {
     api('/api/playground/sections'),
     api(`/api/loop?promptPath=${encodeURIComponent(p)}`),
   ]);
-  state.loop.available = sections.map((s) => s.id);
+  state.loop.available = sections;   // [{ id, html, css }] — html/css power the original-layout preview
   if (!up) {
     $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>';
     $('loopGrid').innerHTML = '';
@@ -403,28 +403,45 @@ async function openLoop() {
 }
 
 function renderSectionChips() {
-  $('loopSections').innerHTML = state.loop.available.map((id) =>
-    `<span class="chip ${state.loop.sections.includes(id) ? 'on' : ''}" data-sec="${esc(id)}">${esc(id)}</span>`).join('')
+  $('loopSections').innerHTML = state.loop.available.map((s) =>
+    `<span class="chip ${state.loop.sections.includes(s.id) ? 'on' : ''}" data-sec="${esc(s.id)}">${esc(s.id)}</span>`).join('')
     + '<button id="genBtn" class="btn btn-primary" style="margin-left:auto">Generate</button>';
+}
+
+// What to draw for a section cell: its animated config once generated, the
+// spinner while a run is in flight, an error card, or — before generation —
+// its original layout (static html/css) so picking a pill previews it.
+function cellRender(id) {
+  const c = state.loop.configs[id];
+  if (c && c.error) return { kind: 'error', error: c.error };
+  if (c && c.config) return { kind: 'doc', original: false, html: c.html, css: c.css, config: c.config };
+  if (c === undefined && state.loop.generating) return { kind: 'spinner' };
+  const meta = state.loop.available.find((s) => s.id === id);
+  if (meta) return { kind: 'doc', original: true, html: meta.html, css: meta.css, config: null };
+  return { kind: 'spinner' };
 }
 
 function renderGrid() {
   const secs = state.loop.sections;
-  const started = Object.keys(state.loop.configs).length > 0 || state.loop.generating;
   if (!secs.length) {
-    $('loopGrid').innerHTML = '<div class="loop-empty">Pick a few sections above, then hit Generate.</div>';
-  } else if (!started) {
-    $('loopGrid').innerHTML = `<div class="loop-empty">${secs.length} section${secs.length > 1 ? 's' : ''} selected — hit Generate to run the guideline.</div>`;
-  } else {
-    $('loopGrid').innerHTML = secs.map((id) => {
-      const c = state.loop.configs[id];
-      const inner = c === undefined ? '<div class="gen"><span class="spinner"></span>Generating…</div>'
-        : c.error ? `<div class="err">${esc(c.error)}</div>`
-        : `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc({ html: c.html, css: c.css, config: c.config }))}"></iframe>`;
-      return `<div class="loop-cell"><div class="cap">${esc(id)}</div>${inner}</div>`;
-    }).join('');
+    $('loopGrid').innerHTML = '<div class="loop-empty">Pick sections above to preview their original layout, then hit Generate.</div>';
+    $('loopFeedback').hidden = true;
+    return;
   }
-  $('loopFeedback').hidden = !secs.length || Object.keys(state.loop.configs).length === 0;
+  $('loopGrid').innerHTML = secs.map((id) => {
+    const r = cellRender(id);
+    let inner = '', tag = '', expand = '';
+    if (r.kind === 'spinner') inner = '<div class="gen"><span class="spinner"></span>Generating…</div>';
+    else if (r.kind === 'error') inner = `<div class="err">${esc(r.error)}</div>`;
+    else {
+      inner = `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc(r))}"></iframe>`;
+      tag = r.original ? '<span class="cap-tag">original</span>' : '<span class="cap-tag on">animated</span>';
+      expand = `<button class="cap-expand" data-expand="${esc(id)}" title="Expand to full screen">⛶</button>`;
+    }
+    return `<div class="loop-cell"><div class="cap"><span class="cap-id">${esc(id)}</span>${tag}${expand}</div>${inner}</div>`;
+  }).join('');
+  // Feedback (score/refine) is only meaningful once a round has been generated.
+  $('loopFeedback').hidden = Object.keys(state.loop.configs).length === 0;
 }
 
 async function loopGenerate() {
@@ -573,6 +590,12 @@ $('activityClose').onclick = closeActivity;
 $('activityModal').addEventListener('click', (e) => { if (e.target.id === 'activityModal') closeActivity(); });
 $('activityFile').onchange = (e) => { state.activity.file = e.target.value; state.activity.follow = false; renderActivity(); };
 
+// Expand (full-screen preview) modal
+function closeExpand() { $('expandModal').hidden = true; $('expandFrame').srcdoc = ''; }
+$('expandClose').onclick = closeExpand;
+$('expandModal').addEventListener('click', (e) => { if (e.target.id === 'expandModal') closeExpand(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('expandModal').hidden) closeExpand(); });
+
 // event delegation
 $('loopSections').addEventListener('click', (e) => {
   if (e.target.id === 'genBtn') return loopGenerate();
@@ -582,8 +605,16 @@ $('loopSections').addEventListener('click', (e) => {
   if (i >= 0) state.loop.sections.splice(i, 1);
   else if (state.loop.sections.length < 4) state.loop.sections.push(id);
   renderSectionChips();
-  // Refresh the hint before a run starts; leave live previews alone mid-review.
-  if (!Object.keys(state.loop.configs).length && !state.loop.generating) renderGrid();
+  renderGrid();   // reflect the pick immediately — newly added sections show their original layout
+});
+// Expand a preview cell to full screen.
+$('loopGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-expand]'); if (!btn) return;
+  const r = cellRender(btn.dataset.expand);
+  if (r.kind !== 'doc') return;
+  $('expandTitle').textContent = `${btn.dataset.expand} · ${r.original ? 'original' : 'animated'}`;
+  $('expandFrame').srcdoc = buildRenderDoc(r);
+  $('expandModal').hidden = false;
 });
 $('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
 $('regenBtn').onclick = loopGenerate;
