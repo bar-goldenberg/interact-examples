@@ -93,6 +93,13 @@ body {
 #topbar { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 60; display: flex; gap: 10px; }
 #topbar.diff #verTabs { display: none; }
 .seg { display: inline-flex; gap: 2px; padding: 4px; }
+#agentBar { align-items: center; gap: 7px; padding: 4px 8px 4px 5px; }
+.agent-select { font-size: 11.5px; color: var(--text); background: var(--fill-1); border: 1px solid var(--hair);
+  border-radius: 7px; padding: 4px 6px; cursor: pointer; }
+.agent-select:hover { background: var(--fill-2); }
+.ctx-chip { font-family: var(--mono); font-size: 10.5px; color: var(--text-2); white-space: nowrap; cursor: default; }
+.ctx-chip.warn { color: #fdba74; }
+#ctxReset { font-size: 13px; padding: 1px 5px; }
 .tab {
   font-family: inherit; font-size: 12.5px; font-weight: 500; color: var(--text-2);
   background: transparent; border: 0; border-radius: 11px; padding: 6px 16px; cursor: pointer; transition: all .16s;
@@ -326,6 +333,7 @@ body {
 .round-row.viewing { border-color: var(--accent); background: var(--accent-soft); }
 .round-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-clean); flex: none; }
 .round-row .sc { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--text-2); }
+.rollback-btn.armed { background: rgba(248,113,113,0.22); color: #fca5a5; border: 1px solid rgba(248,113,113,0.5); }
 /* Prompt-diff modal */
 .diff-shell { width: min(920px, 92vw); height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
 .diff-body ins, .diff-body del, .diff-body span { display: block; text-decoration: none; padding: 0 8px; border-radius: 3px; }

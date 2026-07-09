@@ -4,7 +4,7 @@ import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writePrompt, readPrompt } from '../lib/prompts.js';
-import { readLoop, recordRound, rollback, finalize } from '../lib/loop-store.js';
+import { readLoop, recordRound, rollback, finalize, roundRefined } from '../lib/loop-store.js';
 
 async function repoWithPrompt() {
   const root = await mkdtemp(join(tmpdir(), 'iv-loop-'));
@@ -45,4 +45,24 @@ test('finalize writes working back to the .md', async () => {
   await recordRound(root, 'G/Card.md', { guideline: '# V0 guideline', sections: [], score: 9, notes: '', newWorking: '# FINAL' });
   await finalize(root, 'G/Card.md');
   assert.equal(await readPrompt(root, 'G/Card.md'), '# FINAL');
+});
+
+test('rounds keep their refined output; rollback cannot destroy it', async () => {
+  const root = await repoWithPrompt();
+  await recordRound(root, 'G/Card.md', { guideline: '# V0 guideline', sections: [], score: 5, notes: '', newWorking: '# V1' });
+  await recordRound(root, 'G/Card.md', { guideline: '# V1', sections: [], score: 7, notes: '', newWorking: '# V2' });
+  await rollback(root, 'G/Card.md', 1);                       // working → '# V0 guideline'
+  const loop = await readLoop(root, 'G/Card.md');
+  assert.equal(roundRefined(loop, 1), '# V1');                // survives the rollback
+  assert.equal(roundRefined(loop, 2), '# V2');
+  assert.equal(roundRefined(loop, 9), null);                  // unknown round
+});
+
+test('roundRefined falls back for legacy histories without a refined field', () => {
+  const loop = { working: '# V2', rounds: [
+    { round: 1, guideline: '# V0' },                          // legacy: no refined
+    { round: 2, guideline: '# V1' },
+  ] };
+  assert.equal(roundRefined(loop, 1), '# V1');                // next round's input
+  assert.equal(roundRefined(loop, 2), '# V2');                // last round → working
 });

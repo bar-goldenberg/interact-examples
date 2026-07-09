@@ -139,9 +139,10 @@ test('GET /api/loop/diff diffs the original md against working (and a given roun
   assert.equal(cur.changed, true);
   assert.ok(cur.parts.some((p) => p.removed && p.value.includes('line one')));
   assert.ok(cur.parts.some((p) => p.added && p.value.includes('line two')));
-  // vs round 1's guideline (identical to the original) → unchanged
+  // vs round 1's REFINED output ("line two") → changed, same as working here
   const r1 = await (await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/A.md')}&round=1`)).json();
-  assert.equal(r1.changed, false);
+  assert.equal(r1.changed, true);
+  assert.ok(r1.parts.some((p) => p.added && p.value.includes('line two')));
   // unknown round → 400; missing prompt → 404
   assert.equal((await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/A.md')}&round=9`)).status, 400);
   assert.equal((await fetch(`${base}/api/loop/diff?promptPath=${encodeURIComponent('G/nope.md')}`)).status, 404);
@@ -163,6 +164,22 @@ test('POST /api/loop/refine rejects a path-escaping promptPath with 400', async 
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ promptPath: '../../etc/passwd', score: 5, notes: 'n' }) });
   assert.equal(res.status, 400);
+  server.close();
+});
+
+test('agent status/model/reset endpoints manage the override and totals', async () => {
+  const { base, server } = await start(await repo());
+  let s = await (await fetch(`${base}/api/agent/status`)).json();
+  assert.equal(s.model, null);
+  assert.equal(typeof s.window, 'number');
+  s = await (await fetch(`${base}/api/agent/model`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model: 'opus' }) })).json();
+  assert.equal(s.model, 'opus');
+  s = await (await fetch(`${base}/api/agent/model`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model: '' }) })).json();
+  assert.equal(s.model, null);   // empty clears the override
+  s = await (await fetch(`${base}/api/agent/reset`, { method: 'POST' })).json();
+  assert.deepEqual(s.totals, { calls: 0, input: 0, output: 0 });
   server.close();
 });
 

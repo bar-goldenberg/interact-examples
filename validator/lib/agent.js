@@ -3,6 +3,7 @@ import { writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { getAgentState, recordRun } from './agent-state.js';
 
 // Extract just the HTML document from a model response. Handles two kinds of
 // stray wrapping: (1) a ```html … ``` fence, and (2) prose the model prepends
@@ -37,20 +38,24 @@ export function runAgent(system, user, { model, onDelta } = {}) {
 
       const args = ['-p', '--output-format', 'stream-json', '--include-partial-messages',
         '--verbose', '--system-prompt-file', sysFile, '--exclude-dynamic-system-prompt-sections'];
-      if (model) args.push('--model', model);
+      const effModel = model || getAgentState().model;   // explicit > UI override > CLI default
+      if (effModel) args.push('--model', effModel);
 
       const child = spawn('claude', args, { stdio: ['pipe', 'pipe', 'pipe'] });
-      let stderr = '', resultText = null, resultErr = null;
+      let stderr = '', resultText = null, resultErr = null, runModel = null;
       const rl = createInterface({ input: child.stdout });
 
       rl.on('line', (line) => {
         if (!line.trim()) return;
         let m; try { m = JSON.parse(line); } catch { return; }
-        if (m.type === 'stream_event' && m.event?.type === 'content_block_delta') {
+        if (m.type === 'system' && m.subtype === 'init' && m.model) {
+          runModel = m.model;                            // the model the CLI actually resolved
+        } else if (m.type === 'stream_event' && m.event?.type === 'content_block_delta') {
           const d = m.event.delta;
           if (d?.type === 'text_delta' && d.text) onDelta?.(d.text, 'text');
           else if (d?.type === 'thinking_delta' && d.thinking) onDelta?.(d.thinking, 'thinking');
         } else if (m.type === 'result') {
+          recordRun({ model: runModel, usage: m.usage });
           if (!m.is_error && typeof m.result === 'string') resultText = m.result;
           else resultErr = m.subtype || m.error || 'agent error';
         }

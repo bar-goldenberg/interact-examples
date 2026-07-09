@@ -276,7 +276,38 @@ function endRun() {
   state.progress.endedAt = Date.now();
   clearInterval(progTimer);
   renderProgress();
+  refreshAgent();
 }
+
+// ── Agent runtime chip (model + context usage) ──────
+const fmtK = (n) => n < 1000 ? String(n) : `${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k`;
+async function refreshAgent() {
+  try {
+    const s = await api('/api/agent/status');
+    $('modelSelect').value = s.model || '';
+    $('modelSelect').options[0].textContent = s.lastModel && !s.model
+      ? `CLI default (${s.lastModel.replace(/^claude-/, '')})` : 'CLI default';
+    const chip = $('ctxChip');
+    if (s.last) {
+      const pct = Math.min(100, Math.round(100 * s.last.total / s.window));
+      chip.textContent = `⌸ ${fmtK(s.last.total)} · ${pct}% ctx`;
+      chip.classList.toggle('warn', pct >= 75);
+      chip.title = `Last agent call: ${fmtK(s.last.input)} in + ${fmtK(s.last.output)} out of a ~${fmtK(s.window)}-token window (${pct}%).
+Session totals: ${s.totals.calls} call${s.totals.calls === 1 ? '' : 's'}, ${fmtK(s.totals.input + s.totals.output)} tokens. ↺ resets them.
+Model: ${s.lastModel || 'unknown'}. Every call starts a fresh context — nothing carries over between runs.`;
+    } else {
+      chip.textContent = 'agent idle';
+      chip.classList.remove('warn');
+      chip.title = 'Token usage appears after the first agent call (fix, convert, or refine).';
+    }
+  } catch { /* server briefly down — leave the chip as-is */ }
+}
+$('modelSelect').onchange = async (e) => {
+  await api('/api/agent/model', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ model: e.target.value }) });
+  refreshAgent();
+};
+$('ctxReset').onclick = async () => { await api('/api/agent/reset', { method: 'POST' }); refreshAgent(); };
 
 function applyResult(r) {
   if (!state.progress) return;
@@ -504,6 +535,7 @@ async function loopGenerate() {
     state.loop.generating = false;
     setLoopBusy(null);
     renderGrid();
+    refreshAgent();
   }
 }
 
@@ -528,6 +560,7 @@ async function loopRefine() {
     });
   } finally {
     setLoopBusy(null);
+    refreshAgent();
   }
   return ok;
 }
@@ -594,16 +627,24 @@ function backToCurrent() {
   renderRounds(state.loop.rounds);
 }
 
-// Diff the original .md against the guideline in view (working, or a past round's).
+// Diff the original .md against the guideline in view (the current working
+// version, or — when viewing round K — the guideline round K's refine produced).
 async function openPromptDiff() {
   const v = state.loop.viewing;
   const q = v === null ? '' : `&round=${v}`;
-  const d = await api(`/api/loop/diff?promptPath=${encodeURIComponent(state.loop.promptPath)}${q}`);
+  let d;
+  try {
+    d = await api(`/api/loop/diff?promptPath=${encodeURIComponent(state.loop.promptPath)}${q}`);
+  } catch {
+    loopStatus('Prompt diff failed — the running server may be outdated. Restart it and retry.');
+    return;
+  }
   $('diffTitle').textContent = v === null
     ? 'Original .md → current working guideline'
-    : `Original .md → guideline used in round ${v}`;
+    : `Original .md → round ${v}'s refined guideline`;
   $('diffBody').innerHTML = d.error ? `<span>${esc(d.error)}</span>`
-    : !d.changed ? '<div style="color:var(--text-3);padding:8px">No differences — this guideline matches the original .md.</div>'
+    : !d.changed ? `<div style="color:var(--text-3);padding:8px">No differences — this guideline is identical to the original .md.<br><br>
+        That happens when the loop just started, after a rollback to round 1's input, or after closing the loop (finalize writes the working guideline into the .md).</div>`
     : d.parts.map((p) => {
         const safe = esc(p.value);
         return p.added ? `<ins>${safe}</ins>` : p.removed ? `<del>${safe}</del>` : `<span>${safe}</span>`;
@@ -751,8 +792,17 @@ $('roundsRail').addEventListener('click', async (e) => {
   }
   const rb = e.target.closest('.rollback-btn');
   if (rb) {
+    // Two-step: first click arms, second confirms — a stray click here used to
+    // silently overwrite the working guideline and discard the last refine.
+    if (!rb.classList.contains('armed')) {
+      for (const b of document.querySelectorAll('.rollback-btn.armed')) { b.classList.remove('armed'); b.textContent = 'rollback'; }
+      rb.classList.add('armed'); rb.textContent = 'sure?';
+      loopStatus(`Rollback replaces the working guideline with round ${rb.dataset.round}'s input — click again to confirm.`);
+      return;
+    }
+    rb.classList.remove('armed'); rb.textContent = 'rollback';
     await api('/api/loop/rollback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath, round: Number(rb.dataset.round) }) });
-    loopStatus(`Working guideline set to round ${rb.dataset.round}'s version — Generate to see it.`);
+    loopStatus(`Working guideline set to round ${rb.dataset.round}'s input — Generate to see it. (Refined versions stay in history.)`);
     return;
   }
   const row = e.target.closest('.round-row');
@@ -764,5 +814,7 @@ $('loopBtn').onclick = openLoop;
 
 loadFiles();
 loadOptions();
+refreshAgent();
+setInterval(refreshAgent, 30000);   // keep the model/context chip fresh (cheap, local)
 loadPrompts();
 renderTopbar();

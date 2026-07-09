@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { PLAYGROUND_REPO, PLAYGROUND_URL, SECTION_INSTRUCTION } from './constants.js';
+import { getAgentState } from './agent-state.js';
 
 const SECTIONS_DIR = join(PLAYGROUND_REPO, 'apps/playground/src/sections');
 const PROMPT_DIST = join(PLAYGROUND_REPO, 'packages/interact-experience-prompt/dist/es/index.js');
@@ -52,6 +53,10 @@ export async function generate({ html, css, guideline },
   const buildGenerate = buildGenerateImpl || (await loadBuildGenerate());
   const schema = schemaImpl || (await loadSchema());
   const body = assemblePayload({ buildGenerate, schema, html, css, guideline });
+  // Honor the UI's model override — the playground's local-agent middleware
+  // accepts { provider, model } alongside the prompt fields.
+  const override = getAgentState().model;
+  if (override) { body.provider = 'claude'; body.model = override; }
   const res = await fetchImpl(`${playgroundUrl}/api/generate`, {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`playground /api/generate returned ${res.status}`);

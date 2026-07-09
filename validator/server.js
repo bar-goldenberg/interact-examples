@@ -11,7 +11,8 @@ import { loadConvertSkill } from './lib/skill.js';
 import { FIX_OPTIONS } from './lib/prompt.js';
 import { loadSpecText } from './lib/spec.js';
 import { listSections, generate, pingStatus } from './lib/playground.js';
-import { readLoop, recordRound, rollback, finalize } from './lib/loop-store.js';
+import { readLoop, recordRound, rollback, finalize, roundRefined } from './lib/loop-store.js';
+import { getAgentState, setModelOverride, resetTotals } from './lib/agent-state.js';
 import { refineGuideline } from './lib/refine.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -205,7 +206,7 @@ export function createApp(rootDir) {
   });
 
   // Diff the original .md guideline against the current working version
-  // (default) or against the guideline a specific round ran with (?round=K).
+  // (default) or against the guideline a specific round PRODUCED (?round=K).
   app.get('/api/loop/diff', async (req, res) => {
     try {
       const promptPath = String(req.query.promptPath);
@@ -213,13 +214,18 @@ export function createApp(rootDir) {
       if (original === null) return res.status(404).json({ error: 'no prompt' });
       let target = loop.working ?? '';
       if (req.query.round) {
-        const r = loop.rounds.find((x) => x.round === Number(req.query.round));
-        if (!r) return bad(res, `no round ${req.query.round}`);
-        target = r.guideline;
+        const refined = roundRefined(loop, Number(req.query.round));
+        if (refined === null) return bad(res, `no round ${req.query.round}`);
+        target = refined;
       }
       res.json({ changed: original !== target, parts: computeDiff(original, target) });
     } catch (err) { bad(res, String(err.message || err)); }
   });
+
+  // ── Agent runtime (model override + token accounting) ─────────
+  app.get('/api/agent/status', (_req, res) => { res.json(getAgentState()); });
+  app.post('/api/agent/model', (req, res) => { setModelOverride(req.body.model); res.json(getAgentState()); });
+  app.post('/api/agent/reset', (_req, res) => { resetTotals(); res.json(getAgentState()); });
 
   app.post('/api/loop/run', async (req, res) => {
     const { promptPath, sections } = req.body;

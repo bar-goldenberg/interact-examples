@@ -47,6 +47,16 @@
       <button data-ver="current" class="tab active">Current</button>
       <button data-ver="draft" class="tab">Draft</button>
     </div>
+    <div id="agentBar" class="glass seg" title="Agent runtime — applies to fix, convert, refine, and playground generate">
+      <select id="modelSelect" class="agent-select">
+        <option value="">CLI default</option>
+        <option value="opus">opus</option>
+        <option value="sonnet">sonnet</option>
+        <option value="haiku">haiku</option>
+      </select>
+      <span id="ctxChip" class="ctx-chip">agent idle</span>
+      <button id="ctxReset" class="icon-btn" title="Reset session token totals">↺</button>
+    </div>
   </div>
 
   <!-- Edge toggles to collapse/expand the side panels -->

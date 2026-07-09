@@ -18,13 +18,26 @@ async function save(rootDir, promptRel, loop) {
   await writePromptRaw(rootDir, historyRel(promptRel), JSON.stringify(loop, null, 2));
 }
 
+// A round stores both the guideline it RAN with (`guideline`) and the
+// guideline its refine PRODUCED (`refined` = newWorking) — so a later
+// rollback can never destroy a refined version.
 export async function recordRound(rootDir, promptRel, { guideline, sections, score, notes, newWorking }) {
   const loop = await readLoop(rootDir, promptRel);
   const round = loop.rounds.length + 1;
-  loop.rounds.push({ round, guideline, sections: sections || [], score, notes });
+  loop.rounds.push({ round, guideline, refined: newWorking, sections: sections || [], score, notes });
   loop.working = newWorking;
   await save(rootDir, promptRel, loop);
   return { round };
+}
+
+// The guideline a round produced. Older histories predate `refined`; fall
+// back to the next round's input (what working was when it ran), else working.
+export function roundRefined(loop, round) {
+  const r = loop.rounds.find((x) => x.round === round);
+  if (!r) return null;
+  if (typeof r.refined === 'string') return r.refined;
+  const next = loop.rounds.find((x) => x.round === round + 1);
+  return next ? next.guideline : loop.working;
 }
 
 export async function rollback(rootDir, promptRel, round) {
