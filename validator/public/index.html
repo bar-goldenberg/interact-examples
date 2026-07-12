@@ -15,23 +15,10 @@
     <div id="markdown" class="md-view" hidden></div>
     <div id="loopView" hidden>
       <div class="loop-top">
-        <div id="loopHead" class="loop-head"></div>
-        <div id="loopSections" class="loop-sections"></div>
+        <div id="jobHead" class="loop-head"></div>
       </div>
-      <div id="loopGrid" class="loop-grid"></div>
-      <div id="loopFeedback" class="loop-feedback" hidden>
-        <div class="score-box">
-          <div class="score-num"><b id="scoreVal">7</b><span class="den">/10</span></div>
-          <input id="scoreRange" type="range" min="1" max="10" value="7" />
-          <div class="score-cap">Score this round</div>
-        </div>
-        <textarea id="loopNotes" placeholder="Holistic notes — what should improve across all sections?"></textarea>
-        <div class="loop-actions">
-          <button id="refineBtn" class="btn btn-primary">Refine prompt</button>
-          <button id="regenBtn" class="btn">Generate again</button>
-          <button id="loopActivityBtn" class="btn btn-ghost btn-activity"><span class="live-dot" hidden></span><span class="la-label">◧ Agent thinking</span></button>
-        </div>
-      </div>
+      <div id="jobBody" class="loop-grid"></div>
+      <div id="jobBar" class="loop-feedback" hidden></div>
     </div>
     <div id="placeholder"><div class="ic">◈</div><p>Select a file to preview</p></div>
   </div>
@@ -89,8 +76,8 @@
     <button id="activityBtn" class="btn btn-ghost btn-block">◧ Agent activity</button>
     <button id="fixBtn" class="btn btn-primary btn-block">Fix selected</button>
     <button id="convertBtn" class="btn btn-block">Convert to prompt</button>
-    <button id="loopBtn" class="btn btn-block" hidden>Start refine loop</button>
-    <div id="roundsRail"></div>
+    <button id="refineSelBtn" class="btn btn-primary btn-block" hidden>Refine selected (<span id="refineCount">0</span>)</button>
+    <div id="queueWidget"></div>
     <div id="fixProgress"></div>
     <div class="divider"></div>
     <div class="apply-actions">
@@ -133,6 +120,22 @@
         <button id="expandClose" class="icon-btn" title="Close (Esc)">✕</button>
       </div>
       <iframe id="expandFrame" sandbox="allow-scripts" title="expanded preview"></iframe>
+    </div>
+  </div>
+
+  <!-- Launch refinement sheet -->
+  <div id="launchModal" class="modal-backdrop" hidden>
+    <div class="modal glass" style="height:auto;max-height:70vh">
+      <div class="modal-head"><span>Launch refinement</span>
+        <button id="launchClose" class="icon-btn">✕</button></div>
+      <div class="launch-body">
+        <div id="launchPrompts" class="launch-list"></div>
+        <div class="launch-sub">Sections to test on (1–4):</div>
+        <div id="launchSections" class="loop-sections" style="position:static;border:0;padding:8px 0"></div>
+        <div class="launch-sub">Stop rule: green at score ≥ 8 · max 5 iterations · plateau ×2 → amber</div>
+        <button id="launchGo" class="btn btn-primary btn-block">Start</button>
+        <div id="launchErr" class="launch-err"></div>
+      </div>
     </div>
   </div>
 

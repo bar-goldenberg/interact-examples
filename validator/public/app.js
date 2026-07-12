@@ -1,6 +1,5 @@
 import { injectBase } from './preview.js';
 import { mdToHtml } from './md.js';
-import { buildRenderDoc } from './render-frame.js';
 
 // Version state — mutually exclusive (green / yellow / red).
 const VER = {
@@ -27,7 +26,7 @@ const state = {
   filter: '', mode: 'preview', version: 'current', progress: null,
   expanded: new Set(), logs: new Map(), activity: { open: false, file: null, follow: true },
   view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered',
-  loop: { promptPath: null, sections: [], available: [], configs: {}, active: false },
+  refinery: { jobsByPrompt: {}, sections: [], selected: new Set(), currentJob: null, viewIter: null, es: null },
 };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
@@ -77,7 +76,8 @@ function fileRow(f) {
 function promptRow(f) {
   const active = state.currentPrompt === f.path ? ' active' : '';
   return `<div class="file-row${active}" data-ppath="${esc(f.path)}" title="${esc(f.path)}">
-    <span class="fname">${esc(f.file)}</span><span class="md-badge">md</span></div>`;
+    <input type="checkbox" class="jcb" data-jp="${esc(f.path)}" ${state.refinery.selected.has(f.path) ? 'checked' : ''}/>
+    <span class="fname">${esc(f.file)}</span>${promptDot(f.path)}<span class="md-badge">md</span></div>`;
 }
 
 function renderNodes(node, depth, forceOpen, expanded, rowFn) {
@@ -186,7 +186,7 @@ async function render() {
 
 async function renderExampleView() {
   $('loopView').hidden = true;
-  $('loopBtn').hidden = true;
+  $('refineSelBtn').hidden = true;
   const { mode, version, current } = state;
   $('markdown').hidden = true;
   const has = !!current;
@@ -205,14 +205,18 @@ async function renderPromptView() {
   $('loopView').hidden = true;
   $('preview').hidden = true; $('diff').hidden = true;
   const has = !!state.currentPrompt;
-  $('loopBtn').hidden = !(state.view === 'prompts' && has);
+  $('refineSelBtn').hidden = !(state.view === 'prompts' && state.refinery.selected.size);
   $('placeholder').hidden = has;
   $('markdown').hidden = !(has && state.promptMode === 'rendered');
   $('code').hidden = !(has && state.promptMode === 'raw');
-  if (!has) return;
-  const src = await fetchPrompt(state.currentPrompt);
-  if (state.promptMode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
-  else $('code').textContent = src;
+  if (has) {
+    const src = await fetchPrompt(state.currentPrompt);
+    if (state.promptMode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
+    else $('code').textContent = src;
+  }
+  if (state.currentPrompt && (state.refinery.jobsByPrompt[state.currentPrompt] || []).length) {
+    openJobView((state.refinery.jobsByPrompt[state.currentPrompt])[0].id);
+  }
 }
 
 // ── Live progress (SSE) ─────────────────────────────
@@ -409,247 +413,207 @@ function renderActivity() {
 function openActivity() { state.activity.open = true; $('activityModal').hidden = false; renderActivity(); }
 function closeActivity() { state.activity.open = false; $('activityModal').hidden = true; }
 
-// ── Prompt refinement loop ──────────────────────────
-async function openLoop() {
-  const p = state.currentPrompt;
-  if (!p) return;
-  state.loop = { promptPath: p, sections: [], available: [], configs: {}, generating: false, active: true,
-    rounds: [], viewing: null, snapshot: null };
+// ── Refinery: status dots + jobs poller ─────────────
+// status dot for a prompt: latest job wins.
+function promptDot(path) {
+  const jobs = state.refinery.jobsByPrompt[path] || [];
+  if (!jobs.length) return '';
+  const j = jobs[0];
+  const cls = { queued: 'q', running: 'run', green: 'ok', amber: 'warn', failed: 'fail', approved: 'done', idle: '' }[j.status] || '';
+  const label = j.status === 'running' ? `running · iter ${j.iters}` : j.status;
+  return cls ? `<span class="jdot ${cls}" title="${esc(label)}"></span>` : '';
+}
+
+async function refreshJobs() {
+  try {
+    const { jobs } = await api('/api/refinery/jobs');
+    const by = {};
+    for (const j of jobs) (by[j.promptPath] = by[j.promptPath] || []).push(j);
+    state.refinery.jobsByPrompt = by;
+    renderQueueWidget(jobs);
+    if (state.view === 'prompts') renderTree();
+    // live-follow the open job
+    const cur = state.refinery.currentJob;
+    if (cur && !$('loopView').hidden) {
+      const fresh = jobs.find((j) => j.id === cur.id);
+      if (fresh && (fresh.status !== cur.status || fresh.iters !== cur.iters)) openJobView(cur.id, { keepIter: true });
+    }
+  } catch { /* server briefly down */ }
+}
+setInterval(refreshJobs, 4000);
+refreshJobs();
+
+// ── Launch sheet ────────────────────────────────────
+async function openLaunch() {
+  const { sections } = await api('/api/playground/sections');
+  state.refinery.sections = [];
+  $('launchPrompts').innerHTML = [...state.refinery.selected].map((p) => `<div class="launch-row">${esc(p)}</div>`).join('');
+  $('launchSections').innerHTML = sections.map((s) =>
+    `<span class="chip" data-ls="${esc(s.id)}">${esc(s.id)}</span>`).join('');
+  $('launchErr').textContent = '';
+  $('launchModal').hidden = false;
+}
+$('refineSelBtn').onclick = openLaunch;
+$('launchClose').onclick = () => { $('launchModal').hidden = true; };
+$('launchSections').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip'); if (!chip) return;
+  const id = chip.dataset.ls;
+  const i = state.refinery.sections.indexOf(id);
+  if (i >= 0) state.refinery.sections.splice(i, 1);
+  else if (state.refinery.sections.length < 4) state.refinery.sections.push(id);
+  chip.classList.toggle('on', state.refinery.sections.includes(id));
+});
+$('launchGo').onclick = async () => {
+  if (!state.refinery.sections.length) { $('launchErr').textContent = 'Pick at least one section.'; return; }
+  const res = await api('/api/refinery/launch', { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ promptPaths: [...state.refinery.selected], sections: state.refinery.sections }) });
+  if (res.error) { $('launchErr').textContent = res.error; return; }
+  if (res.errors?.length) $('launchErr').textContent = res.errors.map((e) => `${e.promptPath}: ${e.error}`).join(' · ');
+  else $('launchModal').hidden = true;
+  state.refinery.selected.clear();
+  $('refineSelBtn').hidden = true;
+  refreshJobs();
+};
+
+// ── Queue widget ────────────────────────────────────
+function renderQueueWidget(jobs) {
+  const act = jobs.filter((j) => j.status === 'running' || j.status === 'queued');
+  $('queueWidget').innerHTML = !act.length ? '' :
+    '<div class="qw-head">Refinery queue</div>' + act.map((j) =>
+      `<div class="qw-row" data-job="${j.id}" data-jp="${esc(j.promptPath)}">
+        ${j.status === 'running' ? '<span class="spinner"></span>' : '<span class="jdot q"></span>'}
+        <span class="qw-name">${esc(j.promptPath.split('/').pop())}</span>
+        <span class="qw-st">${j.status === 'running' ? `iter ${Math.max(1, j.iters)}` : 'queued'}</span></div>`).join('');
+}
+$('queueWidget').addEventListener('click', (e) => {
+  const row = e.target.closest('.qw-row'); if (!row) return;
+  state.currentPrompt = row.dataset.jp;
+  renderTree(); render();
+  openJobView(row.dataset.job);
+});
+
+// ── Job view — renders entirely from a fresh GET /api/refinery/job ──
+const STATUS_BADGE = {
+  queued:   ['Queued', ''], running: ['Running', ''], green: ['Green — review & approve', 'ok'],
+  amber:    ['Amber — needs attention', 'history'], failed: ['Failed', 'history'],
+  approved: ['Approved ✓', 'ok'], idle: ['Idle', ''],
+};
+
+async function openJobView(jobId, { keepIter } = {}) {
+  const job = await api(`/api/refinery/job?id=${encodeURIComponent(jobId)}`);
+  if (job.error) return;
+  state.refinery.currentJob = job;
+  if (!keepIter) state.refinery.viewIter = null;
   $('markdown').hidden = true; $('code').hidden = true; $('preview').hidden = true; $('diff').hidden = true;
   $('placeholder').hidden = true; $('loopView').hidden = false;
-  const [{ up }, { sections }, loop] = await Promise.all([
-    api('/api/playground/status'),
-    api('/api/playground/sections'),
-    api(`/api/loop?promptPath=${encodeURIComponent(p)}`),
-  ]);
-  state.loop.available = sections;   // [{ id, html, css }] — html/css power the original-layout preview
-  if (!up) {
-    $('loopHead').innerHTML = '';
-    $('loopSections').innerHTML = '<div style="color:#fca5a5;font-size:12px">Playground not reachable at :5173 — start it (cd apps/playground && npm run dev), then reopen.</div>';
-    $('loopGrid').innerHTML = '';
-    $('roundsRail').innerHTML = '';
-    return;
+  renderJobView(job);
+  subscribeJob(job);
+}
+
+function renderJobView(job) {
+  const [label, cls] = STATUS_BADGE[job.status] || [job.status, ''];
+  const scores = job.iterations.map((it) => it.judge?.score ?? '×');
+  const viewIter = state.refinery.viewIter ?? job.iterations.length;
+  // header: badge, score trail, iteration chips, actions
+  $('jobHead').innerHTML = `
+    <span class="round-badge ${cls}">${esc(label)}${job.amberReason ? ` · ${esc(job.amberReason)}` : ''}</span>
+    <span class="loop-sub">${esc(job.promptPath)} · iter ${job.iterations.length}/${job.stop.maxIters}
+      ${scores.length ? '· scores ' + scores.join(' → ') : ''}</span>
+    <span class="iter-chips">${job.iterations.map((it) =>
+      `<button class="iter-chip ${it.iter === viewIter ? 'on' : ''}" data-iter="${it.iter}">${it.iter}</button>`).join('')}</span>
+    <span id="loopStatus" class="loop-status"></span>
+    ${job.status === 'running' ? '<button id="jobStopBtn" class="btn btn-ghost btn-mini">Stop after iteration</button>' : ''}
+    <button id="jobActivityBtn" class="btn btn-ghost btn-mini">◧ Activity</button>`;
+  // body: the viewed iteration
+  const it = job.iterations.find((x) => x.iter === viewIter);
+  if (!it) {
+    $('jobBody').innerHTML = `<div class="loop-empty">${job.status === 'queued' ? 'Waiting in the queue…' : 'No iterations yet — generating…'}</div>`;
+  } else {
+    const judgeBlock = it.judge?.error ? `<div class="err">judge failed: ${esc(it.judge.error)}</div>`
+      : it.judge ? `<div class="judge-note"><b>${it.judge.score}/10</b> — ${esc(it.judge.notes)}</div>` : '';
+    $('jobBody').innerHTML = judgeBlock + it.sections.map((s) => {
+      const issues = (it.judge?.sections || []).find((x) => x.id === s.id)?.issues || [];
+      const inner = s.error ? `<div class="err">${esc(s.error)}</div>`
+        : `<iframe sandbox="allow-scripts" src="/render/${job.id}/${it.iter}/${encodeURIComponent(s.id)}"></iframe>`;
+      return `<div class="loop-cell"><div class="cap"><span class="cap-id">${esc(s.id)}</span>
+        ${s.error ? '' : `<button class="cap-expand" data-xj="${job.id}" data-xi="${it.iter}" data-xs="${esc(s.id)}" title="Expand">⛶</button>`}</div>
+        ${inner}${issues.length ? `<div class="cell-issues">${issues.map((i) => `· ${esc(i)}`).join('<br>')}</div>` : ''}</div>`;
+    }).join('');
   }
-  renderSectionChips();
-  renderGrid();
-  renderRounds(loop.rounds);
-}
-
-// The loop header: which iteration you're on (or viewing), inline status, and
-// the prompt-diff / back-to-current controls.
-function renderLoopHead() {
-  const n = (state.loop.rounds || []).length;
-  const v = state.loop.viewing;
-  const diffBtn = '<button id="promptDiffBtn" class="btn btn-ghost btn-mini" title="Diff the original .md against this guideline">Δ Prompt diff</button>';
-  $('loopHead').innerHTML = v === null
-    ? `<span class="round-badge">Round ${n + 1}</span>
-       <span class="loop-sub">${n === 0 ? 'first pass — original guideline' : `after ${n} refinement${n > 1 ? 's' : ''}`}</span>
-       <span id="loopStatus" class="loop-status"></span>${diffBtn}`
-    : `<span class="round-badge history">Viewing round ${v} of ${n}</span>
-       <span class="loop-sub">read-only — a past iteration</span>
-       <span id="loopStatus" class="loop-status"></span>${diffBtn}
-       <button id="backCurrentBtn" class="btn btn-primary btn-mini">Back to current →</button>`;
-}
-function loopStatus(msg) { const el = document.getElementById('loopStatus'); if (el) el.textContent = msg; }
-
-function renderSectionChips() {
-  const locked = state.loop.viewing !== null || state.loop.generating;
-  $('loopSections').innerHTML = state.loop.available.map((s) =>
-    `<span class="chip ${state.loop.sections.includes(s.id) ? 'on' : ''}" data-sec="${esc(s.id)}">${esc(s.id)}</span>`).join('')
-    + `<button id="genBtn" class="btn btn-primary" style="margin-left:auto" ${locked ? 'disabled' : ''}>Generate</button>`;
-}
-
-// What to draw for a section cell: its animated config once generated, the
-// spinner while a run is in flight, an error card, or — before generation —
-// its original layout (static html/css) so picking a pill previews it.
-function cellRender(id) {
-  const c = state.loop.configs[id];
-  if (c && c.error) return { kind: 'error', error: c.error };
-  if (c && c.config) return { kind: 'doc', original: false, html: c.html, css: c.css, config: c.config };
-  if (c === undefined && state.loop.generating) return { kind: 'spinner' };
-  const meta = state.loop.available.find((s) => s.id === id);
-  if (meta) return { kind: 'doc', original: true, html: meta.html, css: meta.css, config: null };
-  return { kind: 'spinner' };
-}
-
-function renderGrid() {
-  const secs = state.loop.sections;
-  if (!secs.length) {
-    $('loopGrid').innerHTML = '<div class="loop-empty">Pick sections above to preview their original layout, then hit Generate.</div>';
-    $('loopFeedback').hidden = true;
-    return;
-  }
-  $('loopGrid').innerHTML = secs.map((id) => {
-    const r = cellRender(id);
-    let inner = '', tag = '', expand = '';
-    if (r.kind === 'spinner') inner = '<div class="gen"><span class="spinner"></span>Generating…</div>';
-    else if (r.kind === 'error') inner = `<div class="err">${esc(r.error)}</div>`;
-    else {
-      inner = `<iframe sandbox="allow-scripts" srcdoc="${esc(buildRenderDoc(r))}"></iframe>`;
-      tag = r.original ? '<span class="cap-tag">original</span>' : '<span class="cap-tag on">animated</span>';
-      expand = `<button class="cap-expand" data-expand="${esc(id)}" title="Expand to full screen">⛶</button>`;
-    }
-    return `<div class="loop-cell"><div class="cap"><span class="cap-id">${esc(id)}</span>${tag}${expand}</div>${inner}</div>`;
-  }).join('');
-  // Feedback (score/refine) is only meaningful once a round has been generated.
-  $('loopFeedback').hidden = Object.keys(state.loop.configs).length === 0;
-}
-
-// Toggle the loop's running state: spinner-in-button, disabled controls, and a
-// pulsing "Agent thinking" affordance that opens the live reasoning modal.
-function setLoopBusy(action) {                 // action: 'refine' | 'generate' | null
-  const busy = !!action;
-  const lock = busy || state.loop.viewing !== null;   // viewing history keeps actions locked
-  $('refineBtn').disabled = lock;
-  $('regenBtn').disabled = lock;
-  const gen = document.getElementById('genBtn'); if (gen) gen.disabled = lock;
-  $('refineBtn').innerHTML = action === 'refine' ? '<span class="spinner"></span>Refining…' : 'Refine prompt';
-  $('regenBtn').innerHTML = action === 'generate' ? '<span class="spinner"></span>Generating…' : 'Generate again';
-  const btn = $('loopActivityBtn');
-  btn.classList.toggle('live', busy);
-  btn.querySelector('.live-dot').hidden = !busy;
-  btn.querySelector('.la-label').textContent = busy ? '◧ Agent thinking…' : '◧ Agent thinking';
-}
-
-async function loopGenerate() {
-  if (state.loop.viewing !== null) return;   // history is read-only
-  const secs = state.loop.sections;
-  if (!secs.length) return;
-  state.loop.configs = {};
-  state.loop.generating = true;
-  state.logs = new Map();
-  state.activity.follow = true;                // modal tracks the newest stream
-  renderGrid();
-  setLoopBusy('generate');
-  try {
-    const res = await fetch('/api/loop/run', {
-      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-      body: JSON.stringify({ promptPath: state.loop.promptPath, sections: secs }) });
-    await streamSSE(res, (type, d) => {
-      if (type === 'result') {
-        state.loop.configs[d.id] = d.error ? { error: d.error } : { config: d.config, html: d.html, css: d.css };
-        renderGrid();
-      } else if (type === 'log') appendLog(d.id || 'agent', d.text);
-    });
-  } finally {
-    state.loop.generating = false;
-    setLoopBusy(null);
-    renderGrid();
-    refreshAgent();
+  // bottom bar: approve flow / relaunch with notes
+  const done = ['green', 'amber', 'failed', 'idle'].includes(job.status);
+  $('jobBar').hidden = !done;
+  if (done) {
+    $('jobBar').innerHTML = `
+      <textarea id="jobNotes" placeholder="Optional guidance for the next run (rides into the refine step)"></textarea>
+      <div class="loop-actions">
+        ${job.status !== 'failed' && job.iterations.length ? '<button id="jobApprove" class="btn btn-primary">Approve (write .md)</button>' : ''}
+        <button id="jobRelaunch" class="btn">Relaunch</button>
+        ${job.iterations.length ? '<button id="jobDiffBtn" class="btn btn-ghost btn-mini">Δ Prompt diff</button>' : ''}
+        ${job.status !== 'idle' && job.status !== 'failed' ? '<button id="jobReject" class="btn btn-ghost btn-mini">Reject (keep history)</button>' : ''}
+      </div>`;
   }
 }
 
-async function loopRefine() {
-  const score = Number($('scoreRange').value);
-  const notes = $('loopNotes').value;
-  const configs = Object.entries(state.loop.configs).filter(([, c]) => c && c.config)
-    .map(([id, c]) => ({ id, config: c.config, html: c.html, css: c.css }));
-  state.logs = new Map();
-  state.activity.follow = true;                // modal tracks the refine stream
-  let ok = false;
-  setLoopBusy('refine');
-  loopStatus('Refining the guideline from your score + notes…');
-  try {
-    const res = await fetch('/api/loop/refine', {
-      method: 'POST', headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
-      body: JSON.stringify({ promptPath: state.loop.promptPath, score, notes, configs }) });
-    await streamSSE(res, (type, d) => {
-      if (type === 'log') appendLog('refine', d.text);
-      else if (type === 'done') { ok = true; $('loopNotes').value = ''; loopRefreshRounds().then(() => loopStatus('Guideline refined — regenerating…')); }
-      else if (type === 'error') { loopStatus(`Refine failed: ${d.error}`); }
-    });
-  } finally {
-    setLoopBusy(null);
-    refreshAgent();
+// Live previews use src=/render/... (session-cookie-free, CORS-safe: same origin,
+// sandboxed like the old grid). Expanded view reuses the same URL.
+$('jobBody').addEventListener('click', (e) => {
+  const x = e.target.closest('[data-xj]'); if (!x) return;
+  $('expandTitle').textContent = `${x.dataset.xs} · iteration ${x.dataset.xi}`;
+  $('expandFrame').removeAttribute('srcdoc');
+  $('expandFrame').src = `/render/${x.dataset.xj}/${x.dataset.xi}/${encodeURIComponent(x.dataset.xs)}`;
+  $('expandModal').hidden = false;
+});
+
+$('jobHead').addEventListener('click', async (e) => {
+  const chip = e.target.closest('.iter-chip');
+  if (chip) { state.refinery.viewIter = Number(chip.dataset.iter); renderJobView(state.refinery.currentJob); return; }
+  if (e.target.id === 'jobStopBtn') {
+    await api('/api/refinery/stop', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: state.refinery.currentJob.id }) });
+    document.getElementById('loopStatus').textContent = 'Will stop after the current iteration.';
   }
-  return ok;
-}
+  if (e.target.id === 'jobActivityBtn') openActivity();
+});
 
-async function loopRefreshRounds() {
-  const loop = await api(`/api/loop?promptPath=${encodeURIComponent(state.loop.promptPath)}`);
-  renderRounds(loop.rounds);
-}
-
-function renderRounds(rounds) {
-  state.loop.rounds = rounds || [];
-  const n = state.loop.rounds.length;
-  const cur = `<div class="round-row ${state.loop.viewing === null ? 'viewing' : ''}" data-current="1"
-      title="The live working guideline — where refinements land">
-      <span class="dot"></span>Current · round ${n + 1}<span class="sc">working</span></div>`;
-  const hist = [...state.loop.rounds].reverse().map((r) =>
-    `<div class="round-row ${state.loop.viewing === r.round ? 'viewing' : ''}" data-round="${r.round}" title="${esc(r.notes || '')}">Round ${r.round}
-      <span class="sc">${r.score}/10</span>
-      <button class="btn rollback-btn" data-round="${r.round}" style="padding:2px 8px"
-        title="Make this round's guideline the working version">rollback</button></div>`).join('');
-  $('roundsRail').innerHTML = cur + hist
-    + (n ? '<button id="finalizeBtn" class="btn btn-block" style="margin-top:6px">Close loop (write to .md)</button>' : '');
-  renderLoopHead();
-}
-
-// Lock the feedback controls while viewing history (they belong to the past round).
-function setFeedbackLocked(locked) {
-  $('scoreRange').disabled = locked; $('loopNotes').disabled = locked;
-  $('refineBtn').disabled = locked; $('regenBtn').disabled = locked;
-}
-
-// Load a past round's stored outputs + feedback back into the view (read-only look).
-function viewRound(round) {
-  if (state.loop.generating) { loopStatus('Generation in progress — wait for it to finish.'); return; }
-  const r = (state.loop.rounds || []).find((x) => x.round === round);
-  if (!r) return;
-  if (state.loop.viewing === null) {           // leaving "current" — snapshot it for the way back
-    state.loop.snapshot = { sections: [...state.loop.sections], configs: { ...state.loop.configs },
-      score: $('scoreRange').value, notes: $('loopNotes').value };
+$('jobBar').addEventListener('click', async (e) => {
+  const job = state.refinery.currentJob; if (!job) return;
+  const post = (path, body) => api(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  if (e.target.id === 'jobApprove') {
+    const r = await post('/api/refinery/approve', { id: job.id });
+    document.getElementById('loopStatus').textContent = r.error || 'Approved — guideline written to the .md.';
+    refreshJobs(); openJobView(job.id);
+  } else if (e.target.id === 'jobRelaunch') {
+    const notes = document.getElementById('jobNotes')?.value || '';
+    const r = await post('/api/refinery/relaunch', { id: job.id, userNotes: notes || undefined });
+    document.getElementById('loopStatus').textContent = r.error || 'Relaunched.';
+    refreshJobs(); openJobView(job.id);
+  } else if (e.target.id === 'jobReject') {
+    const r = await post('/api/refinery/reject', { id: job.id });
+    document.getElementById('loopStatus').textContent = r.error || 'Rejected — history kept.';
+    refreshJobs(); openJobView(job.id);
+  } else if (e.target.id === 'jobDiffBtn') {
+    const d = await api(`/api/refinery/diff?id=${encodeURIComponent(job.id)}`);
+    $('diffTitle').textContent = `Original .md → job's best guideline`;
+    $('diffBody').innerHTML = d.error ? `<span>${esc(d.error)}</span>`
+      : !d.changed ? '<div style="color:var(--text-3);padding:8px">No differences.</div>'
+      : d.parts.map((p) => p.added ? `<ins>${esc(p.value)}</ins>` : p.removed ? `<del>${esc(p.value)}</del>` : `<span>${esc(p.value)}</span>`).join('');
+    $('diffModal').hidden = false;
   }
-  state.loop.viewing = round;
-  state.loop.configs = {};
-  for (const s of r.sections) state.loop.configs[s.id] = { config: s.config, html: s.html, css: s.css };
-  state.loop.sections = r.sections.map((s) => s.id);
-  $('scoreRange').value = r.score; $('scoreVal').textContent = r.score; $('loopNotes').value = r.notes || '';
-  setFeedbackLocked(true);
-  renderSectionChips();
-  renderGrid();
-  renderRounds(state.loop.rounds);
-}
+});
 
-// Return from a history view to the live working state.
-function backToCurrent() {
-  const snap = state.loop.snapshot;
-  state.loop.viewing = null;
-  if (snap) {
-    state.loop.sections = snap.sections; state.loop.configs = snap.configs;
-    $('scoreRange').value = snap.score; $('scoreVal').textContent = snap.score; $('loopNotes').value = snap.notes;
-    state.loop.snapshot = null;
-  }
-  setFeedbackLocked(false);
-  renderSectionChips();
-  renderGrid();
-  renderRounds(state.loop.rounds);
-}
-
-// Diff the original .md against the guideline in view (the current working
-// version, or — when viewing round K — the guideline round K's refine produced).
-async function openPromptDiff() {
-  const v = state.loop.viewing;
-  const q = v === null ? '' : `&round=${v}`;
-  let d;
-  try {
-    d = await api(`/api/loop/diff?promptPath=${encodeURIComponent(state.loop.promptPath)}${q}`);
-  } catch {
-    loopStatus('Prompt diff failed — the running server may be outdated. Restart it and retry.');
-    return;
-  }
-  $('diffTitle').textContent = v === null
-    ? 'Original .md → current working guideline'
-    : `Original .md → round ${v}'s refined guideline`;
-  $('diffBody').innerHTML = d.error ? `<span>${esc(d.error)}</span>`
-    : !d.changed ? `<div style="color:var(--text-3);padding:8px">No differences — this guideline is identical to the original .md.<br><br>
-        That happens when the loop just started, after a rollback to round 1's input, or after closing the loop (finalize writes the working guideline into the .md).</div>`
-    : d.parts.map((p) => {
-        const safe = esc(p.value);
-        return p.added ? `<ins>${safe}</ins>` : p.removed ? `<del>${safe}</del>` : `<span>${safe}</span>`;
-      }).join('');
-  $('diffModal').hidden = false;
+// SSE: stream logs into the activity modal; refresh the view on step/status.
+function subscribeJob(job) {
+  state.refinery.es?.close();
+  if (job.status !== 'running' && job.status !== 'queued') { state.refinery.es = null; return; }
+  const es = new EventSource(`/api/refinery/events?id=${encodeURIComponent(job.id)}`);
+  state.refinery.es = es;
+  es.addEventListener('log', (e) => { const d = JSON.parse(e.data); appendLog(job.promptPath, d.text); });
+  es.addEventListener('step', (e) => { const d = JSON.parse(e.data);
+    const el = document.getElementById('loopStatus'); if (el) el.textContent = `iter ${d.iter} · ${d.step}…`; });
+  es.addEventListener('iteration', () => openJobView(job.id, { keepIter: false }));
+  es.addEventListener('status', () => { refreshJobs(); openJobView(job.id, { keepIter: true }); });
+  es.addEventListener('end', () => { es.close(); state.refinery.es = null; });
 }
 
 // ── events ──────────────────────────────────────────
@@ -672,6 +636,13 @@ $('fileTree').addEventListener('click', (e) => {
     }
     state.current = path; renderTree(); render();
   } else {
+    if (e.target.classList.contains('jcb')) {
+      const p = e.target.dataset.jp;
+      if (state.refinery.selected.has(p)) state.refinery.selected.delete(p); else state.refinery.selected.add(p);
+      $('refineCount').textContent = state.refinery.selected.size;
+      $('refineSelBtn').hidden = state.view !== 'prompts' || !state.refinery.selected.size;
+      return;
+    }
     state.currentPrompt = row.dataset.ppath; renderTree(); render();
   }
 });
@@ -750,67 +721,6 @@ document.addEventListener('keydown', (e) => {
   if (!$('diffModal').hidden) { $('diffModal').hidden = true; return; }
   if (!$('activityModal').hidden) closeActivity();
 });
-
-// event delegation
-$('loopSections').addEventListener('click', (e) => {
-  if (e.target.id === 'genBtn') return loopGenerate();
-  const chip = e.target.closest('.chip'); if (!chip) return;
-  if (state.loop.generating) return;                          // don't churn a run in flight
-  if (state.loop.viewing !== null) {                          // history is read-only
-    loopStatus('Viewing a past round — go back to current to change sections.');
-    return;
-  }
-  const id = chip.dataset.sec;
-  const i = state.loop.sections.indexOf(id);
-  if (i >= 0) state.loop.sections.splice(i, 1);
-  else if (state.loop.sections.length < 4) state.loop.sections.push(id);
-  renderSectionChips();
-  renderGrid();   // reflect the pick immediately — newly added sections show their original layout
-});
-$('loopHead').addEventListener('click', (e) => {
-  if (e.target.id === 'promptDiffBtn') return openPromptDiff();
-  if (e.target.id === 'backCurrentBtn') return backToCurrent();
-});
-// Expand a preview cell to full screen.
-$('loopGrid').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-expand]'); if (!btn) return;
-  const r = cellRender(btn.dataset.expand);
-  if (r.kind !== 'doc') return;
-  $('expandTitle').textContent = `${btn.dataset.expand} · ${r.original ? 'original' : 'animated'}`;
-  $('expandFrame').srcdoc = buildRenderDoc(r);
-  $('expandModal').hidden = false;
-});
-$('scoreRange').addEventListener('input', (e) => { $('scoreVal').textContent = e.target.value; });
-$('regenBtn').onclick = loopGenerate;
-$('refineBtn').onclick = async () => { if (await loopRefine()) await loopGenerate(); };
-$('loopActivityBtn').onclick = openActivity;
-$('roundsRail').addEventListener('click', async (e) => {
-  if (e.target.id === 'finalizeBtn') {
-    await api('/api/loop/finalize', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath }) });
-    loopStatus('Loop closed — final guideline written to the .md.');
-    return;
-  }
-  const rb = e.target.closest('.rollback-btn');
-  if (rb) {
-    // Two-step: first click arms, second confirms — a stray click here used to
-    // silently overwrite the working guideline and discard the last refine.
-    if (!rb.classList.contains('armed')) {
-      for (const b of document.querySelectorAll('.rollback-btn.armed')) { b.classList.remove('armed'); b.textContent = 'rollback'; }
-      rb.classList.add('armed'); rb.textContent = 'sure?';
-      loopStatus(`Rollback replaces the working guideline with round ${rb.dataset.round}'s input — click again to confirm.`);
-      return;
-    }
-    rb.classList.remove('armed'); rb.textContent = 'rollback';
-    await api('/api/loop/rollback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPath: state.loop.promptPath, round: Number(rb.dataset.round) }) });
-    loopStatus(`Working guideline set to round ${rb.dataset.round}'s input — Generate to see it. (Refined versions stay in history.)`);
-    return;
-  }
-  const row = e.target.closest('.round-row');
-  if (!row) return;
-  if (row.dataset.current) return backToCurrent();
-  viewRound(Number(row.dataset.round));
-});
-$('loopBtn').onclick = openLoop;
 
 loadFiles();
 loadOptions();
