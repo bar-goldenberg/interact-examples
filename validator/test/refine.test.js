@@ -24,3 +24,19 @@ test('refineGuideline passes an onDelta through to runAgent', async () => {
     runAgent: async (s, u, opts) => { sawOpts = opts; return '# ok'; } });
   assert.equal(typeof sawOpts.onDelta, 'function');
 });
+
+test('buildRefinePrompt includes history and user notes when given, with no-regression instruction', () => {
+  const { system, user } = buildRefinePrompt({ guideline: '# G', score: 6, notes: 'n',
+    history: 'iter 1 → 5/10: ranges premature', userNotes: 'make images the subject' });
+  assert.match(system, /without regressing/i);
+  assert.match(user, /Previous iterations:/);
+  assert.match(user, /iter 1 → 5\/10: ranges premature/);
+  assert.match(user, /guidance \(from the human\)/i);
+  assert.match(user, /make images the subject/);
+});
+
+test('buildRefinePrompt omits history/userNotes sections when absent (backward compatible)', () => {
+  const { user } = buildRefinePrompt({ guideline: '# G', score: 6, notes: 'n' });
+  assert.doesNotMatch(user, /Previous iterations:/);
+  assert.doesNotMatch(user, /guidance \(from the human\)/i);
+});
