@@ -82,6 +82,28 @@ test('relaunch resumes from the last refined guideline and consumes userNotes', 
   assert.equal(job.userNotes, null, 'userNotes consumed after use');
 });
 
+test('relaunch clears a stale stop flag left by a stop() that raced a natural stop', async () => {
+  // First run plateaus at iter 3 (scores 5,5,5) without ever consuming the stop
+  // flag (the plateau stop happens via `decide`, before the stopFlags check).
+  // Then stop() is called on the already-finished job, leaving a stale flag.
+  // On relaunch, iter 4 scores 6 (a new best, so `decide` says "continue" —
+  // this is the exact spot the bug lived: the loop reaches the stopFlags.has()
+  // check with a stale flag and would wrongly force an amber "interrupted"
+  // instead of continuing on to iter 5, which scores 8 and goes green.
+  const { refinery, runsDir } = await rig({ judgeScript: [5, 5, 5, 6, 8] });
+  const { jobs } = await refinery.launch({ promptPaths: ['G/A.md'], sections: ['cards'] });
+  await wait(refinery, jobs[0].id);                          // → amber(plateau) after 3 iters
+  refinery.stop(jobs[0].id);                                 // seed a stop flag never consumed by the finished run
+  const before = await getJob(runsDir, jobs[0].id);
+  assert.equal(before.status, 'amber');
+  assert.equal(before.amberReason, 'plateau');
+  await refinery.relaunch(jobs[0].id);
+  await wait(refinery, jobs[0].id);
+  const job = await getJob(runsDir, jobs[0].id);
+  assert.equal(job.status, 'green');                         // must NOT be spuriously interrupted
+  assert.equal(job.iterations.length, 5);
+});
+
 test('queue: only 2 jobs run concurrently', async () => {
   const runsDir = await mkdtemp(join(tmpdir(), 'iv-q-'));
   const rootDir = await mkdtemp(join(tmpdir(), 'iv-qroot-'));

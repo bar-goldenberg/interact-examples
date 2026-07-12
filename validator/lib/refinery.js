@@ -235,6 +235,7 @@ export function createRefinery({ runsDir, rootDir, port = process.env.PORT || 45
       const job = await getJob(runsDir, id);
       if (!job) throw new Error('no such job');
       if (job.status === 'running' || job.status === 'queued') throw new Error('job is already active');
+      stopFlags.delete(id);
       job.status = 'queued'; job.amberReason = null;
       if (userNotes) job.userNotes = userNotes;
       await saveJob(runsDir, job);
