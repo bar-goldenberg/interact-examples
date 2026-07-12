@@ -191,3 +191,68 @@ test('GET /vendor/* responds with an Access-Control-Allow-Origin header (sandbox
   assert.equal(res.headers.get('access-control-allow-origin'), '*');
   server.close();
 });
+
+test('refinery endpoints: job listing, approve writes the md, reject returns to idle', async () => {
+  const root = await repo();
+  const { writePrompt, readPrompt } = await import('../lib/prompts.js');
+  const { createJob, saveJob } = await import('../lib/jobs-store.js');
+  await writePrompt(root, 'G/A.html', '# original');
+  const { base, server } = await start(root);
+  // Seed a finished job directly in the store (validator/runs is the app's runsDir).
+  const runsDir = new URL('../runs', import.meta.url).pathname;
+  const job = await createJob(runsDir, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  job.status = 'green';
+  job.iterations = [{ iter: 1, guideline: '# THE WINNER', judge: { score: 9, notes: '' }, sections: [], refined: null }];
+  await saveJob(runsDir, job);
+  try {
+    const list = await (await fetch(`${base}/api/refinery/jobs?promptPath=${encodeURIComponent('G/A.md')}`)).json();
+    const mine = list.jobs.find((j) => j.id === job.id);
+    assert.ok(mine); assert.deepEqual(mine.scores, [9]);
+    const full = await (await fetch(`${base}/api/refinery/job?id=${job.id}`)).json();
+    assert.equal(full.iterations[0].guideline, '# THE WINNER');
+    const d = await (await fetch(`${base}/api/refinery/diff?id=${job.id}`)).json();
+    assert.equal(d.changed, true);
+    const ap = await fetch(`${base}/api/refinery/approve`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: job.id }) });
+    assert.equal(ap.status, 200);
+    assert.equal(await readPrompt(root, 'G/A.md'), '# THE WINNER');
+    const rj = await fetch(`${base}/api/refinery/reject`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: job.id }) });
+    assert.equal(rj.status, 200);
+    assert.equal((await (await fetch(`${base}/api/refinery/job?id=${job.id}`)).json()).status, 'idle');
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(new URL(`../runs/${job.id}`, import.meta.url).pathname, { recursive: true, force: true });
+    server.close();
+  }
+});
+
+test('GET /render serves a stored iteration section and 404s unknowns', async () => {
+  const root = await repo();
+  const { createJob, saveJob } = await import('../lib/jobs-store.js');
+  const { base, server } = await start(root);
+  const runsDir = new URL('../runs', import.meta.url).pathname;
+  const job = await createJob(runsDir, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  job.iterations = [{ iter: 1, guideline: 'g', judge: null, refined: null,
+    sections: [{ id: 's', config: '{"x":1}', html: '<div class="sec">S</div>', css: '.sec{color:red}', frames: [], gif: null, error: null }] }];
+  await saveJob(runsDir, job);
+  try {
+    const html = await (await fetch(`${base}/render/${job.id}/1/s`)).text();
+    assert.match(html, /<div class="sec">S<\/div>/);
+    assert.match(html, /createExperience/);
+    assert.equal((await fetch(`${base}/render/${job.id}/9/s`)).status, 404);
+    assert.equal((await fetch(`${base}/render/jnope/1/s`)).status, 404);
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(new URL(`../runs/${job.id}`, import.meta.url).pathname, { recursive: true, force: true });
+    server.close();
+  }
+});
+
+test('POST /api/refinery/launch validates input and playground reachability', async () => {
+  const { base, server } = await start(await repo());
+  const noPaths = await fetch(`${base}/api/refinery/launch`, { method: 'POST',
+    headers: { 'content-type': 'application/json' }, body: JSON.stringify({ promptPaths: [], sections: ['s'] }) });
+  assert.equal(noPaths.status, 400);
+  server.close();
+});

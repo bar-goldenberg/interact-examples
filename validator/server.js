@@ -6,7 +6,7 @@ import { detect } from './lib/detect.js';
 import { readOriginal, readDraft, computeDiff, applyDraft, discardDraft } from './lib/drafts.js';
 import { runFix } from './lib/fix.js';
 import { runConvert } from './lib/convert.js';
-import { listPrompts, readPrompt } from './lib/prompts.js';
+import { listPrompts, readPrompt, writePromptRaw } from './lib/prompts.js';
 import { loadConvertSkill } from './lib/skill.js';
 import { FIX_OPTIONS } from './lib/prompt.js';
 import { loadSpecText } from './lib/spec.js';
@@ -14,6 +14,11 @@ import { listSections, generate, pingStatus } from './lib/playground.js';
 import { readLoop, recordRound, rollback, finalize, roundRefined } from './lib/loop-store.js';
 import { getAgentState, setModelOverride, resetTotals } from './lib/agent-state.js';
 import { refineGuideline } from './lib/refine.js';
+import { createRefinery } from './lib/refinery.js';
+import { getJob as getRefineryJob, listJobs as listRefineryJobs, saveJob as saveRefineryJob, markInterrupted, finalGuideline } from './lib/jobs-store.js';
+import { captureSweep } from './lib/capture.js';
+import { judgeIteration } from './lib/judge.js';
+import { buildRenderDoc } from './public/render-frame.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,6 +28,20 @@ export function createApp(rootDir) {
   app.use(express.json({ limit: '5mb' }));
   app.use(express.static(join(__dirname, 'public')));
   app.use('/vendor', (_req, res, next) => { res.set('Access-Control-Allow-Origin', '*'); next(); }, express.static(join(__dirname, 'vendor')));
+
+  const RUNS_DIR = join(__dirname, 'runs');
+  app.use('/runs', express.static(RUNS_DIR));
+  app.use('/repo', express.static(root, { index: false }));   // read-only originals for capture + reference
+
+  const refinery = createRefinery({ runsDir: RUNS_DIR, rootDir: root, deps: {
+    listSectionsImpl: listSections,
+    generateImpl: generate,
+    captureImpl: captureSweep,
+    judgeImpl: judgeIteration,
+    refineImpl: refineGuideline,
+  } });
+  // Boot recovery: execution died with the previous process; records survive.
+  markInterrupted(RUNS_DIR).catch(() => {});
 
   const bad = (res, msg) => res.status(400).json({ error: msg });
 
@@ -305,6 +324,94 @@ export function createApp(rootDir) {
   app.post('/api/loop/rollback', async (req, res) => {
     try { res.json(await rollback(root, String(req.body.promptPath), Number(req.body.round))); }
     catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/refinery/launch', async (req, res) => {
+    const { promptPaths, sections } = req.body;
+    if (!Array.isArray(promptPaths) || !promptPaths.length) return bad(res, 'promptPaths required');
+    if (!Array.isArray(sections) || !sections.length) return bad(res, 'sections required');
+    if (!(await pingStatus({}))) return bad(res, 'playground not reachable at :5173 — start it first');
+    try { res.json(await refinery.launch({ promptPaths: promptPaths.map(String), sections: sections.map(String) })); }
+    catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.get('/api/refinery/jobs', async (req, res) => {
+    let jobs = await listRefineryJobs(RUNS_DIR);
+    if (req.query.promptPath) jobs = jobs.filter((j) => j.promptPath === String(req.query.promptPath));
+    // The list view needs status, not full iteration payloads.
+    res.json({ jobs: jobs.map(({ id, promptPath, status, amberReason, createdAt, updatedAt, iterations }) =>
+      ({ id, promptPath, status, amberReason, createdAt, updatedAt,
+         iters: iterations.length, scores: iterations.map((it) => it.judge?.score ?? null) })) });
+  });
+
+  app.get('/api/refinery/job', async (req, res) => {
+    const job = await getRefineryJob(RUNS_DIR, String(req.query.id || ''));
+    if (!job) return res.status(404).json({ error: 'no such job' });
+    res.json(job);
+  });
+
+  app.post('/api/refinery/stop', (req, res) => { refinery.stop(String(req.body.id || '')); res.json({ ok: true }); });
+
+  app.post('/api/refinery/relaunch', async (req, res) => {
+    try { res.json(await refinery.relaunch(String(req.body.id || ''), { userNotes: req.body.userNotes })); }
+    catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/refinery/approve', async (req, res) => {
+    try {
+      const job = await getRefineryJob(RUNS_DIR, String(req.body.id || ''));
+      if (!job) return res.status(404).json({ error: 'no such job' });
+      const guideline = finalGuideline(job);
+      if (!guideline) return bad(res, 'job has no scored iteration to approve');
+      await writePromptRaw(root, job.promptPath, guideline);
+      job.status = 'approved';
+      await saveRefineryJob(RUNS_DIR, job);
+      res.json({ ok: true });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/refinery/reject', async (req, res) => {
+    try {
+      const job = await getRefineryJob(RUNS_DIR, String(req.body.id || ''));
+      if (!job) return res.status(404).json({ error: 'no such job' });
+      if (job.status === 'running' || job.status === 'queued') return bad(res, 'stop the job first');
+      job.status = 'idle'; job.amberReason = null;
+      await saveRefineryJob(RUNS_DIR, job);
+      res.json({ ok: true });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.get('/api/refinery/diff', async (req, res) => {
+    try {
+      const job = await getRefineryJob(RUNS_DIR, String(req.query.id || ''));
+      if (!job) return res.status(404).json({ error: 'no such job' });
+      const original = await readPrompt(root, job.promptPath);
+      const final = finalGuideline(job);
+      if (original === null || final === null) return bad(res, 'nothing to diff');
+      res.json({ changed: original !== final, parts: computeDiff(original, final) });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.get('/api/refinery/events', (req, res) => {
+    const id = String(req.query.id || '');
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+    const send = (e) => res.write(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`);
+    const em = refinery.events(id);
+    em.on('event', send);
+    req.on('close', () => em.off('event', send));
+  });
+
+  // Rendered doc for a stored iteration section — used by Playwright capture
+  // AND by the UI's live previews (same pixels for both).
+  app.get('/render/:jobId/:iter/:sectionId', async (req, res) => {
+    try {
+      const job = await getRefineryJob(RUNS_DIR, req.params.jobId);
+      if (!job) return res.status(404).send('no such job');
+      const it = job.iterations.find((x) => x.iter === Number(req.params.iter));
+      const sec = it?.sections.find((s) => s.id === req.params.sectionId);
+      if (!sec || !sec.config) return res.status(404).send('no such render');
+      res.type('html').send(buildRenderDoc({ html: sec.html, css: sec.css, config: sec.config }));
+    } catch (err) { res.status(400).send(String(err.message || err)); }
   });
 
   return app;
