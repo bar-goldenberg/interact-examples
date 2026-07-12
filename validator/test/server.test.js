@@ -227,6 +227,32 @@ test('refinery endpoints: job listing, approve writes the md, reject returns to 
   }
 });
 
+test('POST /api/refinery/approve refuses a running job (guard mirrors reject)', async () => {
+  const root = await repo();
+  const { writePrompt, readPrompt } = await import('../lib/prompts.js');
+  const { createJob, saveJob } = await import('../lib/jobs-store.js');
+  await writePrompt(root, 'G/A.html', '# original');
+  const runsDir = new URL('../runs', import.meta.url).pathname;
+  const { base, server } = await start(root);
+  // Seed the running job AFTER start() so the server's boot-time
+  // markInterrupted() scan (which flips stale running/queued jobs to amber)
+  // can't race with — and clobber — the status we're testing against.
+  const job = await createJob(runsDir, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  job.status = 'running';
+  job.iterations = [{ iter: 1, guideline: '# HALF DONE', judge: { score: 9, notes: '' }, sections: [], refined: null }];
+  await saveJob(runsDir, job);
+  try {
+    const r = await fetch(`${base}/api/refinery/approve`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: job.id }) });
+    assert.equal(r.status, 400);
+    assert.equal(await readPrompt(root, 'G/A.md'), '# original');   // .md NOT overwritten
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(new URL(`../runs/${job.id}`, import.meta.url).pathname, { recursive: true, force: true });
+    server.close();
+  }
+});
+
 test('GET /render serves a stored iteration section and 404s unknowns', async () => {
   const root = await repo();
   const { createJob, saveJob } = await import('../lib/jobs-store.js');

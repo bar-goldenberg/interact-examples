@@ -22,7 +22,7 @@ import { buildRenderDoc } from './public/render-frame.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export function createApp(rootDir) {
+export function createApp(rootDir, { port } = {}) {
   const root = resolve(rootDir);
   const app = express();
   app.use(express.json({ limit: '5mb' }));
@@ -33,7 +33,7 @@ export function createApp(rootDir) {
   app.use('/runs', express.static(RUNS_DIR));
   app.use('/repo', express.static(root, { index: false }));   // read-only originals for capture + reference
 
-  const refinery = createRefinery({ runsDir: RUNS_DIR, rootDir: root, deps: {
+  const refinery = createRefinery({ runsDir: RUNS_DIR, rootDir: root, port, deps: {
     listSectionsImpl: listSections,
     generateImpl: generate,
     captureImpl: captureSweep,
@@ -361,6 +361,7 @@ export function createApp(rootDir) {
     try {
       const job = await getRefineryJob(RUNS_DIR, String(req.body.id || ''));
       if (!job) return res.status(404).json({ error: 'no such job' });
+      if (job.status === 'running' || job.status === 'queued') return bad(res, 'stop the job first');
       const guideline = finalGuideline(job);
       if (!guideline) return bad(res, 'job has no scored iteration to approve');
       await writePromptRaw(root, job.promptPath, guideline);
@@ -421,7 +422,7 @@ export function createApp(rootDir) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const root = resolve(__dirname, '..');
   const port = process.env.PORT || 4500;
-  createApp(root).listen(port, () => {
+  createApp(root, { port }).listen(port, () => {
     console.log(`Interact Validator on http://localhost:${port} (root: ${root})`);
   });
 }
