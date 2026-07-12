@@ -29,7 +29,7 @@ export function extractHtml(text) {
 // Tools are stripped via --exclude-dynamic-system-prompt-sections so it is a
 // pure text-in / text-out call. Returns the assistant's final text.
 //   onDelta(text, kind)  kind ∈ { 'text', 'thinking' } — called per token chunk.
-export function runAgent(system, user, { model, onDelta } = {}) {
+export function runAgent(system, user, { model, onDelta, allowedTools, addDirs } = {}) {
   return new Promise((resolve, reject) => {
     (async () => {
       const dir = await mkdtemp(join(tmpdir(), 'iv-agent-'));
@@ -38,6 +38,8 @@ export function runAgent(system, user, { model, onDelta } = {}) {
 
       const args = ['-p', '--output-format', 'stream-json', '--include-partial-messages',
         '--verbose', '--system-prompt-file', sysFile, '--exclude-dynamic-system-prompt-sections'];
+      if (allowedTools?.length) args.push('--allowedTools', allowedTools.join(','));
+      for (const d of addDirs || []) args.push('--add-dir', d);
       const effModel = model || getAgentState().model;   // explicit > UI override > CLI default
       if (effModel) args.push('--model', effModel);
 
