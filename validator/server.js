@@ -399,7 +399,15 @@ export function createApp(rootDir, { port } = {}) {
       const original = await readPrompt(root, job.promptPath);
       const final = finalGuideline(job);
       if (original === null || final === null) return bad(res, 'nothing to diff');
-      res.json({ changed: original !== final, parts: computeDiff(original, final) });
+      // Per-iteration steps: each iteration's refine turns `guideline` into
+      // `refined` (= the next iteration's guideline). Stopping iterations have
+      // refined=null (produced no change). The `from`/`to` labels let the UI
+      // caption each step (e.g. "Iteration 1 → 2").
+      const steps = (job.iterations || [])
+        .filter((it) => typeof it.refined === 'string')
+        .map((it) => ({ iter: it.iter, changed: it.guideline !== it.refined,
+          parts: computeDiff(it.guideline, it.refined) }));
+      res.json({ changed: original !== final, parts: computeDiff(original, final), steps });
     } catch (err) { bad(res, String(err.message || err)); }
   });
 

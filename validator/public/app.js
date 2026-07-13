@@ -637,10 +637,24 @@ $('jobBar').addEventListener('click', async (e) => {
     refreshJobs(); openJobView(job.id);
   } else if (e.target.id === 'jobDiffBtn') {
     const d = await api(`/api/refinery/diff?id=${encodeURIComponent(job.id)}`);
-    $('diffTitle').textContent = `Original .md → job's best guideline`;
-    $('diffBody').innerHTML = d.error ? `<span>${esc(d.error)}</span>`
-      : !d.changed ? '<div style="color:var(--text-3);padding:8px">No differences.</div>'
-      : d.parts.map((p) => p.added ? `<ins>${esc(p.value)}</ins>` : p.removed ? `<del>${esc(p.value)}</del>` : `<span>${esc(p.value)}</span>`).join('');
+    $('diffTitle').textContent = `Prompt evolution — original .md → final`;
+    const renderParts = (parts) => parts.map((p) =>
+      p.added ? `<ins>${esc(p.value)}</ins>` : p.removed ? `<del>${esc(p.value)}</del>` : `<span>${esc(p.value)}</span>`).join('');
+    if (d.error) {
+      $('diffBody').innerHTML = `<span>${esc(d.error)}</span>`;
+    } else {
+      const section = (heading, changed, parts) =>
+        `<div class="diff-section"><div class="diff-head">${esc(heading)}</div>${
+          changed ? renderParts(parts) : '<div class="diff-none">no change</div>'}</div>`;
+      // Overall first, then each iteration's refine (iteration N → N+1).
+      let html = section('Overall · original .md → best guideline', d.changed, d.parts);
+      const steps = d.steps || [];
+      if (steps.length) {
+        html += '<div class="diff-sub">Per-iteration changes</div>';
+        html += steps.map((s) => section(`Iteration ${s.iter} → ${s.iter + 1}`, s.changed, s.parts)).join('');
+      }
+      $('diffBody').innerHTML = html;
+    }
     $('diffModal').hidden = false;
   } else if (e.target.id === 'jobDelete') {
     const btn = e.target;

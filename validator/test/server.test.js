@@ -253,6 +253,34 @@ test('POST /api/refinery/approve refuses a running job (guard mirrors reject)', 
   }
 });
 
+test('GET /api/refinery/diff returns per-iteration steps (guideline → refined)', async () => {
+  const root = await repo();
+  const { writePrompt } = await import('../lib/prompts.js');
+  const { createJob, saveJob } = await import('../lib/jobs-store.js');
+  await writePrompt(root, 'G/A.html', 'v0\n');
+  const runsDir = new URL('../runs', import.meta.url).pathname;
+  const job = await createJob(runsDir, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  job.status = 'green';
+  job.iterations = [
+    { iter: 1, guideline: 'v0\n', refined: 'v1\n', judge: { score: 5, notes: '' }, sections: [] },
+    { iter: 2, guideline: 'v1\n', refined: null, judge: { score: 8, notes: '' }, sections: [] },  // stopping iter → no step
+  ];
+  await saveJob(runsDir, job);
+  const { base, server } = await start(root);
+  try {
+    const d = await (await fetch(`${base}/api/refinery/diff?id=${job.id}`)).json();
+    assert.equal(d.steps.length, 1);                     // only iter 1 produced a refinement
+    assert.equal(d.steps[0].iter, 1);
+    assert.equal(d.steps[0].changed, true);
+    assert.ok(d.steps[0].parts.some((p) => p.removed && p.value.includes('v0')));
+    assert.ok(d.steps[0].parts.some((p) => p.added && p.value.includes('v1')));
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(new URL(`../runs/${job.id}`, import.meta.url).pathname, { recursive: true, force: true });
+    server.close();
+  }
+});
+
 test('POST /api/refinery/delete removes a finished job but refuses a running one', async () => {
   const root = await repo();
   const { createJob, saveJob, getJob } = await import('../lib/jobs-store.js');

@@ -340,6 +340,12 @@ body {
 .diff-body ins { background: rgba(52,211,153,0.16); color: #6ee7b7; }
 .diff-body del { background: rgba(248,113,113,0.16); color: #fca5a5; }
 .diff-body span { color: var(--text-2); }
+.diff-section { margin-bottom: 14px; border: 1px solid var(--hair); border-radius: var(--radius-xs); overflow: hidden; }
+.diff-head { font: 600 11.5px var(--mono); letter-spacing: .02em; color: var(--text); background: var(--fill-2);
+  padding: 7px 10px; border-bottom: 1px solid var(--hair); position: sticky; top: 0; }
+.diff-none { color: var(--text-3); font-size: 12px; padding: 8px 10px; }
+.diff-sub { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-3);
+  margin: 4px 0 10px; }
 
 /* ── Refinery ─────────────────────────────────────── */
 .jdot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
