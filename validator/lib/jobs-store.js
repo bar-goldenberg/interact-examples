@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve, sep } from 'node:path';
 
 // 'G/Card.md' -> 'G/Card.html' (inverse of prompts.js promptRelPath).
@@ -38,6 +38,12 @@ export async function createJob(runsDir, { promptPath, examplePath, sections, st
 export async function getJob(runsDir, id) {
   try { return JSON.parse(await readFile(join(jobDir(runsDir, id), 'job.json'), 'utf8')); }
   catch { return null; }
+}
+
+// Delete a job and all its artifacts (frames/gifs) — a fresh start for that
+// prompt. Path-safe via jobDir. Idempotent: a missing job is a no-op.
+export async function deleteJob(runsDir, id) {
+  await rm(jobDir(runsDir, id), { recursive: true, force: true });
 }
 
 export async function listJobs(runsDir) {

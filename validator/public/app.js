@@ -26,7 +26,7 @@ const state = {
   filter: '', mode: 'preview', version: 'current', progress: null,
   expanded: new Set(), logs: new Map(), activity: { open: false, file: null, follow: true },
   view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered',
-  refinery: { jobsByPrompt: {}, sections: [], selected: new Set(), currentJob: null, viewIter: null, es: null },
+  refinery: { jobsByPrompt: {}, sections: [], selected: new Set(), currentJob: null, viewIter: null, es: null, esJob: null, bodyKey: null, barKey: null },
 };
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
@@ -170,11 +170,25 @@ function renderTopbar() {
     for (const b of vt.querySelectorAll('.tab')) b.classList.toggle('active', b.dataset.ver === state.version);
     $('topbar').classList.toggle('diff', state.mode === 'diff');
   } else {
-    mt.innerHTML = [['rendered', 'Rendered'], ['raw', 'Raw']].map(([m, lbl]) =>
-      `<button data-mode="${m}" class="tab${state.promptMode === m ? ' active' : ''}">${lbl}</button>`).join('');
+    // Prompt view: Prompt (rendered md) · Raw · Refinery (only when the prompt has jobs).
+    const hasJobs = (state.refinery.jobsByPrompt[state.currentPrompt] || []).length > 0;
+    const tabs = [['rendered', 'Prompt'], ['raw', 'Raw']];
+    if (hasJobs) tabs.push(['refinery', 'Refinery']);
+    const mode = effectivePromptMode();
+    mt.innerHTML = tabs.map(([m, lbl]) =>
+      `<button data-mode="${m}" class="tab${mode === m ? ' active' : ''}">${lbl}</button>`).join('');
     vt.style.display = 'none';
     $('topbar').classList.remove('diff');
   }
+}
+
+// The prompt-mode actually shown: 'refinery' only holds when the prompt has
+// jobs, otherwise it falls back to 'rendered' (so switching to a job-less
+// prompt while on the Refinery tab shows the prompt, not a blank view).
+function effectivePromptMode() {
+  const hasJobs = (state.refinery.jobsByPrompt[state.currentPrompt] || []).length > 0;
+  if (state.promptMode === 'refinery' && !hasJobs) return 'rendered';
+  return state.promptMode;
 }
 
 async function render() {
@@ -202,21 +216,30 @@ async function renderExampleView() {
 }
 
 async function renderPromptView() {
-  $('loopView').hidden = true;
   $('preview').hidden = true; $('diff').hidden = true;
   const has = !!state.currentPrompt;
   $('refineSelBtn').hidden = !(state.view === 'prompts' && state.refinery.selected.size);
+  const mode = effectivePromptMode();
+  const showJob = has && mode === 'refinery';
   $('placeholder').hidden = has;
-  $('markdown').hidden = !(has && state.promptMode === 'rendered');
-  $('code').hidden = !(has && state.promptMode === 'raw');
-  if (has) {
-    const src = await fetchPrompt(state.currentPrompt);
-    if (state.promptMode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
-    else $('code').textContent = src;
+  $('loopView').hidden = !showJob;
+  $('markdown').hidden = !(has && mode === 'rendered');
+  $('code').hidden = !(has && mode === 'raw');
+  if (!has) return;
+  if (showJob) {
+    // Show the prompt's latest job (unless we're already viewing one of its jobs).
+    const jobs = state.refinery.jobsByPrompt[state.currentPrompt] || [];
+    const cur = state.refinery.currentJob;
+    const keep = cur && jobs.some((j) => j.id === cur.id);
+    if (!keep && jobs.length) openJobView(jobs[0].id);
+    return;
   }
-  if (state.currentPrompt && (state.refinery.jobsByPrompt[state.currentPrompt] || []).length) {
-    openJobView((state.refinery.jobsByPrompt[state.currentPrompt])[0].id);
-  }
+  // Prompt (rendered) or Raw — and make sure any live job SSE is closed.
+  $('loopView').hidden = true;
+  state.refinery.es?.close(); state.refinery.es = null;
+  const src = await fetchPrompt(state.currentPrompt);
+  if (mode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
+  else $('code').textContent = src;
 }
 
 // ── Live progress (SSE) ─────────────────────────────
@@ -502,8 +525,10 @@ const STATUS_BADGE = {
 async function openJobView(jobId, { keepIter } = {}) {
   const job = await api(`/api/refinery/job?id=${encodeURIComponent(jobId)}`);
   if (job.error) return;
+  const switching = !state.refinery.currentJob || state.refinery.currentJob.id !== job.id;
   state.refinery.currentJob = job;
   if (!keepIter) state.refinery.viewIter = null;
+  if (switching) { state.refinery.bodyKey = null; state.refinery.barKey = null; }   // force body+bar rebuild when changing jobs
   $('markdown').hidden = true; $('code').hidden = true; $('preview').hidden = true; $('diff').hidden = true;
   $('placeholder').hidden = true; $('loopView').hidden = false;
   renderJobView(job);
@@ -524,26 +549,41 @@ function renderJobView(job) {
     <span id="loopStatus" class="loop-status"></span>
     ${job.status === 'running' ? '<button id="jobStopBtn" class="btn btn-ghost btn-mini">Stop after iteration</button>' : ''}
     <button id="jobActivityBtn" class="btn btn-ghost btn-mini">◧ Activity</button>`;
-  // body: the viewed iteration
+  // body: the viewed iteration. Rebuild ONLY when its content actually changes
+  // — reassigning innerHTML recreates the <iframe>s, which reload and flash. A
+  // content key (job/iter + each section's config/error + judge verdict) lets
+  // the 4s poll and SSE refreshes leave unchanged previews untouched.
   const it = job.iterations.find((x) => x.iter === viewIter);
-  if (!it) {
-    $('jobBody').innerHTML = `<div class="loop-empty">${job.status === 'queued' ? 'Waiting in the queue…' : 'No iterations yet — generating…'}</div>`;
-  } else {
-    const judgeBlock = it.judge?.error ? `<div class="err">judge failed: ${esc(it.judge.error)}</div>`
-      : it.judge ? `<div class="judge-note"><b>${it.judge.score}/10</b> — ${esc(it.judge.notes)}</div>` : '';
-    $('jobBody').innerHTML = judgeBlock + it.sections.map((s) => {
-      const issues = (it.judge?.sections || []).find((x) => x.id === s.id)?.issues || [];
-      const inner = s.error ? `<div class="err">${esc(s.error)}</div>`
-        : `<iframe sandbox="allow-scripts" src="/render/${job.id}/${it.iter}/${encodeURIComponent(s.id)}"></iframe>`;
-      return `<div class="loop-cell"><div class="cap"><span class="cap-id">${esc(s.id)}</span>
-        ${s.error ? '' : `<button class="cap-expand" data-xj="${job.id}" data-xi="${it.iter}" data-xs="${esc(s.id)}" title="Expand">⛶</button>`}</div>
-        ${inner}${issues.length ? `<div class="cell-issues">${issues.map((i) => `· ${esc(i)}`).join('<br>')}</div>` : ''}</div>`;
-    }).join('');
+  const bodyKey = !it
+    ? `empty:${job.id}:${job.status}`
+    : JSON.stringify({ j: job.id, i: it.iter,
+        s: it.sections.map((x) => [x.id, !!x.config, x.error || '']),
+        v: it.judge?.error ? `e:${it.judge.error}` : it.judge ? `${it.judge.score}:${it.judge.notes}:${JSON.stringify(it.judge.sections || [])}` : '' });
+  if (bodyKey !== state.refinery.bodyKey) {
+    state.refinery.bodyKey = bodyKey;
+    if (!it) {
+      $('jobBody').innerHTML = `<div class="loop-empty">${job.status === 'queued' ? 'Waiting in the queue…' : 'No iterations yet — generating…'}</div>`;
+    } else {
+      const judgeBlock = it.judge?.error ? `<div class="err">judge failed: ${esc(it.judge.error)}</div>`
+        : it.judge ? `<div class="judge-note"><b>${it.judge.score}/10</b> — ${esc(it.judge.notes)}</div>` : '';
+      $('jobBody').innerHTML = judgeBlock + it.sections.map((s) => {
+        const issues = (it.judge?.sections || []).find((x) => x.id === s.id)?.issues || [];
+        const inner = s.error ? `<div class="err">${esc(s.error)}</div>`
+          : `<iframe sandbox="allow-scripts" src="/render/${job.id}/${it.iter}/${encodeURIComponent(s.id)}"></iframe>`;
+        return `<div class="loop-cell"><div class="cap"><span class="cap-id">${esc(s.id)}</span>
+          ${s.error ? '' : `<button class="cap-expand" data-xj="${job.id}" data-xi="${it.iter}" data-xs="${esc(s.id)}" title="Expand">⛶</button>`}</div>
+          ${inner}${issues.length ? `<div class="cell-issues">${issues.map((i) => `· ${esc(i)}`).join('<br>')}</div>` : ''}</div>`;
+      }).join('');
+    }
   }
-  // bottom bar: approve flow / relaunch with notes
+  // bottom bar: approve flow / relaunch with notes / delete. Rebuild only when
+  // its shape changes (status + iteration count) — otherwise a 4s poll would
+  // recreate the textarea and wipe notes the user is mid-way through typing.
   const done = ['green', 'amber', 'failed', 'idle'].includes(job.status);
   $('jobBar').hidden = !done;
-  if (done) {
+  const barKey = `${job.status}:${job.iterations.length}`;
+  if (done && barKey !== state.refinery.barKey) {
+    state.refinery.barKey = barKey;
     $('jobBar').innerHTML = `
       <textarea id="jobNotes" placeholder="Optional guidance for the next run (rides into the refine step)"></textarea>
       <div class="loop-actions">
@@ -551,7 +591,10 @@ function renderJobView(job) {
         <button id="jobRelaunch" class="btn">Relaunch</button>
         ${job.iterations.length ? '<button id="jobDiffBtn" class="btn btn-ghost btn-mini">Δ Prompt diff</button>' : ''}
         ${job.status !== 'idle' && job.status !== 'failed' ? '<button id="jobReject" class="btn btn-ghost btn-mini">Reject (keep history)</button>' : ''}
+        <button id="jobDelete" class="btn btn-ghost btn-mini">Delete job</button>
       </div>`;
+  } else if (!done) {
+    state.refinery.barKey = null;
   }
 }
 
@@ -599,21 +642,41 @@ $('jobBar').addEventListener('click', async (e) => {
       : !d.changed ? '<div style="color:var(--text-3);padding:8px">No differences.</div>'
       : d.parts.map((p) => p.added ? `<ins>${esc(p.value)}</ins>` : p.removed ? `<del>${esc(p.value)}</del>` : `<span>${esc(p.value)}</span>`).join('');
     $('diffModal').hidden = false;
+  } else if (e.target.id === 'jobDelete') {
+    const btn = e.target;
+    // Destructive: first click arms, second confirms.
+    if (!btn.classList.contains('armed')) {
+      btn.classList.add('armed'); btn.textContent = 'Delete — sure?';
+      document.getElementById('loopStatus').textContent = 'Deletes this run and its history — click again to confirm.';
+      return;
+    }
+    const r = await post('/api/refinery/delete', { id: job.id });
+    if (r.error) { document.getElementById('loopStatus').textContent = r.error; return; }
+    // Fresh start: forget the job, drop back to the prompt's markdown.
+    state.refinery.currentJob = null; state.refinery.bodyKey = null; state.refinery.barKey = null;
+    state.promptMode = 'rendered';
+    $('loopView').hidden = true;
+    await refreshJobs();
+    render();
   }
 });
 
 // SSE: stream logs into the activity modal; refresh the view on step/status.
 function subscribeJob(job) {
+  const live = job.status === 'running' || job.status === 'queued';
+  // Already streaming this job? leave the connection alone (re-opening on every
+  // poll would drop in-flight log/step events).
+  if (live && state.refinery.esJob === job.id && state.refinery.es) return;
   state.refinery.es?.close();
-  if (job.status !== 'running' && job.status !== 'queued') { state.refinery.es = null; return; }
+  if (!live) { state.refinery.es = null; state.refinery.esJob = null; return; }
   const es = new EventSource(`/api/refinery/events?id=${encodeURIComponent(job.id)}`);
-  state.refinery.es = es;
+  state.refinery.es = es; state.refinery.esJob = job.id;
   es.addEventListener('log', (e) => { const d = JSON.parse(e.data); appendLog(job.promptPath, d.text); });
   es.addEventListener('step', (e) => { const d = JSON.parse(e.data);
     const el = document.getElementById('loopStatus'); if (el) el.textContent = `iter ${d.iter} · ${d.step}…`; });
   es.addEventListener('iteration', () => openJobView(job.id, { keepIter: false }));
   es.addEventListener('status', () => { refreshJobs(); openJobView(job.id, { keepIter: true }); });
-  es.addEventListener('end', () => { es.close(); state.refinery.es = null; });
+  es.addEventListener('end', () => { es.close(); state.refinery.es = null; state.refinery.esJob = null; });
 }
 
 // ── events ──────────────────────────────────────────
@@ -643,7 +706,11 @@ $('fileTree').addEventListener('click', (e) => {
       $('refineSelBtn').hidden = state.view !== 'prompts' || !state.refinery.selected.size;
       return;
     }
-    state.currentPrompt = row.dataset.ppath; renderTree(); render();
+    state.currentPrompt = row.dataset.ppath;
+    // Default to the Refinery tab when the prompt has jobs (else the prompt md).
+    const hasJobs = (state.refinery.jobsByPrompt[state.currentPrompt] || []).length > 0;
+    state.promptMode = hasJobs ? 'refinery' : (state.promptMode === 'refinery' ? 'rendered' : state.promptMode);
+    renderTree(); render();
   }
 });
 $('filter').addEventListener('input', (e) => { state.filter = e.target.value.trim(); renderTree(); });
@@ -689,7 +756,12 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowDown') idx = Math.min(idx + 1, rows.length - 1);
   else idx = Math.max(idx - 1, 0);
   const p = rows[idx].dataset[attr];
-  if (state.view === 'examples') state.current = p; else state.currentPrompt = p;
+  if (state.view === 'examples') state.current = p;
+  else {
+    state.currentPrompt = p;
+    const hasJobs = (state.refinery.jobsByPrompt[p] || []).length > 0;
+    state.promptMode = hasJobs ? 'refinery' : (state.promptMode === 'refinery' ? 'rendered' : state.promptMode);
+  }
   renderTree();
   render();
   requestAnimationFrame(() => {

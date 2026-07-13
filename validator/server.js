@@ -15,7 +15,7 @@ import { readLoop, recordRound, rollback, finalize, roundRefined } from './lib/l
 import { getAgentState, setModelOverride, resetTotals } from './lib/agent-state.js';
 import { refineGuideline } from './lib/refine.js';
 import { createRefinery } from './lib/refinery.js';
-import { getJob as getRefineryJob, listJobs as listRefineryJobs, saveJob as saveRefineryJob, markInterrupted, finalGuideline } from './lib/jobs-store.js';
+import { getJob as getRefineryJob, listJobs as listRefineryJobs, saveJob as saveRefineryJob, deleteJob as deleteRefineryJob, markInterrupted, finalGuideline } from './lib/jobs-store.js';
 import { captureSweep } from './lib/capture.js';
 import { judgeIteration } from './lib/judge.js';
 import { buildRenderDoc } from './public/render-frame.js';
@@ -378,6 +378,16 @@ export function createApp(rootDir, { port } = {}) {
       if (job.status === 'running' || job.status === 'queued') return bad(res, 'stop the job first');
       job.status = 'idle'; job.amberReason = null;
       await saveRefineryJob(RUNS_DIR, job);
+      res.json({ ok: true });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
+  app.post('/api/refinery/delete', async (req, res) => {
+    try {
+      const job = await getRefineryJob(RUNS_DIR, String(req.body.id || ''));
+      if (!job) return res.status(404).json({ error: 'no such job' });
+      if (job.status === 'running' || job.status === 'queued') return bad(res, 'stop the job first');
+      await deleteRefineryJob(RUNS_DIR, job.id);   // removes the record + all frames/gifs
       res.json({ ok: true });
     } catch (err) { bad(res, String(err.message || err)); }
   });

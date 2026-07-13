@@ -253,6 +253,34 @@ test('POST /api/refinery/approve refuses a running job (guard mirrors reject)', 
   }
 });
 
+test('POST /api/refinery/delete removes a finished job but refuses a running one', async () => {
+  const root = await repo();
+  const { createJob, saveJob, getJob } = await import('../lib/jobs-store.js');
+  const runsDir = new URL('../runs', import.meta.url).pathname;
+  const { base, server } = await start(root);
+  const done = await createJob(runsDir, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  done.status = 'green';
+  done.iterations = [{ iter: 1, guideline: '# g', judge: { score: 9, notes: '' }, sections: [], refined: null }];
+  await saveJob(runsDir, done);
+  const running = await createJob(runsDir, { promptPath: 'G/B.md', examplePath: 'G/B.html', sections: ['s'] });
+  running.status = 'running';
+  await saveJob(runsDir, running);
+  try {
+    const del = await fetch(`${base}/api/refinery/delete`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: done.id }) });
+    assert.equal(del.status, 200);
+    assert.equal(await getJob(runsDir, done.id), null);                 // gone → fresh start for the prompt
+    const busy = await fetch(`${base}/api/refinery/delete`, { method: 'POST',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: running.id }) });
+    assert.equal(busy.status, 400);                                     // refuse while running
+    assert.ok(await getJob(runsDir, running.id));                       // still there
+  } finally {
+    const { rm } = await import('node:fs/promises');
+    await rm(new URL(`../runs/${running.id}`, import.meta.url).pathname, { recursive: true, force: true });
+    server.close();
+  }
+});
+
 test('GET /render serves a stored iteration section and 404s unknowns', async () => {
   const root = await repo();
   const { createJob, saveJob } = await import('../lib/jobs-store.js');

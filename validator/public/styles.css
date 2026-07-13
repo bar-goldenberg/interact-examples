@@ -333,7 +333,7 @@ body {
 .round-row.viewing { border-color: var(--accent); background: var(--accent-soft); }
 .round-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-clean); flex: none; }
 .round-row .sc { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--text-2); }
-.rollback-btn.armed { background: rgba(248,113,113,0.22); color: #fca5a5; border: 1px solid rgba(248,113,113,0.5); }
+.rollback-btn.armed, #jobDelete.armed { background: rgba(248,113,113,0.22); color: #fca5a5; border: 1px solid rgba(248,113,113,0.5); }
 /* Prompt-diff modal */
 .diff-shell { width: min(920px, 92vw); height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
 .diff-body ins, .diff-body del, .diff-body span { display: block; text-decoration: none; padding: 0 8px; border-radius: 3px; }

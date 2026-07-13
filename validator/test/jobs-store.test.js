@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { examplePathFor, createJob, saveJob, getJob, listJobs, jobDir, markInterrupted, finalGuideline } from '../lib/jobs-store.js';
+import { examplePathFor, createJob, saveJob, getJob, listJobs, jobDir, deleteJob, markInterrupted, finalGuideline } from '../lib/jobs-store.js';
 
 const dir = () => mkdtemp(join(tmpdir(), 'iv-runs-'));
 
@@ -63,4 +63,15 @@ test('finalGuideline picks the best-scoring iteration, latest on tie', () => {
   ] };
   assert.equal(finalGuideline(job), 'G3');
   assert.equal(finalGuideline({ iterations: [] }), null);
+});
+
+test('deleteJob removes the job (getJob→null, gone from listJobs); missing id is a no-op', async () => {
+  const runs = await mkdtemp(join(tmpdir(), 'iv-runs-'));
+  const a = await createJob(runs, { promptPath: 'G/A.md', examplePath: 'G/A.html', sections: ['s'] });
+  const b = await createJob(runs, { promptPath: 'G/B.md', examplePath: 'G/B.html', sections: ['s'] });
+  await deleteJob(runs, a.id);
+  assert.equal(await getJob(runs, a.id), null);
+  const remaining = await listJobs(runs);
+  assert.deepEqual(remaining.map((j) => j.id), [b.id]);
+  await deleteJob(runs, 'jdoesnotexist');   // idempotent — no throw
 });
