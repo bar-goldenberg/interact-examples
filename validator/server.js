@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { listAnimationFiles } from './lib/files.js';
 import { detect } from './lib/detect.js';
-import { readOriginal, readDraft, computeDiff, applyDraft, discardDraft } from './lib/drafts.js';
+import { readOriginal, readDraft, computeDiff, applyDraft, discardDraft, listDrafts } from './lib/drafts.js';
 import { runFix } from './lib/fix.js';
 import { runConvert } from './lib/convert.js';
 import { listPrompts, readPrompt, writePromptRaw } from './lib/prompts.js';
@@ -59,6 +59,12 @@ export function createApp(rootDir, { port } = {}) {
     } catch (err) {
       bad(res, String(err.message || err));
     }
+  });
+
+  app.get('/api/drafts', async (_req, res) => {
+    try {
+      res.json({ paths: await listDrafts(root) });
+    } catch (err) { bad(res, String(err.message || err)); }
   });
 
   app.get('/api/draft', async (req, res) => {

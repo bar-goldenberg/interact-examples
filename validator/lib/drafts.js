@@ -1,5 +1,5 @@
-import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
-import { resolve, sep, dirname } from 'node:path';
+import { readFile, writeFile, mkdir, rm, readdir } from 'node:fs/promises';
+import { resolve, sep, dirname, relative } from 'node:path';
 import { diffLines } from 'diff';
 import { DRAFTS_DIR } from './constants.js';
 
@@ -50,4 +50,24 @@ export async function applyDraft(rootDir, relPath) {
 
 export async function discardDraft(rootDir, relPath) {
   await rm(draftAbsPath(rootDir, relPath), { force: true });
+}
+
+// List every draft file under DRAFTS_DIR as root-relative posix paths, so the
+// UI can hydrate its draft set on load (drafts live on disk across restarts;
+// the client's in-memory set would otherwise start empty after a refresh).
+export async function listDrafts(rootDir) {
+  const base = resolve(rootDir, DRAFTS_DIR);
+  const out = [];
+  async function walk(absDir) {
+    let entries;
+    try { entries = await readdir(absDir, { withFileTypes: true }); }
+    catch { return; } // dir may not exist yet
+    for (const entry of entries) {
+      const abs = resolve(absDir, entry.name);
+      if (entry.isDirectory()) await walk(abs);
+      else if (entry.isFile()) out.push(relative(base, abs).split(sep).join('/'));
+    }
+  }
+  await walk(base);
+  return out.sort();
 }

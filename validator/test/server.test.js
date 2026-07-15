@@ -65,6 +65,18 @@ test('apply flow: seed a draft via discard/apply endpoints', async () => {
   server.close();
 });
 
+test('GET /api/drafts lists drafts on disk so the UI can hydrate after a refresh', async () => {
+  const root = await repo();
+  const { base, server } = await start(root);
+  const { writeDraft } = await import('../lib/drafts.js');
+  const empty = await (await fetch(`${base}/api/drafts`)).json();
+  assert.deepEqual(empty.paths, []);
+  await writeDraft(root, 'G/A.html', 'FIXED');
+  const list = await (await fetch(`${base}/api/drafts`)).json();
+  assert.deepEqual(list.paths, ['G/A.html']);
+  server.close();
+});
+
 test('apply partial batch: valid path succeeds, missing path fails, always 200', async () => {
   const root = await repo();
   const { base, server } = await start(root);

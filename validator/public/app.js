@@ -34,6 +34,9 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 async function loadFiles() { state.files = (await api('/api/files')).files; renderTree(); }
 async function loadPrompts() { state.prompts = (await api('/api/prompts')).files; if (state.view === 'prompts') renderTree(); }
+// Drafts live on disk and survive a server/page restart; the in-memory set
+// starts empty, so hydrate it on load or draft tags/tab vanish after refresh.
+async function loadDrafts() { state.drafts = new Set((await api('/api/drafts')).paths); renderTree(); }
 async function loadOptions() {
   const { options } = await api('/api/options');
   $('fixOptions').innerHTML = options.map((o) =>
@@ -809,6 +812,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 loadFiles();
+loadDrafts();
 loadOptions();
 refreshAgent();
 setInterval(refreshAgent, 30000);   // keep the model/context chip fresh (cheap, local)

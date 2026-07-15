@@ -5,7 +5,7 @@ import { mkdtemp, writeFile, readFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { resolveSafe, writeDraft, readDraft, readOriginal,
-  computeDiff, applyDraft, discardDraft } from '../lib/drafts.js';
+  computeDiff, applyDraft, discardDraft, listDrafts } from '../lib/drafts.js';
 
 async function repo() {
   const root = await mkdtemp(join(tmpdir(), 'iv-drafts-'));
@@ -25,6 +25,16 @@ test('write/read draft round trip', async () => {
   await writeDraft(root, 'Gallery-and-Carousel/A.html', 'FIXED\n');
   assert.equal(await readDraft(root, 'Gallery-and-Carousel/A.html'), 'FIXED\n');
   assert.equal(await readDraft(root, 'Gallery-and-Carousel/missing.html'), null);
+});
+
+test('listDrafts returns root-relative posix paths for every draft on disk', async () => {
+  const root = await repo();
+  assert.deepEqual(await listDrafts(root), []); // no .drafts dir yet
+  await writeDraft(root, 'Gallery-and-Carousel/A.html', 'FIXED\n');
+  await writeDraft(root, 'Image_Background/B.html', 'FIXED\n');
+  assert.deepEqual(await listDrafts(root), ['Gallery-and-Carousel/A.html', 'Image_Background/B.html']);
+  await discardDraft(root, 'Gallery-and-Carousel/A.html');
+  assert.deepEqual(await listDrafts(root), ['Image_Background/B.html']);
 });
 
 test('computeDiff marks added and removed lines', async () => {
