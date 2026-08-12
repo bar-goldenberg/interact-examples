@@ -7,7 +7,17 @@
 
     <style>
       :root {
-        --header-height: 58px;
+        /* One post-zoom pixel, in the pre-zoom units this stylesheet is written in.
+           Anything sized as a whole multiple of it lands on a whole pixel once the
+           header's zoom is applied. */
+        --hair: calc(1px / var(--content-scale));
+
+        /* 65 post-zoom px, up from 58 (which came out 63.8). The exact number is
+           chosen so the whole vertical chain lands on pixel boundaries: 65 less the
+           1px rule leaves 64 of content, the 30px menu button centres in that at a
+           whole 17, and the bar stack centres in the button at a whole 7. Every one
+           of those has to be even for the next to come out whole. */
+        --header-height: calc(65 * var(--hair));
         /* Everything in the header rendered 10% larger. Applied as one zoom on the
            header rather than by editing each size: the collapse's keyframes carry px
            values of their own, and scaling the stylesheet alone would have left the
@@ -56,7 +66,10 @@
         display: grid;
         height: var(--header-height);
         background-color: #ffffff;
-        border-bottom: 1px solid #e6e6e6;
+        /* Also a whole post-zoom pixel: at 1px it computed to 1.1 and took the
+           content box — and therefore everything centred in it — off the grid.
+           Only the colour is animated, so the width is free to change. */
+        border-bottom: var(--hair) solid #e6e6e6;
         overflow: clip;
       }
 
@@ -113,8 +126,8 @@
         display: grid;
         place-items: center;
         flex: 0 0 auto;
-        width: 28px;
-        height: 28px;
+        width: calc(30 * var(--hair));
+        height: calc(30 * var(--hair));
         margin-left: auto;
         padding: 0;
         border: 0;
@@ -125,14 +138,18 @@
 
       .menu-toggle-bars {
         display: grid;
-        gap: 5px;
-        width: 18px;
+        gap: calc(5 * var(--hair));
+        width: calc(20 * var(--hair));
         margin: 0 auto;
       }
 
+      /* The bars were 1.5px — already a half pixel before the header's zoom, and
+         1.64 after it, at tops of 23.44 / 30.58 / 37.72. Three fractional heights on
+         three fractional offsets rasterise three different ways, which is why they
+         did not look the same weight. 2 whole post-zoom pixels on whole offsets. */
       .menu-toggle-bars span {
         display: block;
-        height: 1.5px;
+        height: calc(2 * var(--hair));
         background: currentColor;
         transition:
           transform 0.25s cubic-bezier(0.23, 1, 0.32, 1),
@@ -140,8 +157,9 @@
         transform-origin: center;
       }
 
+      /* 7 = one bar (2) plus one gap (5), the distance between bar centres. */
       .header.is-menu-open .menu-toggle-bars span:nth-child(1) {
-        transform: translateY(6.5px) rotate(45deg);
+        transform: translateY(calc(7 * var(--hair))) rotate(45deg);
       }
 
       .header.is-menu-open .menu-toggle-bars span:nth-child(2) {
@@ -149,7 +167,7 @@
       }
 
       .header.is-menu-open .menu-toggle-bars span:nth-child(3) {
-        transform: translateY(-6.5px) rotate(-45deg);
+        transform: translateY(calc(-7 * var(--hair))) rotate(-45deg);
       }
 
       .header-base .menu-toggle:hover {
