@@ -3,3 +3,6 @@
 /.drafts/
 validator/.drafts/
 validator/node_modules/
+
+# macOS folder metadata — per-machine junk, never useful in the repo
+.DS_Store
