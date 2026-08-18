@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bird of Paradise — Beyond Static</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --paper: #ffffff;
+        --pixel: #ffffff;
+        --ink: #0a0a0a;
+
+        /** The section splits into a picture band on top and a type band below. */
+        --media-height: 70vh;
+
+        /** One twelve-column grid, shared by the top line and the caption so they line up. */
+        --margin: 3.2vw;
+        --gutter: 1.6vw;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        column-gap: var(--gutter);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        background: var(--paper);
+        font-family: Archivo, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      }
+
+      .page {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .card {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: var(--paper);
+        overflow: clip;
+      }
+
+      .card__meta {
+        position: absolute;
+        inset: 3.2vh var(--margin) auto;
+        z-index: 4;
+        font-size: clamp(0.7rem, 0.95vw, 1.1rem);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+
+      .card__meta span:first-child {
+        grid-column: 1 / span 4;
+      }
+
+      /* Ends on the same column edge as the note below it. */
+      .card__meta span:last-child {
+        grid-column: 9 / -1;
+        text-align: right;
+      }
+
+      .card__stage {
+        position: absolute;
+        inset: 0 0 auto;
+        height: var(--media-height);
+        overflow: clip;
+      }
+
+      /* --- portrait --------------------------------------------------- */
+
+      /* Pulled in from the sides and top, so a sliver of paper frames it; it still meets the type. */
+      .photo {
+        position: absolute;
+        inset: 1% 1% 0;
+        z-index: 1;
+      }
+
+      /* Inside .photo, so it darkens the portrait without touching the pixel field above it. */
+      .photo::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #000;
+        opacity: 0.2;
+      }
+
+      .photo__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 10%;
+        display: block;
+      }
+
+      /* --- pixel field ------------------------------------------------ */
+
+      .pixel-noise {
+        position: absolute;
+        inset: -1px;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(var(--grid-cols), 1fr);
+        grid-template-rows: repeat(var(--grid-rows), 1fr);
+      }
+
+      .pixel-noise__block {
+        background: var(--pixel);
+        grid-column: var(--col);
+        grid-row: var(--row);
+        will-change: opacity;
+      }
+
+      /* --- typography ------------------------------------------------- */
+
+      /* Fills the band left over below the picture. */
+      .caption {
+        position: absolute;
+        top: var(--media-height);
+        bottom: 0;
+        left: var(--margin);
+        right: var(--margin);
+        z-index: 3;
+        align-content: center;
+        row-gap: 2.2vh;
+        color: var(--ink);
+      }
+
+      .caption__title {
+        grid-column: 1 / -1;
+        margin: 0;
+        /* Rough starting size only; fitCaption measures the string and overrides this inline. */
+        font-size: min(12vw, 22vh);
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        line-height: 0.82;
+        white-space: nowrap;
+      }
+
+      /* Set against the right of the grid, so the title's full width reads as deliberate. */
+      .caption__note {
+        grid-column: 9 / -1;
+        margin: 0;
+        font-size: clamp(0.85rem, min(1.18vw, 2.6vh), 1.3rem);
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      /* Too narrow for the offset to read as anything but a stray indent. */
+      @media (max-width: 760px) {
+        .caption__note {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="page">
+      <interact-element data-interact-key="card">
+        <article class="card">
+          <header class="card__meta grid">
+            <span>Beyond Static</span>
+            <span>Design Talk</span>
+          </header>
+
+          <div class="card__stage">
+            <div class="photo">
+              <img
+                class="photo__img"
+                src="https://static.wixstatic.com/media/b4f4e1_d9105256a71d4664bdce9bb4b113d0ae~mv2.png"
+                alt="Painted portrait of a woman beside birds of paradise flowers"
+              />
+            </div>
+
+            <div class="pixel-noise pixel-noise--a" aria-hidden="true"></div>
+            <div class="pixel-noise pixel-noise--b" aria-hidden="true"></div>
+            <div class="pixel-noise pixel-noise--c" aria-hidden="true"></div>
+          </div>
+
+          <div class="caption grid">
+            <h1 class="caption__title">Bird of Paradise</h1>
+            <p class="caption__note">
+              A portrait of exotic tranquility and a deep connection to nature against a sunset
+              backdrop.
+            </p>
+          </div>
+        </article>
+      </interact-element>
+    </main>
+
+    <script type="module">
+      import { Interact, generate } from 'https://esm.sh/@wix/interact@2.5.5/web';
+
+      /**
+       * Target size of one block in px. The grid is sized from this and the panel, so the ratio
+       * between the two is what makes the blocks upright rectangles rather than squares.
+       */
+      const BLOCK_W = 40;
+      const BLOCK_H = 72;
+
+      /**
+       * How far the field reaches in from the walls, as a share of the grid. The left and right
+       * walls carry more of it than the top and bottom, so the flanks read as dense bands while the
+       * portrait stays clear. Being shares rather than counts, they hold at any panel size.
+       */
+      const SIDE_REACH = 0.34;
+      const CAP_REACH = 0.3;
+
+      /** How sharply a cell's odds of joining the field drop off across that reach. */
+      const EDGE_FALLOFF = 2.6;
+
+      /** Total blocks in the field, counted per cell of the border ring. */
+      const FIELD_SHARE = 1.75;
+
+      /**
+       * Three cycle lengths, deliberately not multiples of each other, so the field never visibly
+       * repeats. Each maps to one `.pixel-noise` layer with its own staggered sequence.
+       */
+      const CYCLES = [
+        { name: 'a', duration: 1700 },
+        { name: 'b', duration: 2300 },
+        { name: 'c', duration: 2900 },
+      ];
+
+      /**
+       * One block's life: half the cycle lit, half dark, with cuts rather than fades. Combined with
+       * a stagger of exactly `duration / perLayer`, every layer holds a constant number of lit
+       * blocks — one block always arrives as another leaves.
+       */
+      const CHURN_KEYFRAMES = [
+        { opacity: '1' },
+        { opacity: '1', offset: 0.49 },
+        { opacity: '0', offset: 0.5 },
+        { opacity: '0', offset: 0.99 },
+        { opacity: '1' },
+      ];
+
+      /** Reads the panel straight off the page, so its size stays a pure CSS decision. */
+      function measure(stage) {
+        const { width, height } = stage.getBoundingClientRect();
+
+        const cols = Math.max(8, Math.round(width / BLOCK_W));
+        const rows = Math.max(4, Math.round(height / BLOCK_H));
+        const border = 2 * (cols + rows) - 4;
+
+        return {
+          cols,
+          rows,
+          perLayer: Math.max(12, Math.round((border * FIELD_SHARE) / CYCLES.length)),
+        };
+      }
+
+      /** Weighted sampling without replacement (Efraimidis–Spirakis), so the field size is fixed. */
+      function pickCells({ cols, rows }, count) {
+        const candidates = [];
+
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            // Distance to the nearest wall, 0 at the wall and 1 once past that wall's reach.
+            const side = Math.min(col, cols - 1 - col) / (cols * SIDE_REACH);
+            const cap = Math.min(row, rows - 1 - row) / (rows * CAP_REACH);
+            const weight = (1 - Math.min(1, side, cap)) ** EDGE_FALLOFF;
+
+            if (weight > 0.001) {
+              candidates.push({ col, row, key: Math.random() ** (1 / weight) });
+            }
+          }
+        }
+
+        return candidates.sort((a, b) => b.key - a.key).slice(0, count);
+      }
+
+      function buildNoiseField(card, grid) {
+        const cells = pickCells(grid, grid.perLayer * CYCLES.length);
+
+        CYCLES.forEach(({ name }, layerIndex) => {
+          const layer = card.querySelector(`.pixel-noise--${name}`);
+          const fragment = document.createDocumentFragment();
+
+          cells
+            .filter((_, i) => i % CYCLES.length === layerIndex)
+            .forEach((cell, i) => {
+              const block = document.createElement('div');
+              block.className = 'pixel-noise__block';
+              block.style.setProperty('--col', cell.col + 1);
+              block.style.setProperty('--row', cell.row + 1);
+
+              // Effects use fill 'forwards', so this shows until a block's turn in the stagger.
+              // Lighting exactly every other one starts the field at its steady-state density.
+              block.style.opacity = i % 2 ? '1' : '0';
+
+              fragment.append(block);
+            });
+
+          layer.style.setProperty('--grid-cols', grid.cols);
+          layer.style.setProperty('--grid-rows', grid.rows);
+          layer.replaceChildren(fragment);
+        });
+      }
+
+      function buildConfig(perLayer) {
+        return {
+          conditions: {
+            'motion-ok': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+          },
+
+          effects: Object.fromEntries(
+            CYCLES.map(({ name, duration }) => [
+              `churn-${name}`,
+              {
+                duration,
+                easing: 'linear',
+                iterations: Infinity,
+                fill: 'forwards',
+                keyframeEffect: {
+                  name: `churn${name.toUpperCase()}`,
+                  keyframes: CHURN_KEYFRAMES,
+                },
+              },
+            ]),
+          ),
+
+          interactions: [
+            {
+              key: 'card',
+              trigger: 'viewEnter',
+              params: { threshold: 0.2 },
+              conditions: ['motion-ok'],
+              sequences: CYCLES.map(({ name, duration }) => ({
+                offset: duration / perLayer,
+                effects: [{ effectId: `churn-${name}`, listContainer: `.pixel-noise--${name}` }],
+              })),
+            },
+          ],
+        };
+      }
+
+      const style = document.createElement('style');
+      document.head.append(style);
+
+      /** Size to measure the title at. Large enough that rounding does not skew the ratio. */
+      const TITLE_PROBE_PX = 200;
+      const TITLE_MIN_PX = 18;
+
+      /**
+       * The title is a single unbroken line, so no CSS length can size it to the text — a longer
+       * title would spill past the margin, a shorter one stop short of it. Measure the string once,
+       * set the size that makes it span the columns exactly, then give the height back if the note
+       * has rewrapped onto more lines than the band can hold.
+       */
+      function fitCaption(card) {
+        const caption = card.querySelector('.caption');
+        const title = card.querySelector('.caption__title');
+
+        title.style.fontSize = `${TITLE_PROBE_PX}px`;
+
+        const range = document.createRange();
+        range.selectNodeContents(title);
+        const widthPerPx = range.getBoundingClientRect().width / TITLE_PROBE_PX;
+        if (!widthPerPx) return;
+
+        const { width, height } = caption.getBoundingClientRect();
+        const lineHeight = parseFloat(getComputedStyle(title).lineHeight) / TITLE_PROBE_PX;
+
+        let size = width / widthPerPx;
+
+        // Each pass rewraps the note, which changes how much height is left, so settle it.
+        for (let pass = 0; pass < 5; pass++) {
+          title.style.fontSize = `${size}px`;
+
+          const overflow = caption.scrollHeight - Math.ceil(height);
+          if (overflow <= 0) break;
+
+          size = Math.max(TITLE_MIN_PX, size - overflow / lineHeight);
+        }
+      }
+
+      /**
+       * Mounting swaps the card for a pristine clone rather than re-creating the Interact instance:
+       * `<interact-element>` claims its key on connect, so remounting is what arms the trigger.
+       */
+      const template = document.querySelector('[data-interact-key="card"]').cloneNode(true);
+
+      let card = document.querySelector('[data-interact-key="card"]');
+
+      /** The stagger depends on the block count, so a new viewport size means a new config. */
+      function build() {
+        const grid = measure(card.querySelector('.card__stage'));
+        const config = buildConfig(grid.perLayer);
+
+        style.textContent = generate(config, true);
+
+        Interact.destroy();
+        Interact.create(config);
+
+        const next = template.cloneNode(true);
+        buildNoiseField(next, grid);
+        card.replaceWith(next);
+        card = next;
+
+        fitCaption(card);
+      }
+
+      build();
+
+      // The first fit runs against the fallback face; redo it once the real one is in.
+      document.fonts.ready.then(() => fitCaption(card));
+
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(build, 250);
+      });
+    </script>
+  </body>
+</html>
