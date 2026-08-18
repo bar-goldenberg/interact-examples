@@ -11,6 +11,10 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    interact-element {
+      display: block;
+    }
+
     .mouse-image {
       position: absolute;
       left: 0;
@@ -26,92 +30,134 @@
   </style>
 </head>
 <body class="bg-gray-50 antialiased">
-  <main id="image-container" class="relative h-screen w-screen overflow-hidden bg-gray-50">
-    <div class="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2 rounded-lg bg-white/70 px-4 py-2 text-sm font-medium text-gray-700 shadow-md backdrop-blur-sm">
-      Move your mouse over the screen
-    </div>
-  </main>
+  <interact-element data-interact-key="image-field">
+    <main id="image-container" class="relative h-screen w-screen overflow-clip bg-gray-50">
+      <div class="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2 rounded-lg bg-white/70 px-4 py-2 text-sm font-medium text-gray-700 shadow-md backdrop-blur-sm">
+        Move your mouse over the screen
+      </div>
+    </main>
+  </interact-element>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const imageContainer = document.getElementById('image-container');
-      const imageCount = 250;
-      const maxDistance = 200;
-      const maxScale = 3.6;
-      const smoothing = 0.2;
-      const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  <script type="module">
+    import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-      for (let index = 1; index <= imageCount; index += 1) {
-        const image = document.createElement('img');
-        image.src = `https://picsum.photos/300/300?random=${index}`;
-        image.alt = '';
-        image.className = 'mouse-image shadow-sm';
-        image.decoding = 'async';
-        image.loading = index > 40 ? 'lazy' : 'eager';
-        imageContainer.appendChild(image);
+    const IMAGE_COUNT = 250;
+    const MAX_DISTANCE = 200;
+    const MAX_SCALE = 3.6;
+    const SMOOTHING = 0.2;
+    const IMAGE_SIZE = 120;
+    const FRAME = 1000 / 60;
+
+    const container = document.getElementById('image-container');
+
+    for (let index = 1; index <= IMAGE_COUNT; index += 1) {
+      const image = document.createElement('img');
+      image.src = `https://picsum.photos/300/300?random=${index}`;
+      image.alt = '';
+      image.className = 'mouse-image shadow-sm';
+      image.decoding = 'async';
+      image.loading = index > 40 ? 'lazy' : 'eager';
+      container.appendChild(image);
+    }
+
+    const images = Array.from(container.querySelectorAll('.mouse-image'));
+    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    let lastTime = 0;
+    let seeded = false;
+
+    function resetImage(image, width, height) {
+      image._x = -IMAGE_SIZE + Math.random() * (width / 2);
+      image._y = height - IMAGE_SIZE / 2 - Math.random() * (height / 2);
+      image._v = 0.5 + Math.random() * 1.5;
+      image._s = 0;
+    }
+
+    // Single render pass. Driven by @wix/interact's own animation loop (the
+    // looping customEffect below), and re-run on each pointer sample so the
+    // field stays responsive even if motion is reduced.
+    function render(now) {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (!width || !height) return;
+
+      if (!seeded) {
+        images.forEach((image) => resetImage(image, width, height));
+        seeded = true;
+        lastTime = now;
       }
 
-      const images = Array.from(document.querySelectorAll('.mouse-image'));
-      let containerWidth = 0;
-      let containerHeight = 0;
-      let imageWidth = 120;
-      let imageHeight = 120;
+      const delta = Math.min(Math.max(now - lastTime, 0), 100) / FRAME;
+      lastTime = now;
 
-      function resetImage(image) {
-        image.startOffsetX = -imageWidth + Math.random() * (containerWidth / 2);
-        image.startOffsetY = containerHeight - imageHeight / 2 - Math.random() * (containerHeight / 2);
-        image.velocity = 0.5 + Math.random() * 1.5;
-        image.currentX = image.startOffsetX;
-        image.currentY = image.startOffsetY;
-        image.currentScale = 0;
+      for (const image of images) {
+        image._x += image._v * delta;
+        image._y -= image._v * delta;
+
+        if (image._x > width || image._y < -IMAGE_SIZE) {
+          resetImage(image, width, height);
+        }
+
+        const centerX = image._x + IMAGE_SIZE / 2;
+        const centerY = image._y + IMAGE_SIZE / 2;
+        const distance = Math.hypot(pointer.x - centerX, pointer.y - centerY);
+        const targetScale = Math.max(0, MAX_SCALE * (1 - distance / MAX_DISTANCE));
+
+        image._s += (targetScale - image._s) * Math.min(1, SMOOTHING * delta);
+
+        const visible = image._s > 0.01;
+        if (visible !== image._vis) {
+          image.style.opacity = visible ? '1' : '0';
+          image._vis = visible;
+        }
+
+        image.style.transform = `translate3d(${image._x}px, ${image._y}px, 0) scale(${image._s})`;
       }
+    }
 
-      function updateDimensions() {
-        const containerRect = imageContainer.getBoundingClientRect();
-        const imageRect = images[0].getBoundingClientRect();
+    // Time effect: interact keeps this custom effect ticking for as long as the
+    // field is on screen, which replaces the hand-rolled requestAnimationFrame loop.
+    const driftField = (_element, progress) => {
+      if (progress === null) return; // teardown signal
+      render(performance.now());
+    };
 
-        containerWidth = containerRect.width;
-        containerHeight = containerRect.height;
-        imageWidth = imageRect.width || imageWidth;
-        imageHeight = imageRect.height || imageHeight;
+    // Scrub effect: pointer position across the viewport, 0-1 on each axis.
+    const trackPointer = (_element, progress) => {
+      if (!progress) return;
+      pointer.x = progress.x * window.innerWidth;
+      pointer.y = progress.y * window.innerHeight;
+      render(performance.now());
+    };
 
-        images.forEach(resetImage);
-      }
-
-      document.addEventListener('mousemove', (event) => {
-        mouse.x = event.clientX;
-        mouse.y = event.clientY;
-      });
-
-      window.addEventListener('resize', updateDimensions);
-      if ('ResizeObserver' in window) {
-        new ResizeObserver(updateDimensions).observe(images[0]);
-      }
-
-      updateDimensions();
-      requestAnimationFrame(animateImages);
-
-      function animateImages() {
-        images.forEach((image) => {
-          image.currentX += image.velocity;
-          image.currentY -= image.velocity;
-
-          if (image.currentX > containerWidth || image.currentY < -imageHeight) {
-            resetImage(image);
-          }
-
-          const imageCenterX = image.currentX + imageWidth / 2;
-          const imageCenterY = image.currentY + imageHeight / 2;
-          const distance = Math.hypot(mouse.x - imageCenterX, mouse.y - imageCenterY);
-          const targetScale = Math.max(0, maxScale * (1 - distance / maxDistance));
-
-          image.currentScale += (targetScale - image.currentScale) * smoothing;
-          image.style.opacity = image.currentScale > 0.01 ? '1' : '0';
-          image.style.transform = `translate3d(${image.currentX}px, ${image.currentY}px, 0) scale(${image.currentScale})`;
-        });
-
-        requestAnimationFrame(animateImages);
-      }
+    Interact.create({
+      interactions: [
+        {
+          key: 'image-field',
+          trigger: 'viewEnter',
+          params: { threshold: 0 },
+          effects: [
+            {
+              duration: 1000,
+              iterations: Infinity,
+              easing: 'linear',
+              fill: 'both',
+              triggerType: 'once',
+              customEffect: driftField,
+            },
+          ],
+        },
+        {
+          key: 'image-field',
+          trigger: 'pointerMove',
+          params: { hitArea: 'root' },
+          effects: [
+            {
+              fill: 'both',
+              customEffect: trackPointer,
+            },
+          ],
+        },
+      ],
     });
   </script>
 </body>
