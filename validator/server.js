@@ -6,7 +6,7 @@ import { detect } from './lib/detect.js';
 import { readOriginal, readDraft, computeDiff, applyDraft, discardDraft, listDrafts } from './lib/drafts.js';
 import { runFix } from './lib/fix.js';
 import { runConvert } from './lib/convert.js';
-import { listPrompts, readPrompt, writePromptRaw } from './lib/prompts.js';
+import { listPrompts, readPrompt, writePromptRaw, markPrompted } from './lib/prompts.js';
 import { loadConvertSkill } from './lib/skill.js';
 import { FIX_OPTIONS } from './lib/prompt.js';
 import { loadSpecText } from './lib/spec.js';
@@ -50,7 +50,10 @@ export function createApp(rootDir, { port } = {}) {
   });
 
   app.get('/api/files', async (_req, res) => {
-    res.json({ files: await listAnimationFiles(root) });
+    // One prompt-tree walk (not a stat per example) tells the UI which examples
+    // already have a guideline, so it can tint those rows green.
+    const [files, prompts] = await Promise.all([listAnimationFiles(root), listPrompts(root)]);
+    res.json({ files: markPrompted(files, prompts) });
   });
 
   app.get('/api/file', async (req, res) => {

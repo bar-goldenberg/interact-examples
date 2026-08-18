@@ -17,6 +17,14 @@ function promptAbs(rootDir, rel) {
   return abs;
 }
 
+// Flag which examples already have a guideline. Pure: `prompts` is the list of
+// prompt-dir-relative paths (or listPrompts() records), so the caller does one
+// directory walk instead of a stat per example.
+export function markPrompted(files, prompts) {
+  const have = new Set(prompts.map((p) => (typeof p === 'string' ? p : p.path)));
+  return files.map((f) => ({ ...f, hasPrompt: have.has(promptRelPath(f.path)) }));
+}
+
 export async function writePrompt(rootDir, sourceRel, content) {
   const rel = promptRelPath(sourceRel);
   const abs = promptAbs(rootDir, rel);

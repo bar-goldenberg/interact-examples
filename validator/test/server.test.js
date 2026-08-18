@@ -56,6 +56,22 @@ test('markdown examples appear in /api/files but are excluded from /api/scan', a
   server.close();
 });
 
+test('GET /api/files flags examples that already have a guideline', async () => {
+  const root = await repo();
+  await writeFile(join(root, 'G', 'B.html'), '<html></html>');
+  await mkdir(join(root, 'Ani-Mate Prompts', 'G'), { recursive: true });
+  await writeFile(join(root, 'Ani-Mate Prompts', 'G', 'A.md'), '# guideline for G/A.html');
+  const { base, server } = await start(root);
+  try {
+    const files = (await (await fetch(`${base}/api/files`)).json()).files;
+    const byPath = Object.fromEntries(files.map((f) => [f.path, f]));
+    assert.equal(byPath['G/A.html'].hasPrompt, true, 'A.html has a mirrored guideline');
+    assert.equal(byPath['G/B.html'].hasPrompt, false, 'B.html has none');
+  } finally {
+    server.close();
+  }
+});
+
 test('GET /api/file rejects path traversal', async () => {
   const { base, server } = await start(await repo());
   const res = await fetch(`${base}/api/file?path=${encodeURIComponent('../../etc/passwd')}`);

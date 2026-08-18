@@ -70,8 +70,10 @@ function fileRow(f) {
   const draft = state.drafts.has(f.path) ? '<span class="draft-tag">draft</span>' : '';
   const checked = state.selected.has(f.path) ? 'checked' : '';
   const active = state.current === f.path ? ' active' : '';
-  const title = d ? `${f.path} — ${VER[versionState(d)].label}` : f.path;
-  return `<div class="file-row${active}" data-path="${esc(f.path)}" title="${esc(title)}">
+  // Tinted green when a guideline already exists at the mirrored prompts path.
+  const prompted = f.hasPrompt ? ' has-prompt' : '';
+  const title = `${d ? `${f.path} — ${VER[versionState(d)].label}` : f.path}${f.hasPrompt ? ' · has prompt' : ''}`;
+  return `<div class="file-row${active}${prompted}" data-path="${esc(f.path)}" title="${esc(title)}">
     <input type="checkbox" class="cb" ${checked}/>
     <span class="fname">${esc(f.file)}</span>
     <span class="inds">${indicatorsHTML(d)}</span>${draft}</div>`;
