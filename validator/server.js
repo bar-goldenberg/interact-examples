@@ -77,7 +77,9 @@ export function createApp(rootDir, { port } = {}) {
 
   app.post('/api/scan', async (req, res) => {
     try {
-      const all = await listAnimationFiles(root);
+      // Only .html gets diagnosed — .md doc examples have no interact
+      // version/syntax to detect and would pollute the summary counts.
+      const all = (await listAnimationFiles(root)).filter((f) => f.path.endsWith('.html'));
       const wanted = Array.isArray(req.body.paths) && req.body.paths.length
         ? all.filter((f) => req.body.paths.includes(f.path)) : all;
       const results = [];
@@ -184,10 +186,38 @@ export function createApp(rootDir, { port } = {}) {
     } catch (err) { bad(res, String(err.message || err)); }
   });
 
+  // Verify a generated example: does the demo inside its ```html fence still run,
+  // and does it still move the way the original demo did? Config-reading cannot
+  // answer either question — this renders both and compares.
+  app.get('/api/prompt/verify', async (req, res) => {
+    try {
+      const rel = String(req.query.path);
+      const md = await readPrompt(root, rel);
+      if (md === null) return res.status(404).json({ error: 'no prompt' });
+      const { extractDemoHtml, probeHtml, compareSignatures } = await import('./lib/probe.js');
+      const demo = extractDemoHtml(md);
+      if (!demo) return res.json({ ok: false, notes: ['no ```html demo fence in this example'] });
+
+      const candidate = await probeHtml(demo);
+      // The source demo lives at the mirrored .html path; if it is gone we can
+      // still report whether the sanitized demo animates at all.
+      let original = null;
+      try { original = await probeHtml(await readOriginal(root, rel.replace(/\.md$/i, '.html'))); }
+      catch { /* original unavailable — fall through to the standalone check */ }
+
+      if (!original) {
+        const animated = candidate.elements.filter((e) => e.moves || e.fades || e.filters).length;
+        return res.json({ ok: animated > 0, standalone: true, candidate,
+          notes: animated > 0 ? [] : ['sanitized demo has NO animated elements'] });
+      }
+      res.json({ ...compareSignatures(original, candidate), original, candidate });
+    } catch (err) { bad(res, String(err.message || err)); }
+  });
+
   app.post('/api/convert', async (req, res) => {
-    const { paths } = req.body;
+    const { paths, probe = true } = req.body;
     if (!Array.isArray(paths) || !paths.length) return bad(res, 'paths required');
-    const { skill, exemplar } = await loadConvertSkill();
+    const convertCtx = await loadConvertSkill();   // skill + exemplar + globals
 
     const files = [];
     const readFailures = [];
@@ -202,7 +232,7 @@ export function createApp(rootDir, { port } = {}) {
       send('start', { total: paths.length, paths });
       for (const rf of readFailures) send('result', rf);
       try {
-        await runConvert(root, files, { skill, exemplar,
+        await runConvert(root, files, { ...convertCtx, probe,
           onResult: (r) => send('result', r),
           onLog: (path, text) => send('log', { path, text }) });
         send('done', { ok: true });
@@ -211,7 +241,7 @@ export function createApp(rootDir, { port } = {}) {
     }
 
     try {
-      const results = await runConvert(root, files, { skill, exemplar });
+      const results = await runConvert(root, files, { ...convertCtx, probe });
       res.json({ results: [...readFailures, ...results] });
     } catch (err) { res.status(500).json({ error: String(err.message || err) }); }
   });

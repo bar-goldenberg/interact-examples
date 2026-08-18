@@ -25,7 +25,7 @@ const state = {
   files: [], diag: {}, drafts: new Set(), selected: new Set(), current: null,
   filter: '', mode: 'preview', version: 'current', progress: null,
   expanded: new Set(), logs: new Map(), activity: { open: false, file: null, follow: true },
-  view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered',
+  view: 'examples', prompts: [], promptExpanded: new Set(), currentPrompt: null, promptMode: 'rendered', promptHasDemo: false,
   refinery: { jobsByPrompt: {}, sections: [], selected: new Set(), currentJob: null, viewIter: null, es: null, esJob: null, bodyKey: null, barKey: null },
 };
 const $ = (id) => document.getElementById(id);
@@ -167,15 +167,20 @@ async function renderDiff(path) {
 function renderTopbar() {
   const mt = $('modeTabs'), vt = $('verTabs');
   if (state.view === 'examples') {
-    mt.innerHTML = ['preview', 'code', 'diff'].map((m) =>
-      `<button data-mode="${m}" class="tab${state.mode === m ? ' active' : ''}">${m[0].toUpperCase() + m.slice(1)}</button>`).join('');
-    vt.style.display = '';
+    const isMd = isMdExample(state.current);
+    // For .md examples: Rendered / Raw (no live preview, no diff, no draft).
+    const modes = isMd ? [['preview', 'Rendered'], ['code', 'Raw']]
+      : [['preview', 'Preview'], ['code', 'Code'], ['diff', 'Diff']];
+    mt.innerHTML = modes.map(([m, lbl]) =>
+      `<button data-mode="${m}" class="tab${state.mode === m ? ' active' : ''}">${lbl}</button>`).join('');
+    vt.style.display = isMd ? 'none' : '';
     for (const b of vt.querySelectorAll('.tab')) b.classList.toggle('active', b.dataset.ver === state.version);
-    $('topbar').classList.toggle('diff', state.mode === 'diff');
+    $('topbar').classList.toggle('diff', !isMd && state.mode === 'diff');
   } else {
     // Prompt view: Prompt (rendered md) · Raw · Refinery (only when the prompt has jobs).
     const hasJobs = (state.refinery.jobsByPrompt[state.currentPrompt] || []).length > 0;
     const tabs = [['rendered', 'Prompt'], ['raw', 'Raw']];
+    if (state.promptHasDemo) tabs.push(['demo', 'Demo'], ['verify', 'Verify']);
     if (hasJobs) tabs.push(['refinery', 'Refinery']);
     const mode = effectivePromptMode();
     mt.innerHTML = tabs.map(([m, lbl]) =>
@@ -183,6 +188,8 @@ function renderTopbar() {
     vt.style.display = 'none';
     $('topbar').classList.remove('diff');
   }
+  // Copy button: available whenever a file/prompt is selected (either view).
+  $('copyBar').hidden = !(state.view === 'examples' ? state.current : state.currentPrompt);
 }
 
 // The prompt-mode actually shown: 'refinery' only holds when the prompt has
@@ -191,10 +198,25 @@ function renderTopbar() {
 function effectivePromptMode() {
   const hasJobs = (state.refinery.jobsByPrompt[state.currentPrompt] || []).length > 0;
   if (state.promptMode === 'refinery' && !hasJobs) return 'rendered';
+  if ((state.promptMode === 'demo' || state.promptMode === 'verify') && !state.promptHasDemo) return 'rendered';
   return state.promptMode;
 }
 
+// The demo lives in a ```html fence under "# Reference demo". Mirrors
+// extractDemoHtml() in lib/probe.js — keep the two in step.
+function extractDemoHtml(md) {
+  const after = String(md).split(/^#\s*Reference demo\s*$/mi)[1] ?? String(md);
+  const m = after.match(/```html\s*\n([\s\S]*?)```/i);
+  return m ? m[1].trim() : '';
+}
+
+// A markdown-doc example (from an EXAMPLE_MD_DIRS folder): rendered as text,
+// no live preview / draft / diff.
+const isMdExample = (path) => !!path && path.endsWith('.md');
+
 async function render() {
+  // Diff/draft don't apply to markdown examples — keep the mode valid.
+  if (state.view === 'examples' && isMdExample(state.current) && state.mode === 'diff') state.mode = 'preview';
   renderTopbar();
   $('placeholder').querySelector('p').textContent = state.view === 'prompts' ? 'Select a prompt to view' : 'Select a file to preview';
   if (state.view === 'prompts') return renderPromptView();
@@ -205,9 +227,19 @@ async function renderExampleView() {
   $('loopView').hidden = true;
   $('refineSelBtn').hidden = true;
   const { mode, version, current } = state;
-  $('markdown').hidden = true;
   const has = !!current;
   $('placeholder').hidden = has;
+  // Markdown-doc example: rendered markdown ('preview') or raw text ('code').
+  if (has && isMdExample(current)) {
+    const raw = mode === 'code';
+    $('preview').hidden = true; $('diff').hidden = true;
+    $('code').hidden = !raw;
+    $('markdown').hidden = raw;
+    const src = await fetchSource('file', current);
+    if (raw) $('code').textContent = src; else $('markdown').innerHTML = mdToHtml(src);
+    return;
+  }
+  $('markdown').hidden = true;
   $('preview').hidden = !(has && mode === 'preview');
   $('code').hidden = !(has && mode === 'code');
   $('diff').hidden = !(has && mode === 'diff');
@@ -241,8 +273,50 @@ async function renderPromptView() {
   $('loopView').hidden = true;
   state.refinery.es?.close(); state.refinery.es = null;
   const src = await fetchPrompt(state.currentPrompt);
+  const demo = extractDemoHtml(src);
+  const had = state.promptHasDemo;
+  state.promptHasDemo = !!demo;
+  if (had !== state.promptHasDemo) renderTopbar();      // tabs appear/disappear
+
+  if (mode === 'demo') {
+    // The whole point of shipping a runnable demo is that it runs — the
+    // rendered-markdown view shows it as an inert code block, which would hide
+    // a demo that sanitizing broke.
+    $('markdown').hidden = true; $('code').hidden = true;
+    $('preview').hidden = false;
+    $('preview').srcdoc = demo;
+    return;
+  }
+  if (mode === 'verify') {
+    $('markdown').hidden = false; $('code').hidden = true; $('preview').hidden = true;
+    $('markdown').innerHTML = '<p style="color:var(--text-3)">Rendering the demo and comparing it to the original…</p>';
+    try {
+      const r = await api('/api/prompt/verify?path=' + encodeURIComponent(state.currentPrompt));
+      $('markdown').innerHTML = renderVerdict(r);
+    } catch (err) {
+      $('markdown').innerHTML = `<p style="color:var(--bad)">Verify failed: ${String(err.message || err)}</p>`;
+    }
+    return;
+  }
   if (mode === 'rendered') $('markdown').innerHTML = mdToHtml(src);
   else $('code').textContent = src;
+}
+
+function renderVerdict(r) {
+  const head = r.ok
+    ? '<p style="color:var(--ok,#3fb950)"><b>OK</b> — the sanitized demo runs and still moves.</p>'
+    : '<p style="color:var(--bad,#f85149)"><b>Problem</b></p>';
+  const notes = (r.notes || []).length
+    ? `<ul>${r.notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
+  const standalone = r.standalone
+    ? '<p style="color:var(--text-3);font-size:12px">Original demo unavailable — checked only that the sanitized demo animates.</p>' : '';
+  const rows = (r.candidate?.elements || []).map((e) => {
+    const what = [e.moves && 'moves', e.fades && 'fades', e.filters && 'filter'].filter(Boolean).join(', ') || 'static';
+    return `<tr><td>${e.key}</td><td>${what}</td><td>${e.travel}px</td><td>${e.magnification}×</td></tr>`;
+  }).join('');
+  const table = rows
+    ? `<table><thead><tr><th>key</th><th>what</th><th>travel</th><th>painted/layout</th></tr></thead><tbody>${rows}</tbody></table>` : '';
+  return head + notes + standalone + table;
 }
 
 // ── Live progress (SSE) ─────────────────────────────
@@ -338,6 +412,27 @@ $('modelSelect').onchange = async (e) => {
   refreshAgent();
 };
 $('ctxReset').onclick = async () => { await api('/api/agent/reset', { method: 'POST' }); refreshAgent(); };
+
+// Copy the selected file's raw contents (works for .html and .md examples and
+// for prompt .md files). Copies the on-disk source, not the rendered view.
+function flashCopy(text) {
+  const b = $('copyBtn');
+  clearTimeout(b._t);
+  b.textContent = text;
+  b._t = setTimeout(() => { b.textContent = '⧉ Copy'; }, 1400);
+}
+$('copyBtn').onclick = async () => {
+  const isEx = state.view === 'examples';
+  const path = isEx ? state.current : state.currentPrompt;
+  if (!path) return;
+  try {
+    const src = isEx ? await fetchSource('file', path) : await fetchPrompt(path);
+    await navigator.clipboard.writeText(src);
+    flashCopy('Copied ✓');
+  } catch {
+    flashCopy('Copy failed');
+  }
+};
 
 function applyResult(r) {
   if (!state.progress) return;

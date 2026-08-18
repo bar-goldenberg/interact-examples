@@ -41,6 +41,21 @@ test('POST /api/scan returns per-file diagnosis and a summary', async () => {
   server.close();
 });
 
+test('markdown examples appear in /api/files but are excluded from /api/scan', async () => {
+  const root = await repo();
+  await mkdir(join(root, 'interactor-examples', 'gallery'), { recursive: true });
+  await writeFile(join(root, 'interactor-examples', 'gallery', 'CardSpread.md'), '# Card Spread\n\ndoc');
+  const { base, server } = await start(root);
+  const files = (await (await fetch(`${base}/api/files`)).json()).files.map((f) => f.path);
+  assert.ok(files.includes('interactor-examples/gallery/CardSpread.md'), 'md example listed');
+  const scan = await (await fetch(`${base}/api/scan`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).json();
+  const scanned = scan.results.map((r) => r.path);
+  assert.ok(scanned.includes('G/A.html'), 'html still scanned');
+  assert.ok(!scanned.some((p) => p.endsWith('.md')), 'md excluded from scan');
+  server.close();
+});
+
 test('GET /api/file rejects path traversal', async () => {
   const { base, server } = await start(await repo());
   const res = await fetch(`${base}/api/file?path=${encodeURIComponent('../../etc/passwd')}`);
