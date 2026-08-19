@@ -33,7 +33,8 @@ const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 async function loadFiles() { state.files = (await api('/api/files')).files; renderTree(); }
-async function loadPrompts() { state.prompts = (await api('/api/prompts')).files; if (state.view === 'prompts') renderTree(); }
+async function loadPrompts() { state.prompts = (await api('/api/prompts')).files;
+  renderPromptCount(); if (state.view === 'prompts') renderTree(); }
 // Drafts live on disk and survive a server/page restart; the in-memory set
 // starts empty, so hydrate it on load or draft tags/tab vanish after refresh.
 async function loadDrafts() { state.drafts = new Set((await api('/api/drafts')).paths); renderTree(); }
@@ -98,6 +99,11 @@ function renderNodes(node, depth, forceOpen, expanded, rowFn) {
     html += `<div ${pad(depth)} class="file-wrap">${rowFn(f)}</div>`;
   }
   return html;
+}
+
+function renderPromptCount() {
+  const el = $('promptCount');
+  if (el) el.textContent = state.prompts.length;
 }
 
 function renderTree() {

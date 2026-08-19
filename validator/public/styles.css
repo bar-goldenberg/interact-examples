@@ -177,6 +177,11 @@ body {
   background: var(--fill-1); border: 0; border-radius: var(--radius-xs); padding: 6px 0; cursor: pointer; transition: all .15s; }
 .vt:hover { background: var(--fill-2); color: var(--text); }
 .vt.active { background: var(--fill-3); color: var(--text); }
+/* How many guidelines exist, on the tab that lists them. */
+.vt-count { display: inline-block; min-width: 15px; margin-left: 3px; padding: 1px 5px; border-radius: 980px;
+  font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums;
+  color: var(--text-2); background: var(--fill-2); }
+.vt.active .vt-count { color: var(--text); background: var(--fill-1); }
 
 /* ── File tree ───────────────────────────────────── */
 #fileTree { overflow-y: auto; flex: 1; padding: 0 8px 12px; }
