@@ -46,7 +46,7 @@
   --faint:#86868b;
   --line:#d2d2d7;
   --bg:#ececed;
-  --word:#e0e0e3;
+  --word:#121214;                /* the backdrop word is near-black, not grey */
   --silk:cubic-bezier(.16,1,.3,1);
 }
 
@@ -87,20 +87,23 @@ body {
    Its size is a share of the viewport, not a fixed value: `--word-fill` is the
    fraction of the viewport width the word should span, and the fit script at the
    bottom of the page solves the font-size for it. That is what makes it work with
-   ANY string — swap CONTACT for SAY HELLO or דברו איתנו and it still lands on the
-   same width, because a `vw` font-size only tracks the viewport, never the number
+   ANY string — swap "Let's talk" for "Say hello" or דברו איתנו and it still lands
+   on the same width, because a `vw` font-size only tracks the viewport, never the number
    of characters. The `clamp()` below is only the pre-script fallback. */
 .word{
-  --word-fill: 0.70;             /* 70% of the viewport width */
-  --word-max-h: 0.68;            /* but never taller than 68% of its height */
+  --word-fill: 0.42;             /* 42% of the viewport width — a short mixed-case
+                                    phrase in near-black reads as a line of type,
+                                    so it wants far less width than the old
+                                    single all-caps word did */
+  --word-max-h: 0.34;            /* but never taller than 34% of its height */
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   z-index: 0;
   font-family: 'DM Serif Display', Georgia, serif;
-  font-size: clamp(6rem, 21vw, 20rem);
-  line-height: 0.82;
-  letter-spacing: -0.04em;
+  font-size: clamp(3rem, 13vw, 11rem);   /* pre-script fallback only */
+  line-height: 0.9;
+  letter-spacing: -0.02em;       /* mixed case needs less negative tracking than caps */
   color: var(--word);
   white-space: nowrap;
   user-select: none;
@@ -112,7 +115,7 @@ body {
 .stack{
   position: relative;
   z-index: 1;
-  width: min(760px, 100%);
+  width: min(600px, 100%);       /* narrower sheet: a card, not a page */
   perspective: 1500px;
   perspective-origin: 50% 42%;
 }
@@ -246,7 +249,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
 <section class="stage">
   <div class="stage-wrap">
 
-    <div class="word" aria-hidden="true">CONTACT</div>
+    <div class="word" aria-hidden="true">Let&rsquo;s talk</div>
 
     <div class="stack">
       <div class="sheet">
@@ -331,7 +334,9 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
     var size = REF * (window.innerWidth * fill) / natural;
     /* A short string would otherwise resolve to something taller than the screen,
        so cap it on height as well. */
-    word.style.fontSize = Math.min(size, window.innerHeight * maxH / 0.82) + 'px';
+    /* 0.9 is the element's line-height — keep the two in sync or the height cap
+       drifts. */
+    word.style.fontSize = Math.min(size, window.innerHeight * maxH / 0.9) + 'px';
   }
 
   var frame;
@@ -402,23 +407,25 @@ const config = {
       },
     }),
 
-    /* ── the word drifts, and leaves ──
-       Counter-motion to the sheet: it settles downward and shrinks slightly as
-       the sheet rises into it, so the two never feel locked together — and it
-       fades out on the way, so by the time the sheet is upright the backdrop is
-       clean grey and nothing competes with the form.
+    /* ── the word leaves the moment you scroll ──
+       The near-black word is a title card, not a companion to the stand-up: it is
+       fully gone by 18% of the range, which is the first flick of the wheel. It
+       settles down a touch and eases its scale back as it goes, so it reads as
+       withdrawing rather than blinking off, and `quartOut` puts most of the fade
+       in the first pixels of scroll.
 
        Opacity is on the same effect as the transform rather than a second one:
        one animation on one element, so the fade cannot drift out of step with
        the drift. */
-    scrub('word-settle', 0, 88, {
+    scrub('word-settle', 0, 18, {
       selector: '.word',
       conditions: ['full-motion'],
+      easing: 'quartOut',
       keyframeEffect: {
         name: 'word-settle-kf',
         keyframes: [
-          { transform: 'translate(-50%, -62%) scale(1.16)', opacity: 1 },
-          { transform: 'translate(-50%, -50%) scale(1)',    opacity: 0 },
+          { transform: 'translate(-50%, -56%) scale(1.06)', opacity: 1 },
+          { transform: 'translate(-50%, -50%) scale(0.98)', opacity: 0 },
         ],
       },
     }),
