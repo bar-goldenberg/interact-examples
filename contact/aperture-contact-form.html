@@ -171,7 +171,15 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
   :root{--img-w-start:100vw}
   .wrap{grid-template-columns:1fr}
   .panel{position:relative;top:auto;height:auto;min-height:auto;padding:clamp(28px,7vw,56px)}
-  .media-track{order:-1;height:190vh}
+  /* Mobile drops the sticky-pin pattern entirely: the image is a plain 60vh block
+     at the top and the form starts immediately underneath it — no tall track, so
+     no empty gap between the two. Track and pane are the same height on purpose.
+     Because nothing is pinned here, the scroll effects switch from the `contain`
+     range to `exit` (see the 'narrow' condition in the config below): `contain`
+     only advances while an element is stuck/oversized, and would sit at 100% from
+     the first paint for a 60vh block at the top of the page. */
+  .media-track{order:-1;height:60vh;height:60svh}
+  .media{position:relative;height:60vh;height:60svh}
   .form-rows{grid-template-columns:1fr}
   .btn{width:100%}
 }
@@ -296,6 +304,14 @@ for (const el of document.querySelectorAll('[data-split]')) {
 /* every effect whose CSS base state IS the hidden state uses fill: 'both',
    so the final keyframe persists instead of snapping back. */
 const config = {
+  /* the mobile breakpoint has to exist here too, not just in CSS: at <=1000px the
+     image is an unpinned 60vh block, so its scroll effects need the `exit` range
+     instead of the sticky-phase `contain` range. */
+  conditions: {
+    wide:   { type: 'media', predicate: '(min-width:1001px)' },
+    narrow: { type: 'media', predicate: '(max-width:1000px)' },
+  },
+
   effects: {
     /* headline: each character tips up out of 3D space and un-blurs */
     'char-in': {
@@ -425,6 +441,53 @@ const config = {
       },
     },
 
+    /* ---- mobile twins of the three image effects, on the `exit` range ----
+       Same keyframes, different range: the 60vh block animates while it scrolls
+       up out of the viewport. Separate registry entries (not just overridden
+       refs) because each needs its own interaction id. */
+    'media-shrink-m': {
+      selector: '.media-frame',
+      rangeStart: { name: 'exit', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-shrink-m-kf',
+        keyframes: [
+          { transform: 'scale(1) rotate(0deg)',        borderRadius: '0px',  boxShadow: '0 0px 0px rgba(0,0,0,0)'    },
+          { transform: 'scale(0.8) rotate(-1.6deg)',   borderRadius: '28px', boxShadow: '0 46px 90px rgba(0,0,0,.28)' },
+        ],
+      },
+    },
+    'media-drift-m': {
+      selector: '.media-img',
+      rangeStart: { name: 'exit', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-drift-m-kf',
+        keyframes: [
+          { transform: 'translateY(-5%) scale(1.06)' },
+          { transform: 'translateY(5%)  scale(1)'    },
+        ],
+      },
+    },
+    'outline-wipe-m': {
+      selector: '.media-outline',
+      rangeStart: { name: 'exit', offset: { value: 10, unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 70, unit: 'percentage' } },
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'outline-wipe-m-kf',
+        keyframes: [
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)'   },
+        ],
+      },
+    },
+
     /* the form drifts against the scroll, so the two columns feel like separate planes */
     'form-drift': {
       key: 'panel',
@@ -481,10 +544,15 @@ const config = {
       key: 'media-track',
       trigger: 'viewProgress',
       effects: [
-        { effectId: 'media-shrink'  },
-        { effectId: 'media-drift'   },
-        { effectId: 'outline-wipe'  },
-        { effectId: 'form-drift'    },
+        /* desktop: sticky pin, `contain` range */
+        { effectId: 'media-shrink',   conditions: ['wide'] },
+        { effectId: 'media-drift',    conditions: ['wide'] },
+        { effectId: 'outline-wipe',   conditions: ['wide'] },
+        { effectId: 'form-drift',     conditions: ['wide'] },
+        /* mobile: unpinned block, `exit` range */
+        { effectId: 'media-shrink-m', conditions: ['narrow'] },
+        { effectId: 'media-drift-m',  conditions: ['narrow'] },
+        { effectId: 'outline-wipe-m', conditions: ['narrow'] },
       ],
     },
 
