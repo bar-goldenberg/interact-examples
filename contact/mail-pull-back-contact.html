@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact</title>
+<style>
+/* ============================================================================
+   MAIL PULL-BACK — contact
+   Restored from the Aug-23-2026 16-53-40 reference.
+
+   Named for the camera move it imitates: the type is not fading or sliding in,
+   it is being pulled away from — the lens starts inside the letterforms and
+   retreats until the whole address is in frame.
+
+   The whole first screen is one sticky frame. Two things are scrubbed by
+   scroll: the email line, which starts enormous (a few letters filling the
+   width) and settles to a single legible line, and the portrait behind it,
+   which fades up in the tail of that same range. Because the text is plain white and sits ABOVE the photo,
+   the letters crossing the photo's bright areas drop out on their own. That
+   optical trick is the whole point of the composition, so no blend mode is
+   used — just z-order.
+
+   Wiring notes carried over from the other files in this folder:
+   - `overflow` must be `clip`, never `hidden`, on every ancestor between the
+     timeline source and the scroll container, or ViewTimeline dies silently.
+   - The tall `.hero-track` is the timeline source; the sticky frame is a poor
+     source. Targets are its descendants, reached with `selector`.
+   - The source starts at the top of the document, so its `entry` range is
+     already spent at scroll 0 — the scrubbed effects use `contain`, which for a
+     source taller than the viewport opens at scroll 0.
+   - Nothing is hidden in CSS. Every effect carries its own first keyframe and
+     `fill`, so a failed CDN import costs the animation, never the content. The
+     CSS base state of `.mailline` is its FINAL size for the same reason.
+
+   Why the email line animates `font-size` and not `transform: scale()`:
+   scaling a text layer rasterises it once and stretches the bitmap, so the
+   opening frames go soft exactly where the reference is crispest. One nowrap
+   line re-laying-out per scroll frame is cheap; blurry 300px letters are not.
+   ============================================================================ */
+
+:root{
+  --bg:#0b0b0b;
+  --ink:#ffffff;
+  --body:#d6d6d6;
+  --dim:#9b9b9b;
+  --line:#333333;
+
+  --font:"Helvetica Neue",Helvetica,"Wix Madefor Display",Arial,sans-serif;
+
+  /* The line is sized by the SHARE OF THE SCREEN it should span, not by a
+     font-size — see the fit pass in the module. These two are only the pre-JS
+     fallback, tuned for the string currently in the markup. */
+  --mail-end:6.05vw;
+  --mail-track:-.035em;
+
+  /* the plate's geometry is shared: the note under it reads off the same three
+     numbers, so its left edge can never drift off the photo's corner */
+  --plate-w:clamp(240px,33vw,500px);
+  --plate-top:11%;
+  --plate-h:57%;
+
+  --gutter:clamp(20px,4.5vw,84px);   /* the page's left edge — the hero note and
+                                        the form copy below both hang off it */
+
+  --micro:14.5px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{overflow-x:clip}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--body);
+  overflow-x:clip;                  /* NOT hidden — see note above */
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body.pre-motion{visibility:hidden}
+a{color:inherit}
+
+/* ── Hero ──
+   200vh of track resolves the scale-down; the frame inside is one viewport. */
+.hero-track{position:relative;height:200vh}
+.hero-frame{
+  position:sticky;top:0;
+  height:100vh;height:100svh;
+  overflow:clip;
+}
+
+/* the portrait sits under the type, roughly square, centred, high on the frame */
+.photo{
+  position:absolute;z-index:1;
+  margin:0;                       /* <figure> carries a 16px/40px UA margin —
+                                     left unzeroed it parks the plate 40px right
+                                     of centre and the note stops lining up */
+  top:var(--plate-top);left:50%;transform:translateX(-50%);
+  width:var(--plate-w);
+  height:var(--plate-h);
+  overflow:clip;
+}
+.photo-img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;
+  filter:grayscale(1) contrast(1.06) brightness(1.04);
+}
+
+/* A single paragraph in the lower-left of the hero. It sits on --gutter rather
+   than on the plate's left edge, so it shares a left margin with "Say hello."
+   in the next section — scrolling from one to the other, the copy never steps
+   sideways. Its measure still comes from the plate width, which keeps the line
+   length in the same family as the image. */
+.photo-note{
+  position:absolute;z-index:3;
+  top:calc(var(--plate-top) + var(--plate-h) + 72px);
+  left:var(--gutter);width:min(var(--plate-w),42ch);
+  margin:0;
+  font-size:var(--micro);line-height:1.6;
+  color:var(--dim);
+}
+
+/* ── The email line ──
+   Plain white, ABOVE the photo, nowrap. Its centre is parked at 35% of the
+   frame so it lands across the upper third of the portrait, as in the source. */
+.mailline{
+  position:absolute;z-index:2;
+  left:50%;top:35%;
+  width:max-content;
+  transform:translate(-50%,-50%);
+  margin:0;
+  text-align:center;white-space:nowrap;
+  font-size:var(--mail-end);          /* overwritten by the fit pass; this is
+                                         the no-JS fallback */
+  line-height:.95;
+  font-weight:400;
+  letter-spacing:var(--mail-track);
+  color:var(--ink);
+}
+.mailline a{text-decoration:none}
+
+
+/* ── Contact form section ── */
+.form-section{
+  position:relative;z-index:5;
+  background:var(--bg);
+  border-top:1px solid var(--line);
+  padding:clamp(72px,11vh,140px) var(--gutter) clamp(56px,8vh,110px);
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+  gap:clamp(32px,6vw,110px);
+  align-items:start;
+  overflow:clip;
+}
+.form-head h2{
+  margin:0;
+  font-size:clamp(44px,7.6vw,132px);
+  line-height:.92;letter-spacing:-.04em;font-weight:400;
+  color:var(--ink);
+}
+/* the split spans the JS builds — words keep line-breaking, chars animate */
+.form-head .words{display:inline}
+.form-head .w{display:inline-block;white-space:nowrap}
+.form-head .c{display:inline-block;will-change:transform,opacity}
+.form-head .lede{
+  margin:clamp(20px,3vh,34px) 0 0;max-width:34ch;
+  font-size:var(--micro);line-height:1.62;color:var(--dim);
+}
+
+.form-rows{display:grid;grid-template-columns:1fr 1fr;gap:0 clamp(20px,3vw,44px)}
+.field{position:relative;padding:26px 0 12px;grid-column:span 1}
+.field--full{grid-column:1 / -1}
+.field label{
+  display:block;margin-bottom:10px;
+  font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);
+}
+.line-input{
+  display:block;width:100%;
+  background:transparent;border:0;outline:0;
+  color:var(--ink);
+  font-family:inherit;font-size:16px;line-height:1.5;
+  padding:0 0 12px;
+  resize:none;
+}
+.line-input::placeholder{color:#5a5a5a}
+/* two rules stacked: the hairline, and the white one that grows on focus */
+.rule,.rule-ink{position:absolute;left:0;right:0;bottom:0;height:1px;transform-origin:left center}
+.rule{background:var(--line)}
+.rule-ink{background:var(--ink);transform:scaleX(0);transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.field:focus-within .rule-ink{transform:scaleX(1)}
+
+.actions{margin-top:clamp(28px,4vh,48px)}
+.btn{
+  position:relative;overflow:clip;
+  display:inline-flex;align-items:center;gap:12px;
+  padding:15px 30px;
+  background:transparent;border:1px solid var(--ink);
+  color:var(--ink);
+  font-family:inherit;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;
+  cursor:pointer;
+}
+.btn .sweep{position:absolute;inset:0;background:var(--ink);transform:scaleX(0);transform-origin:left center}
+.btn .label,.btn .arrow{position:relative;display:inline-flex;align-items:center}
+.btn .arrow{opacity:0}
+
+/* ── Narrow ── */
+@media (max-width:900px){
+  :root{--mail-end:9.4vw;--micro:13.5px}
+  .hero-track{height:180vh}
+  :root{--plate-w:64vw;--plate-top:14%;--plate-h:42%}
+  .mailline{top:32%}
+  .form-section{grid-template-columns:minmax(0,1fr)}
+  .form-rows{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .mailline{font-size:var(--mail-end) !important}
+}
+</style>
+</head>
+<body class="pre-motion">
+
+<script>
+/* The hidden start state lives on <body class="pre-motion">, so something has to
+   take it off. That something must NOT be the module below: if the CDN import
+   fails, the module never runs and the page would stay hidden for good. This is
+   a classic script, so it runs regardless — the module only ever removes the
+   class earlier, never later. */
+window.__reveal = (function () {
+  var done = false;
+  return function () {
+    if (done) return;
+    done = true;
+    document.body.classList.remove('pre-motion');
+  };
+})();
+document.addEventListener('animationstart', window.__reveal, { once:true, capture:true });
+setTimeout(window.__reveal, 700);
+</script>
+
+<section class="hero-track">
+  <div class="hero-frame">
+
+    <figure class="photo">
+      <img class="photo-img" alt=""
+           src="https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg">
+    </figure>
+
+    <p class="photo-note">Photography and direction for automotive and lifestyle. Two cameras running in parallel, several perspectives caught at once, and one consistent look across stills and motion.</p>
+
+    <h1 class="mailline"><a href="mailto:hello@yourstudio.com">hello@yourstudio.com</a></h1>
+
+  </div>
+</section>
+
+<section class="form-section" id="contact">
+
+  <div class="form-head">
+    <h2 data-split>Say hello.</h2>
+    <p class="lede">Briefs, availability, or a rough idea you want to talk through &mdash; all of it lands in the same inbox. We answer within a working day.</p>
+  </div>
+
+  <div class="form-body">
+    <form class="form-rows" novalidate>
+
+      <div class="field">
+        <label for="firstname">First name *</label>
+        <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+        <i class="rule"></i><i class="rule-ink"></i>
+      </div>
+
+      <div class="field">
+        <label for="lastname">Last name</label>
+        <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+        <i class="rule"></i><i class="rule-ink"></i>
+      </div>
+
+      <div class="field field--full">
+        <label for="email">Email *</label>
+        <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+        <i class="rule"></i><i class="rule-ink"></i>
+      </div>
+
+      <div class="field field--full">
+        <label for="message">Write a message</label>
+        <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+        <i class="rule"></i><i class="rule-ink"></i>
+      </div>
+
+    </form>
+
+    <div class="actions">
+      <button class="btn" type="submit">
+        <span class="sweep" aria-hidden="true"></span>
+        <span class="label">Send it</span>
+        <span class="arrow" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3.4 10.6 10.6 3.4M10.6 3.4H4.9M10.6 3.4v5.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+</section>
+
+<script type="module">
+/* Every animation here is an explicit keyframeEffect, so @wix/motion-presets is
+   not needed and registerEffects() is not required.
+
+   PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate` — and the import
+   would throw before anything ran.
+
+   Vanilla integration: no <interact-element> wrappers anywhere on the page.
+   Keys are bound to the real layout elements with add(), and generate() is
+   called with useFirstChild = false. */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+/* split the form heading into words -> characters before any config runs.
+   Words stay wrapped in .w so line breaking still works; .c are the animated bits. */
+for (const el of document.querySelectorAll('[data-split]')) {
+  const words = el.textContent.trim().split(/\s+/);
+  el.textContent = '';
+  const holder = document.createElement('span');
+  holder.className = 'words';
+  words.forEach((word, wi) => {
+    const w = document.createElement('span');
+    w.className = 'w';
+    for (const ch of [...word]) {
+      const c = document.createElement('span');
+      c.className = 'c';
+      c.textContent = ch;
+      w.appendChild(c);
+    }
+    holder.appendChild(w);
+    if (wi < words.length - 1) holder.appendChild(document.createTextNode(' '));
+  });
+  el.appendChild(holder);
+}
+
+/* ── fit the email line to a share of the screen ──────────────────────────────
+   A font-size in vw only holds its intended width for one particular string:
+   swap the address and the line grows or shrinks with the character count. So
+   the two states are declared as the fraction of the viewport the line should
+   span, and the vw font-size that produces it is measured here.
+
+   Measure the line once at 100px. That width is viewport-independent, and
+
+       fontSize_vw = fraction * 10000 / width_at_100px
+
+   falls out of `width(F) = w100 * F/100` and `F_vw = F / innerWidth * 100` —
+   innerWidth cancels, so one measurement holds across every resize. Change the
+   text in the markup and the fit follows it; nothing else needs touching. */
+const MAIL_FIT = {
+  wide:   { start: 3.71, end: 0.66 },   /* 371% of the screen down to 66% */
+  narrow: { start: 4.94, end: 0.88 },
+};
+
+const mailEl = document.querySelector('.mailline');
+
+function mailVw(fraction) {
+  const cs = getComputedStyle(mailEl);
+  const probe = document.createElement('span');
+  probe.textContent = mailEl.textContent.trim();
+  probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-size:100px';
+  probe.style.fontFamily = cs.fontFamily;
+  probe.style.fontWeight = cs.fontWeight;
+  probe.style.letterSpacing = cs.getPropertyValue('--mail-track') || '-.035em';
+  document.body.appendChild(probe);
+  const w100 = probe.getBoundingClientRect().width;
+  probe.remove();
+  return fraction * 10000 / w100;
+}
+
+const MAIL = {
+  wide:   { start: mailVw(MAIL_FIT.wide.start),   end: mailVw(MAIL_FIT.wide.end)   },
+  narrow: { start: mailVw(MAIL_FIT.narrow.start), end: mailVw(MAIL_FIT.narrow.end) },
+};
+const vw = n => n.toFixed(3) + 'vw';
+
+/* the resting size is also the state the page falls back to if the scroll
+   animation never attaches, so it belongs in CSS as well as in the keyframes */
+const fitStyle = document.createElement('style');
+fitStyle.textContent =
+  `:root{--mail-end:${vw(MAIL.wide.end)}}` +
+  `@media (max-width:900px){:root{--mail-end:${vw(MAIL.narrow.end)}}}`;
+document.head.appendChild(fitStyle);
+
+const config = {
+  /* The breakpoint has to exist here too, not just in CSS: the email line's two
+     end sizes differ per width, and a keyframe cannot read a custom property. */
+  conditions: {
+    wide:   { type:'media', predicate:'(min-width:901px)' },
+    narrow: { type:'media', predicate:'(max-width:900px)' },
+  },
+
+  effects: {
+    /* ── the email line ──
+       expoOut against scroll, not time: almost the whole shrink is spent in the
+       first third of the track, then it barely moves while the photo comes up.
+       That uneven distribution is what the reference reads like. */
+    'mail-shrink': {
+      selector: '.mailline',
+      rangeStart: { name:'contain', offset:{ value:0,   unit:'percentage' } },
+      rangeEnd:   { name:'contain', offset:{ value:100, unit:'percentage' } },
+      easing: 'expoOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'mail-shrink-kf',
+        keyframes: [
+          { fontSize: vw(MAIL.wide.start), transform:'translate(-50%,-50%)' },
+          { fontSize: vw(MAIL.wide.end),   transform:'translate(-50%,-50%)' },
+        ],
+      },
+    },
+    'mail-shrink-m': {
+      selector: '.mailline',
+      rangeStart: { name:'contain', offset:{ value:0,   unit:'percentage' } },
+      rangeEnd:   { name:'contain', offset:{ value:100, unit:'percentage' } },
+      easing: 'expoOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'mail-shrink-m-kf',
+        keyframes: [
+          { fontSize: vw(MAIL.narrow.start), transform:'translate(-50%,-50%)' },
+          { fontSize: vw(MAIL.narrow.end),   transform:'translate(-50%,-50%)' },
+        ],
+      },
+    },
+
+    /* the portrait comes up in the tail, easing its own zoom out as it lands */
+    'photo-in': {
+      selector: '.photo',
+      rangeStart: { name:'contain', offset:{ value:16, unit:'percentage' } },
+      rangeEnd:   { name:'contain', offset:{ value:76, unit:'percentage' } },
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'photo-in-kf',
+        keyframes: [
+          { opacity:'0', transform:'translateX(-50%) scale(1.07)' },
+          { opacity:'1', transform:'translateX(-50%) scale(1)'    },
+        ],
+      },
+    },
+
+    /* the note follows the plate up, a beat behind it */
+    'note-in': {
+      selector: '.photo-note',
+      rangeStart: { name:'contain', offset:{ value:34, unit:'percentage' } },
+      rangeEnd:   { name:'contain', offset:{ value:88, unit:'percentage' } },
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'note-in-kf',
+        keyframes: [
+          { opacity:'0', transform:'translateY(12px)' },
+          { opacity:'1', transform:'translateY(0px)'  },
+        ],
+      },
+    },
+
+    /* ── form entrance ──
+       Each character of the heading tips up out of 3D space and un-blurs. */
+    'char-in': {
+      duration: 900,
+      easing: 'expoOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'char-rise',
+        keyframes: [
+          { opacity:'0', transform:'perspective(700px) translateY(65%) rotateX(-72deg)', filter:'blur(7px)' },
+          { opacity:'1', transform:'perspective(700px) translateY(0%) rotateX(0deg)',    filter:'blur(0px)' },
+        ],
+      },
+    },
+
+    /* THREE identical entries on purpose, one per target.
+       An interaction's internal id is derived from
+       `sourceKey::targetKey::effectId::interactionIndex`. These all run off the
+       same source and resolve to the same target root inside one interaction, so
+       sharing a single registry entry would collapse them to one id: only the
+       first would survive, while generate() had already emitted the hidden first
+       keyframe for all of them, leaving the rest stuck at opacity 0. */
+    'row-in': {
+      duration: 900, easing:'expoOut', fill:'backwards',
+      keyframeEffect: { name:'row-rise', keyframes: [
+        { opacity:'0', transform:'translateY(26px)', filter:'blur(8px)' },
+        { opacity:'1', transform:'translateY(0px)',  filter:'blur(0px)' },
+      ]},
+    },
+    'row-in-lede': {
+      duration: 900, easing:'expoOut', fill:'backwards',
+      keyframeEffect: { name:'row-rise-lede', keyframes: [
+        { opacity:'0', transform:'translateY(26px)', filter:'blur(8px)' },
+        { opacity:'1', transform:'translateY(0px)',  filter:'blur(0px)' },
+      ]},
+    },
+    'row-in-actions': {
+      duration: 900, easing:'expoOut', fill:'backwards',
+      keyframeEffect: { name:'row-rise-actions', keyframes: [
+        { opacity:'0', transform:'translateY(26px)', filter:'blur(8px)' },
+        { opacity:'1', transform:'translateY(0px)',  filter:'blur(0px)' },
+      ]},
+    },
+
+    /* each field's hairline draws itself in from the left */
+    'rule-draw': {
+      duration: 760, easing:'quartOut', fill:'both',
+      keyframeEffect: { name:'rule-draw-kf', keyframes: [
+        { transform:'scaleX(0)' },
+        { transform:'scaleX(1)' },
+      ]},
+    },
+  },
+
+  interactions: [
+    /* scroll: three layers off one sticky timeline. Source = the tall
+       .hero-track; every target is a descendant, which is what puts it inside
+       the timeline's scope. */
+    {
+      key: 'hero-track',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId:'mail-shrink',   conditions:['wide']   },
+        { effectId:'mail-shrink-m', conditions:['narrow'] },
+        { effectId:'photo-in' },
+        { effectId:'note-in'  },
+      ],
+    },
+
+    /* a single viewEnter on the form section choreographs its whole entrance */
+    {
+      key: 'form-panel',
+      trigger: 'viewEnter',
+      params: { threshold: 0.12 },
+      sequences: [
+        {
+          offset: 36,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId:'char-in', listContainer:'.words', listItemSelector:'.c' }],
+        },
+        {
+          delay: 420,
+          offset: 110,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId:'row-in', listContainer:'.form-rows' }],
+        },
+        {
+          delay: 540,
+          offset: 110,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId:'rule-draw', listContainer:'.form-rows', selector:'.rule' }],
+        },
+      ],
+      effects: [
+        { effectId:'row-in-lede',    selector:'.lede',    delay: 320  },
+        { effectId:'row-in-actions', selector:'.actions', delay: 1000 },
+      ],
+    },
+
+    /* Submit: white sweeps in from the left, the label flips to black behind it,
+       and the arrow slides out of the edge. */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.sweep',
+          triggerType: 'alternate',
+          duration: 520, easing:'expoOut', fill:'both',
+          keyframeEffect: { name:'sweep-in', keyframes: [
+            { transform:'scaleX(0)' },
+            { transform:'scaleX(1)' },
+          ]},
+        },
+        {
+          selector: '.arrow',
+          triggerType: 'alternate',
+          duration: 460, delay:120, easing:'backOut', fill:'both',
+          keyframeEffect: { name:'arrow-slide', keyframes: [
+            { opacity:'0', transform:'translateX(-8px)' },
+            { opacity:'1', transform:'translateX(0px)'  },
+          ]},
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 220, delay:150, easing:'quadOut',
+            styleProperties: [{ name:'color', value:'#000000' }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  add(document.querySelector('.hero-track'),   'hero-track');
+  add(document.querySelector('.form-section'), 'form-panel');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+
+  /* Bound and generated: the opening keyframes are in place, so it is safe to
+     show the page now rather than waiting out the fallback timer. */
+  window.__reveal();
+} catch (err) {
+  /* The reveal does not depend on this succeeding — see the classic script at
+     the top of the body, which un-hides the page on its own timer. */
+  console.error('[interact] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>
