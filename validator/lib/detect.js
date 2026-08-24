@@ -1,4 +1,5 @@
 import { LATEST_VERSION } from './constants.js';
+import { isAtLeastVersion } from './version.js';
 
 const EXTRA_JS_PATTERNS = [
   { re: /addEventListener\(\s*['"`](scroll|wheel|mousemove|pointermove|pointerdown|touchmove)['"`]/g,
@@ -41,7 +42,8 @@ export function detect(filePath, source) {
   const usesInteract = /@wix\/interact/.test(source);
   const versionMatch = source.match(/@wix\/interact@(\d+\.\d+\.\d+)/);
   const version = versionMatch ? versionMatch[1] : null;
-  const isLatest = version === LATEST_VERSION;
+  // >= not ==: a file ahead of the pin (e.g. 2.5.5 vs 2.5.1) is current, not outdated.
+  const isLatest = isAtLeastVersion(version, LATEST_VERSION);
   const usesCustomEffect = /customEffect\s*:/.test(source);
   const extraJsSignals = findExtraJs(source);
   const usesExtraJs = extraJsSignals.length > 0;

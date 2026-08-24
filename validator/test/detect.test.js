@@ -22,6 +22,15 @@ test('clean current file', () => {
   assert.equal(d.category, 'Clean & current');
 });
 
+test('a version newer than the pinned latest still counts as current', () => {
+  // Regression: an exact-equality check flagged 2.5.5 as outdated, so the UI
+  // painted a newer file with the yellow "old version" dot.
+  const d = detect('Z.html', clean.replace('@wix/interact@2.5.1', '@wix/interact@2.5.5'));
+  assert.equal(d.version, '2.5.5');
+  assert.equal(d.isLatest, true);
+  assert.equal(d.category, 'Clean & current');
+});
+
 test('outdated version', () => {
   const d = detect('Y.html', `import { Interact } from 'https://esm.sh/@wix/interact@1.79.0';`);
   assert.equal(d.usesInteract, true);
