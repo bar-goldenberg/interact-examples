@@ -253,7 +253,7 @@
   <script type="module">
     let Interact;
     try {
-      const mod = await import('https://esm.sh/@wix/interact@2.0.0-rc.4/web');
+      const mod = await import('https://esm.sh/@wix/interact@2.5.1/web');
       Interact = mod.Interact;
     } catch (e) {
       console.error('Wix Interact failed to load:', e);
@@ -323,8 +323,8 @@
       interactions.push({
         key: 'h1-line1',
         trigger: 'viewEnter',
-        params: { type: 'once' },
         effects: [{
+          triggerType: 'once',
           keyframeEffect: {
             name: 'h1Line1',
             keyframes: [
@@ -342,8 +342,8 @@
       interactions.push({
         key: 'h1-line2',
         trigger: 'viewEnter',
-        params: { type: 'once' },
         effects: [{
+          triggerType: 'once',
           keyframeEffect: {
             name: 'h1Line2',
             keyframes: [
@@ -363,8 +363,8 @@
         interactions.push({
           key: `line-${l}`,
           trigger: 'viewEnter',
-          params: { type: 'once' },
           effects: [{
+            triggerType: 'once',
             keyframeEffect: {
               name: `lineEntrance${l}`,
               keyframes: [
@@ -388,8 +388,8 @@
         interactions.push({
           key,
           trigger: 'viewEnter',
-          params: { type: 'once' },
           effects: [{
+            triggerType: 'once',
             keyframeEffect: {
               name: `itemEntrance${i}`,
               keyframes: [

@@ -15,23 +15,263 @@
       display: block;
     }
 
-    .mouse-image {
+    #image-container {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+      overflow: clip;
+    }
+
+    #grid {
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 120px;
+      inset: -3vmin;
+      display: grid;
+      /* Much denser field: 16 x 9 tiles means the images sit shoulder to shoulder,
+         so a single pointer pass lights up a thick cluster instead of a few dots. */
+      grid-template-columns: repeat(16, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+    }
+
+    #grid > interact-element {
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .cell {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Cheap scatter so the field reads as a loose cloud, not a rigid grid. */
+    #grid > interact-element:nth-child(3n) .cell {
+      align-items: flex-end;
+    }
+
+    #grid > interact-element:nth-child(4n + 1) .cell {
+      align-items: flex-start;
+    }
+
+    #grid > interact-element:nth-child(5n + 2) .cell {
+      justify-content: flex-start;
+    }
+
+    #grid > interact-element:nth-child(7n + 3) .cell {
+      justify-content: flex-end;
+    }
+
+    .cell-inner {
+      will-change: transform;
+    }
+
+    .cell-img {
+      display: block;
+      /* Baseline (medium) tile. Size tiers below override this for a mixed field. */
+      width: clamp(58px, 6.4vw, 98px);
       aspect-ratio: 1;
       object-fit: cover;
+      border-radius: 3px;
       opacity: 0;
-      transform: translate3d(0, 0, 0) scale(0);
+      transform: scale(0.06);
       transform-origin: center;
-      will-change: transform, opacity;
+      will-change: transform, opacity, filter;
+      pointer-events: none;
+    }
+
+    /* --- Size tiers ------------------------------------------------------
+       Deterministic, co-prime nth-child steps so the field mixes small
+       confetti with a handful of large "hero" tiles. Images are allowed to
+       overflow their cell (the cell itself stays the stable hover hit area,
+       so varying image size never shifts the pointer regions). Later rules
+       win on ties, which is what produces the irregular distribution. */
+
+    /* Small */
+    #grid > interact-element:nth-child(5n + 3) .cell-img {
+      width: clamp(40px, 4.4vw, 64px);
+    }
+
+    /* Extra small — sparse specks */
+    #grid > interact-element:nth-child(13n + 6) .cell-img {
+      width: clamp(28px, 3.1vw, 46px);
+    }
+
+    /* Medium-large */
+    #grid > interact-element:nth-child(7n + 1) .cell-img {
+      width: clamp(82px, 9.2vw, 140px);
+    }
+
+    /* Large */
+    #grid > interact-element:nth-child(11n + 4) .cell-img {
+      width: clamp(104px, 11.8vw, 178px);
+    }
+
+    /* Extra large — a few dominant anchors */
+    #grid > interact-element:nth-child(23n + 9) .cell-img {
+      width: clamp(130px, 15vw, 228px);
+      border-radius: 4px;
+    }
+
+    /* A little aspect variety so it doesn't read as an all-squares field. */
+    #grid > interact-element:nth-child(9n + 2) .cell-img {
+      aspect-ratio: 3 / 4;
+    }
+
+    #grid > interact-element:nth-child(8n + 5) .cell-img {
+      aspect-ratio: 4 / 3;
     }
   </style>
 </head>
 <body class="bg-gray-50 antialiased">
   <interact-element data-interact-key="image-field">
-    <main id="image-container" class="relative h-screen w-screen overflow-clip bg-gray-50">
+    <main id="image-container" class="bg-gray-50">
+      <div id="grid">
+        <interact-element data-interact-key="cell-0"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=1" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-1"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=2" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-2"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=3" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-3"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=4" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-4"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=5" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-5"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=6" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-6"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=7" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-7"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=8" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-8"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=9" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-9"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=10" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-10"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=11" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-11"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=12" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-12"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=13" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-13"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=14" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-14"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=15" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-15"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=16" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-16"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=17" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-17"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=18" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-18"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=19" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-19"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=20" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-20"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=21" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-21"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=22" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-22"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=23" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-23"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=24" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-24"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=25" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-25"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=26" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-26"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=27" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-27"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=28" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-28"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=29" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-29"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=30" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-30"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=31" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-31"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=32" alt="" decoding="async" loading="eager"></div></div></interact-element>
+        <interact-element data-interact-key="cell-32"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=33" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-33"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=34" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-34"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=35" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-35"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=36" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-36"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=37" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-37"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=38" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-38"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=39" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-39"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=40" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-40"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=41" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-41"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=42" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-42"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=43" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-43"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=44" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-44"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=45" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-45"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=46" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-46"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=47" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-47"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=48" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-48"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=49" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-49"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=50" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-50"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=51" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-51"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=52" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-52"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=53" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-53"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=54" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-54"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=55" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-55"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=56" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-56"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=57" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-57"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=58" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-58"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=59" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-59"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=60" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-60"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=61" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-61"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=62" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-62"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=63" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-63"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=64" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-64"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=65" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-65"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=66" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-66"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=67" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-67"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=68" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-68"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=69" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-69"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=70" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-70"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=71" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-71"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=72" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-72"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=73" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-73"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=74" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-74"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=75" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-75"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=76" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-76"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=77" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-77"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=78" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-78"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=79" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-79"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=80" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-80"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=81" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-81"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=82" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-82"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=83" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-83"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=84" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-84"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=85" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-85"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=86" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-86"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=87" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-87"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=88" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-88"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=89" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-89"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=90" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-90"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=91" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-91"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=92" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-92"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=93" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-93"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=94" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-94"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=95" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-95"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=96" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-96"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=97" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-97"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=98" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-98"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=99" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-99"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=100" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-100"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=101" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-101"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=102" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-102"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=103" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-103"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=104" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-104"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=105" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-105"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=106" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-106"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=107" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-107"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=108" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-108"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=109" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-109"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=110" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-110"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=111" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-111"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=112" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-112"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=113" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-113"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=114" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-114"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=115" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-115"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=116" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-116"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=117" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-117"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=118" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-118"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=119" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-119"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=120" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-120"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=121" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-121"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=122" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-122"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=123" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-123"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=124" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-124"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=125" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-125"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=126" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-126"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=127" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-127"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=128" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-128"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=129" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-129"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=130" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-130"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=131" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-131"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=132" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-132"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=133" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-133"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=134" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-134"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=135" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-135"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=136" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-136"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=137" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-137"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=138" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-138"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=139" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-139"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=140" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-140"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=141" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-141"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=142" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-142"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=143" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+        <interact-element data-interact-key="cell-143"><div class="cell"><div class="cell-inner"><img class="cell-img shadow-lg" src="https://picsum.photos/300/300?random=144" alt="" decoding="async" loading="lazy"></div></div></interact-element>
+      </div>
       <div class="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2 rounded-lg bg-white/70 px-4 py-2 text-sm font-medium text-gray-700 shadow-md backdrop-blur-sm">
         Move your mouse over the screen
       </div>
@@ -40,125 +280,139 @@
 
   <script type="module">
     import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+    import { TrackMouse } from 'https://esm.sh/@wix/motion-presets';
 
-    const IMAGE_COUNT = 250;
-    const MAX_DISTANCE = 200;
-    const MAX_SCALE = 3.6;
-    const SMOOTHING = 0.2;
-    const IMAGE_SIZE = 120;
-    const FRAME = 1000 / 60;
+    Interact.registerEffects({ TrackMouse });
 
-    const container = document.getElementById('image-container');
+    const CELL_COUNT = 144;
+    const interactions = [];
 
-    for (let index = 1; index <= IMAGE_COUNT; index += 1) {
-      const image = document.createElement('img');
-      image.src = `https://picsum.photos/300/300?random=${index}`;
-      image.alt = '';
-      image.className = 'mouse-image shadow-sm';
-      image.decoding = 'async';
-      image.loading = index > 40 ? 'lazy' : 'eager';
-      container.appendChild(image);
-    }
+    for (let i = 0; i < CELL_COUNT; i += 1) {
+      const key = `cell-${i}`;
+      // Deterministic per-cell variation - keeps the field from feeling mechanical.
+      const rotation = ((i * 37) % 29) - 14;
+      const floatDistance = 3 + ((i * 53) % 6);
+      const floatDuration = 3000 + ((i * 611) % 2400);
+      const floatDelay = (i * 173) % 1800;
 
-    const images = Array.from(container.querySelectorAll('.mouse-image'));
-    const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-    let lastTime = 0;
-    let seeded = false;
-
-    function resetImage(image, width, height) {
-      image._x = -IMAGE_SIZE + Math.random() * (width / 2);
-      image._y = height - IMAGE_SIZE / 2 - Math.random() * (height / 2);
-      image._v = 0.5 + Math.random() * 1.5;
-      image._s = 0;
-    }
-
-    // Single render pass. Driven by @wix/interact's own animation loop (the
-    // looping customEffect below), and re-run on each pointer sample so the
-    // field stays responsive even if motion is reduced.
-    function render(now) {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      if (!width || !height) return;
-
-      if (!seeded) {
-        images.forEach((image) => resetImage(image, width, height));
-        seeded = true;
-        lastTime = now;
-      }
-
-      const delta = Math.min(Math.max(now - lastTime, 0), 100) / FRAME;
-      lastTime = now;
-
-      for (const image of images) {
-        image._x += image._v * delta;
-        image._y -= image._v * delta;
-
-        if (image._x > width || image._y < -IMAGE_SIZE) {
-          resetImage(image, width, height);
-        }
-
-        const centerX = image._x + IMAGE_SIZE / 2;
-        const centerY = image._y + IMAGE_SIZE / 2;
-        const distance = Math.hypot(pointer.x - centerX, pointer.y - centerY);
-        const targetScale = Math.max(0, MAX_SCALE * (1 - distance / MAX_DISTANCE));
-
-        image._s += (targetScale - image._s) * Math.min(1, SMOOTHING * delta);
-
-        const visible = image._s > 0.01;
-        if (visible !== image._vis) {
-          image.style.opacity = visible ? '1' : '0';
-          image._vis = visible;
-        }
-
-        image.style.transform = `translate3d(${image._x}px, ${image._y}px, 0) scale(${image._s})`;
-      }
-    }
-
-    // Time effect: interact keeps this custom effect ticking for as long as the
-    // field is on screen, which replaces the hand-rolled requestAnimationFrame loop.
-    const driftField = (_element, progress) => {
-      if (progress === null) return; // teardown signal
-      render(performance.now());
-    };
-
-    // Scrub effect: pointer position across the viewport, 0-1 on each axis.
-    const trackPointer = (_element, progress) => {
-      if (!progress) return;
-      pointer.x = progress.x * window.innerWidth;
-      pointer.y = progress.y * window.innerHeight;
-      render(performance.now());
-    };
-
-    Interact.create({
-      interactions: [
-        {
-          key: 'image-field',
-          trigger: 'viewEnter',
-          params: { threshold: 0 },
-          effects: [
-            {
-              duration: 1000,
-              iterations: Infinity,
-              easing: 'linear',
-              fill: 'both',
-              triggerType: 'once',
-              customEffect: driftField,
+      // Pointer bloom: the cell is the (stable) hit area, the image inside is the
+      // target - so scaling it never shifts the hover region. `triggerType: 'alternate'`
+      // plays in on enter and reverses out on leave, leaving a trail behind the
+      // cursor.
+      //
+      // Asymmetric feel, the Casper way: the whole visible transition lives in the
+      // first ~24% of a long (1300ms) timeline and the rest is a hold. Played
+      // forward that means the tile is fully up in ~120ms - an instant pop. Played
+      // in reverse on mouse-out it keeps the hold first, so the tile lingers under
+      // the trail for ~1s and then dissolves gradually instead of blinking off.
+      interactions.push({
+        key,
+        trigger: 'hover',
+        effects: [
+          {
+            selector: '.cell-img',
+            // Play-mode lives on the effect as `triggerType` in the current API
+            // (it used to be `params: { type }` on the interaction).
+            triggerType: 'alternate',
+            duration: 1300,
+            // Linear overall so the keyframe offsets alone shape the timing.
+            easing: 'linear',
+            fill: 'both',
+            keyframeEffect: {
+              name: `bloom-${i}`,
+              keyframes: [
+                {
+                  offset: 0,
+                  opacity: 0,
+                  transform: `scale(0.06) rotate(${rotation}deg)`,
+                  filter: 'brightness(1.5) saturate(1.5)',
+                },
+                {
+                  // ~45ms in: already half-visible - this is the "pop".
+                  offset: 0.035,
+                  opacity: 0.55,
+                  transform: `scale(0.94) rotate(${rotation * 0.45}deg)`,
+                  filter: 'brightness(1.3) saturate(1.35)',
+                },
+                {
+                  // ~115ms in: full opacity with a scale overshoot.
+                  offset: 0.09,
+                  opacity: 1,
+                  transform: `scale(1.3) rotate(${rotation * 0.22}deg)`,
+                  filter: 'brightness(1.16) saturate(1.2)',
+                },
+                {
+                  offset: 0.16,
+                  opacity: 1,
+                  transform: `scale(0.97) rotate(${rotation * 0.08}deg)`,
+                  filter: 'brightness(1.06) saturate(1.1)',
+                },
+                {
+                  // Settled by ~310ms - everything after this is a hold, which
+                  // becomes the slow tail when the animation runs in reverse.
+                  offset: 0.24,
+                  opacity: 1,
+                  transform: 'scale(1) rotate(0deg)',
+                  filter: 'brightness(1) saturate(1)',
+                },
+                {
+                  offset: 1,
+                  opacity: 1,
+                  transform: 'scale(1) rotate(0deg)',
+                  filter: 'brightness(1) saturate(1)',
+                },
+              ],
             },
-          ],
-        },
-        {
-          key: 'image-field',
-          trigger: 'pointerMove',
-          params: { hitArea: 'root' },
-          effects: [
-            {
-              fill: 'both',
-              customEffect: trackPointer,
+          },
+        ],
+      });
+
+      // Ambient drift on a wrapper, so it never fights the bloom.
+      interactions.push({
+        key,
+        trigger: 'viewEnter',
+        params: { threshold: 0 },
+        effects: [
+          {
+            selector: '.cell-inner',
+            triggerType: 'once',
+            duration: floatDuration,
+            delay: floatDelay,
+            iterations: Infinity,
+            alternate: true,
+            easing: 'ease-in-out',
+            fill: 'both',
+            keyframeEffect: {
+              name: `float-${i}`,
+              keyframes: [
+                { transform: 'translate3d(0px, 0px, 0px)' },
+                { transform: `translate3d(0px, -${floatDistance}px, 0px)` },
+              ],
             },
-          ],
+          },
+        ],
+      });
+    }
+
+    // Whole field leans toward the cursor anywhere in the viewport.
+    interactions.push({
+      key: 'image-field',
+      trigger: 'pointerMove',
+      params: { hitArea: 'root' },
+      effects: [
+        {
+          selector: '#grid',
+          fill: 'both',
+          namedEffect: {
+            type: 'TrackMouse',
+            distance: { value: 56, unit: 'px' },
+            axis: 'both',
+          },
         },
       ],
     });
+
+    Interact.create({ interactions });
   </script>
 </body>
 </html>

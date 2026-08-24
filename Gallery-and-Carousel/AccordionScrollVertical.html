@@ -38,20 +38,25 @@
            margin: 0 auto;
        }
 
+       /* The interact wrappers must not break the flex column layout */
+       .feature-container > interact-element {
+           display: block;
+           width: 100%;
+       }
+
 
        /* Each row styling */
        .feature-column {
            width: 100%;
            /* Use max-height for animation instead of height */
            max-height: var(--panel-default-height, 20vh); /* Default height for desktop */
-           overflow: hidden;
+           overflow: clip;
            position: relative; /* Required for z-index stacking */
            z-index: 1; /* Default stacking context */
            cursor: pointer;
            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
            border-radius: 1rem;
-           /* REMOVED: The CSS transition below was causing a conflict with the JS animation */
-           /* transition: max-height 0.3s ease, margin-bottom 0.3s ease; */
+           outline-offset: 4px;
        }
 
 
@@ -60,6 +65,7 @@
            width: 100%;
            height: 100%;
            object-fit: cover;
+           pointer-events: none;
        }
 
 
@@ -99,8 +105,13 @@
 
        /* Media query for mobile responsiveness */
        @media (max-width: 768px) {
+           :root {
+               --panel-default-height: 25vh;
+               --panel-open-height: 45vh;
+           }
+
            .feature-column {
-               max-height: 25vh; /* Initial height for mobile */
+               max-height: var(--panel-default-height, 25vh); /* Initial height for mobile */
            }
 
            .feature-bottom-title {
@@ -118,235 +129,125 @@
 
    <div class="w-full mx-auto">
        <div id="feature-container" class="feature-container">
-           <!-- Rows will be dynamically wrapped by the script -->
-           <div id="column-1" class="feature-column">
-               <div id="text-1" class="feature-text-group">
-                   <p class="feature-bottom-subtitle">Italian Alps</p>
-                   <h2 class="feature-bottom-title">Serene Lakes</h2>
+           <interact-element data-interact-key="col-1">
+               <div id="column-1" class="feature-column" tabindex="0">
+                   <interact-element data-interact-key="txt-1">
+                       <div id="text-1" class="feature-text-group">
+                           <p class="feature-bottom-subtitle">Italian Alps</p>
+                           <h2 class="feature-bottom-title">Serene Lakes</h2>
+                       </div>
+                   </interact-element>
+                   <img src="https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=1974&auto=format=fit=crop"
+                        onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
+                        alt="A serene lake with mountains in the background" class="feature-image">
                </div>
-               <img src="https://images.unsplash.com/photo-1439853949127-fa647821eba0?q=80&w=1974&auto=format=fit=crop"
-                    onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
-                    alt="A serene lake with mountains in the background" class="feature-image">
-           </div>
-           <div id="column-2" class="feature-column">
-               <div id="text-2" class="feature-text-group">
-                   <p class="feature-bottom-subtitle">Arid Climate</p>
-                   <h2 class="feature-bottom-title">Vast Deserts</h2>
+           </interact-element>
+
+           <interact-element data-interact-key="col-2">
+               <div id="column-2" class="feature-column" tabindex="0">
+                   <interact-element data-interact-key="txt-2">
+                       <div id="text-2" class="feature-text-group">
+                           <p class="feature-bottom-subtitle">Arid Climate</p>
+                           <h2 class="feature-bottom-title">Vast Deserts</h2>
+                       </div>
+                   </interact-element>
+                   <img src="https://images.unsplash.com/photo-1488197047962-b48492212cda?q=80&w=2070&auto=format=fit=crop"
+                        onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
+                        alt="Sand dunes in a vast desert under a clear sky" class="feature-image">
                </div>
-               <img src="https://images.unsplash.com/photo-1488197047962-b48492212cda?q=80&w=2070&auto=format=fit=crop"
-                    onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
-                    alt="Sand dunes in a vast desert under a clear sky" class="feature-image">
-           </div>
-           <div id="column-3" class="feature-column">
-               <div id="text-3" class="feature-text-group">
-                   <p class="feature-bottom-subtitle">Tropical Paradise</p>
-                   <h2 class="feature-bottom-title">Lush Rainforests</h2>
+           </interact-element>
+
+           <interact-element data-interact-key="col-3">
+               <div id="column-3" class="feature-column" tabindex="0">
+                   <interact-element data-interact-key="txt-3">
+                       <div id="text-3" class="feature-text-group">
+                           <p class="feature-bottom-subtitle">Tropical Paradise</p>
+                           <h2 class="feature-bottom-title">Lush Rainforests</h2>
+                       </div>
+                   </interact-element>
+                   <img src="https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?q=80&w=1974&auto=format=fit=crop"
+                        onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
+                        alt="A dense rainforest with sunlight filtering through the canopy" class="feature-image">
                </div>
-               <img src="https://images.unsplash.com/photo-1425913397330-cf8af2ff40a1?q=80&w=1974&auto=format=fit=crop"
-                    onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
-                    alt="A dense rainforest with sunlight filtering through the canopy" class="feature-image">
-           </div>
-            <div id="column-4" class="feature-column">
-               <div id="text-4" class="feature-text-group">
-                   <p class="feature-bottom-subtitle">Coastal Views</p>
-                   <h2 class="feature-bottom-title">Ocean Cliffs</h2>
+           </interact-element>
+
+           <interact-element data-interact-key="col-4">
+               <div id="column-4" class="feature-column" tabindex="0">
+                   <interact-element data-interact-key="txt-4">
+                       <div id="text-4" class="feature-text-group">
+                           <p class="feature-bottom-subtitle">Coastal Views</p>
+                           <h2 class="feature-bottom-title">Ocean Cliffs</h2>
+                       </div>
+                   </interact-element>
+                   <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1974&auto=format=fit=crop"
+                        onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
+                        alt="Dramatic ocean cliffs with waves crashing below" class="feature-image">
                </div>
-               <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1974&auto=format=fit=crop"
-                    onerror="this.onerror=null;this.src='https://placehold.co/1200x800/cccccc/ffffff?text=Image+Not+Found';"
-                    alt="Dramatic ocean cliffs with waves crashing below" class="feature-image">
-           </div>
+           </interact-element>
        </div>
    </div>
 
 
    <script type="module">
-       // Import the Interact library
+       // Pure @wix/interact — no hand-written listeners, observers or animation loops.
        import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
+       const EXPAND_EASE = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
 
-       document.addEventListener("DOMContentLoaded", () => {
-           const columns = document.querySelectorAll('.feature-column');
-           const columnIds = Array.from(columns).map(col => `#${col.id}`);
-
-           // Find all text groups
-           const textGroups = document.querySelectorAll('.feature-text-group');
-
-
-           // Programmatically wrap each column with the required interact-element
-           columns.forEach(column => {
-               const wrapper = document.createElement('interact-element');
-               wrapper.dataset.interactKey = `#${column.id}`;
-               column.parentNode.insertBefore(wrapper, column);
-               wrapper.appendChild(column);
-           });
-
-           // Programmatically wrap each text group
-           textGroups.forEach(textGroup => {
-               if (textGroup.id) {
-                   const wrapper = document.createElement('interact-element');
-                   wrapper.dataset.interactKey = `#${textGroup.id}`;
-                   // Insert wrapper before the text group, inside the column
-                   textGroup.parentNode.insertBefore(wrapper, textGroup);
-                   wrapper.appendChild(textGroup);
-               }
-           });
-
-           // --- Responsive Interaction Logic ---
-           const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-           
-           // Read CSS variables for configurable values
-           const rootStyle = getComputedStyle(document.documentElement);
-           const panelDefaultHeight = rootStyle.getPropertyValue('--panel-default-height').trim() || '20vh';
-           const panelOpenHeight = rootStyle.getPropertyValue('--panel-open-height').trim() || '50vh';
-           const panelSpeed = parseFloat(rootStyle.getPropertyValue('--panel-speed')) || 1;
-           const panelGap = rootStyle.getPropertyValue('--panel-gap').trim() || '1.5rem';
-
-           // Define animation heights based on device (CSS variables for desktop, hardcoded for mobile)
-           const initialHeight = isMobile ? '25vh' : panelDefaultHeight;
-           const expandedHeight = isMobile ? '45vh' : panelOpenHeight;
-
-           // Calculate the height difference and the negative margin needed to compensate for layout shift
-           const negativeMargin = `calc(-(${expandedHeight} - ${initialHeight}) - ${panelGap})`;
-
-           // --- Config with Reusable Effects ---
-           // We define the animations here so we can call them programmatically
-           const config = {
-               effects: {
-                   'expand-column': {
-                       keyframeEffect: {
-                           name: 'expand-collapse',
-                           // Animate max-height to expand, and a negative margin-bottom
-                           // to "pull up" the content below it, preventing jitter.
-                           // Animate z-index to ensure the expanded item overlaps siblings.
-                           keyframes: [
-                               { maxHeight: initialHeight, marginBottom: '0rem', zIndex: 1 },
-                               { maxHeight: expandedHeight, marginBottom: negativeMargin, zIndex: 10 }
-                           ],
-                       },
-                       duration: Math.round(500 / panelSpeed),
-                       easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                       fill: 'both'
+       // State effects declare their play-mode via `stateAction` on the effect.
+       // Values read straight from CSS custom properties, so live tweaks to
+       // --panel-*-height apply without any JS.
+       const effects = {
+           'v-expand': {
+               stateAction: 'toggle',
+               transitionProperties: [
+                   {
+                       name: 'max-height',
+                       value: 'var(--panel-open-height, 50vh)',
+                       duration: 500,
+                       easing: EXPAND_EASE
                    },
-                   'show-text': {
-                       keyframeEffect: {
-                           name: 'show-hide-text',
-                           keyframes: [
-                               { opacity: 0, transform: 'translateY(20px)' },
-                               { opacity: 1, transform: 'translateY(0)' }
-                           ],
-                       },
-                       duration: Math.round(400 / panelSpeed),
-                       delay: Math.round(200 / panelSpeed),
-                       easing: 'ease-out',
-                       fill: 'both'
+                   {
+                       name: 'box-shadow',
+                       value: '0 18px 50px rgba(0, 0, 0, 0.28)',
+                       duration: 500,
+                       easing: EXPAND_EASE
+                   },
+                   { name: 'z-index', value: '10', duration: 0 }
+               ]
+           },
+           // Caption rises into place slightly after the panel starts opening.
+           'reveal': {
+               stateAction: 'toggle',
+               transitionProperties: [
+                   { name: 'opacity', value: '1', duration: 400, delay: 200, easing: 'ease-out' },
+                   {
+                       name: 'transform',
+                       value: 'translateY(0)',
+                       duration: 400,
+                       delay: 200,
+                       easing: EXPAND_EASE
                    }
-               },
-               interactions: [] // We will populate this only for desktop
-           };
-
-
-           if (isMobile) {
-               // --- Mobile "Accordion" Logic ---
-               
-               // Initialize interact with just the effects
-               Interact.create(config);
-
-               let openColumnWrapper = null;
-
-               columns.forEach(column => {
-                   const columnWrapper = column.parentElement; // The <interact-element> for the column
-                   const textWrapper = column.querySelector('interact-element'); // The <interact-element> for the text
-
-                   if (!columnWrapper || !textWrapper) return;
-
-                   columnWrapper.addEventListener('click', () => {
-                       if (openColumnWrapper && openColumnWrapper === columnWrapper) {
-                           // Case 1: Clicked the *open* item. Collapse it.
-                           columnWrapper.toggleEffect('expand-column', 'remove');
-                           textWrapper.toggleEffect('show-text', 'remove');
-                           openColumnWrapper = null;
-                       } else if (openColumnWrapper && openColumnWrapper !== columnWrapper) {
-                           // Case 2: Clicked a *new* item while another is open.
-                           // 1. Collapse the old one.
-                           openColumnWrapper.toggleEffect('expand-column', 'remove');
-                           openColumnWrapper.querySelector('interact-element').toggleEffect('show-text', 'remove');
-                           
-                           // 2. Expand the new one.
-                           columnWrapper.toggleEffect('expand-column', 'add');
-                           textWrapper.toggleEffect('show-text', 'add');
-                           openColumnWrapper = columnWrapper;
-                       } else {
-                           // Case 3: No item is open. Expand this one.
-                           columnWrapper.toggleEffect('expand-column', 'add');
-                           textWrapper.toggleEffect('show-text', 'add');
-                           openColumnWrapper = columnWrapper;
-                       }
-                   });
-               });
-
-           } else {
-               // --- Desktop "Hover" Logic ---
-               
-               // Populate the interactions array for hover
-               config.interactions = columnIds.map(currentId => ({
-                   key: currentId,
-                   trigger: 'hover', // Use hover for desktop
-                   params: {
-                       type: 'alternate' // Play on enter, reverse on leave
-                   },
-                   effects: [
-                       // Effect to expand/collapse the column height
-                       {
-                           key: currentId,
-                           effectId: 'expand-column' // Reference the reusable effect
-                       },
-                       // Effect to show/hide the text content
-                       {
-                           key: currentId.replace('column', 'text'), // e.g., converts #column-1 to #text-1
-                           effectId: 'show-text' // Reference the reusable effect
-                       }
-                   ]
-               }));
-
-               // Initialize interact with effects and hover interactions
-               Interact.create(config);
+               ]
            }
+       };
 
-           // Listen for CSS variable changes from explorer and update animation keyframes + timing
-           window.addEventListener('message', function(e) {
-               if (!e.data || !e.data.__explorer || e.data.type !== 'setCssVar') return;
-               // Use setTimeout so the bridge handler sets the CSS variable first
-               setTimeout(function() {
-                   var rs = getComputedStyle(document.documentElement);
-                   var dh = rs.getPropertyValue('--panel-default-height').trim() || '20vh';
-                   var oh = rs.getPropertyValue('--panel-open-height').trim() || '50vh';
-                   var spd = parseFloat(rs.getPropertyValue('--panel-speed')) || 1;
-                   var gap = rs.getPropertyValue('--panel-gap').trim() || '1.5rem';
-                   var negMargin = 'calc(-(' + oh + ' - ' + dh + ') - ' + gap + ')';
-                   try {
-                       document.getAnimations().forEach(function(anim) {
-                           if (!anim.effect || !anim.effect.getKeyframes) return;
-                           var kf = anim.effect.getKeyframes();
-                           // expand-column: has maxHeight keyframes
-                           if (kf.length >= 2 && kf[0].maxHeight !== undefined) {
-                               anim.effect.setKeyframes([
-                                   { maxHeight: dh, marginBottom: '0rem', zIndex: 1, offset: 0 },
-                                   { maxHeight: oh, marginBottom: negMargin, zIndex: 10, offset: 1 }
-                               ]);
-                               anim.effect.updateTiming({ duration: Math.round(500 / spd) });
-                           }
-                           // show-text: has opacity keyframes
-                           else if (kf.length >= 2 && kf[0].opacity !== undefined) {
-                               anim.effect.updateTiming({
-                                   duration: Math.round(400 / spd),
-                                   delay: Math.round(200 / spd)
-                               });
-                           }
-                       });
-                   } catch(ex) {}
-               }, 0);
+       const interactions = [];
+
+       for (let i = 1; i <= 4; i++) {
+           // 'interest' = hover + keyboard focus, so the tabindex on each card works too.
+           // hover/click-family triggers take no params — playback lives on the effect.
+           interactions.push({
+               key: `col-${i}`,
+               trigger: 'interest',
+               effects: [
+                   { key: `col-${i}`, effectId: 'v-expand' },
+                   { key: `txt-${i}`, effectId: 'reveal' }
+               ]
            });
-       });
+       }
+
+       Interact.create({ effects, interactions });
    </script>
 </body>
 </html>

@@ -370,7 +370,7 @@
   <script type="module">
     let Interact;
     try {
-      const mod = await import('https://esm.sh/@wix/interact/web');
+      const mod = await import('https://esm.sh/@wix/interact@2.5.1/web');
       Interact = mod.Interact;
     } catch (e) {
       console.error('Wix Interact failed to load:', e);
@@ -385,6 +385,7 @@
       return [
         {
           selector: '.service-pill',
+          stateAction: 'toggle',
           transition: {
             duration: 900,
             easing: SLEEK,
@@ -395,6 +396,7 @@
         },
         {
           selector: '.icon-fill',
+          stateAction: 'toggle',
           transition: {
             duration: 900,
             easing: SLEEK,
@@ -409,6 +411,7 @@
     function makeSpinEffect(i) {
       return {
         selector: '.service-icon-circle',
+        triggerType: 'alternate',
         duration: 900,
         easing: SLEEK,
         fill: 'none',
@@ -430,37 +433,34 @@
           key: `svc-${i}`,
           trigger: 'hover',
           conditions: ['desktop'],
-          params: { method: 'toggle' },
           effects: makeHoverEffects(),
         },
         {
           key: `svc-${i}`,
           trigger: 'hover',
           conditions: ['desktop'],
-          params: { type: 'alternate' },
           effects: [makeSpinEffect(i)],
         },
         {
           key: `svc-${i}`,
           trigger: 'click',
           conditions: ['mobile'],
-          params: { method: 'toggle' },
           effects: makeHoverEffects(),
         },
         {
           key: `svc-${i}`,
           trigger: 'click',
           conditions: ['mobile'],
-          params: { type: 'alternate' },
           effects: [makeSpinEffect(i)],
         },
         {
           key: `svc-${i}`,
           trigger: 'viewEnter',
-          params: { type: 'once', threshold: 0.05 },
+          params: { threshold: 0.05 },
           effects: [
             {
               selector: '.service-item',
+              triggerType: 'once',
               duration: 600,
               delay: i * 150,
               easing: EASE_OUT,

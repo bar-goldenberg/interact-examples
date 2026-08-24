@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>3D Parallax Grid with @wix/interact</title>
-<script type="module" src="https://esm.sh/@wix/interact@1.79.0"></script>
+<script type="module" src="https://esm.sh/@wix/interact@2.5.1/web"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
     :root {
         --max-rotate: 40;
-        --pointer-latency: 0ms;
-        --pointer-direction: -1;
+        --pointer-latency: 200ms;
+        --card-perspective: 2000;
     }
     body {
         margin: 0;
@@ -19,22 +19,19 @@
         font-family: 'Inter', sans-serif;
         overflow: hidden; /* Prevent scrollbars */
     }
+    interact-element {
+        display: block;
+    }
     .grid-container {
         display: grid;
         gap: 20px;
-        perspective: 2000px;
+        /* Static perspective is intentional here: all cards must share one viewpoint */
+        perspective: calc(var(--card-perspective) * 1px);
         grid-template-columns: repeat(8, 1fr); /* 8 cards per row */
         grid-auto-rows: 1fr;
     }
-    wix-interact-element {
-        display: block;
-        position: relative;
-        border-radius: 20px;
-        overflow: visible;
-        transform-style: preserve-3d;
-        cursor: pointer;
-    }
     .card-inner {
+        position: relative;
         width: 100%;
         aspect-ratio: 1 / 1;
         border-radius: 20px;
@@ -48,7 +45,8 @@
         box-sizing: border-box;
         color: white;
         font-weight: 500;
-        transition: transform var(--pointer-latency) ease-out;
+        transform-style: preserve-3d;
+        cursor: pointer;
     }
     .card-content {
         opacity: 0;
@@ -70,53 +68,129 @@
 </head>
 <body>
 
-<wix-interact-element data-wix-path="grid-container">
-    <div class="grid-container" id="grid-container"></div>
-</wix-interact-element>
+<interact-element data-interact-key="grid-container">
+    <div class="grid-container">
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card1/600/400');">
+                <div class="card-content"><h3>Card 1</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card2/600/400');">
+                <div class="card-content"><h3>Card 2</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card3/600/400');">
+                <div class="card-content"><h3>Card 3</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card4/600/400');">
+                <div class="card-content"><h3>Card 4</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card5/600/400');">
+                <div class="card-content"><h3>Card 5</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card6/600/400');">
+                <div class="card-content"><h3>Card 6</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card7/600/400');">
+                <div class="card-content"><h3>Card 7</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card8/600/400');">
+                <div class="card-content"><h3>Card 8</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card9/600/400');">
+                <div class="card-content"><h3>Card 9</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card10/600/400');">
+                <div class="card-content"><h3>Card 10</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card11/600/400');">
+                <div class="card-content"><h3>Card 11</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card12/600/400');">
+                <div class="card-content"><h3>Card 12</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card13/600/400');">
+                <div class="card-content"><h3>Card 13</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card14/600/400');">
+                <div class="card-content"><h3>Card 14</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card15/600/400');">
+                <div class="card-content"><h3>Card 15</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card16/600/400');">
+                <div class="card-content"><h3>Card 16</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card17/600/400');">
+                <div class="card-content"><h3>Card 17</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card18/600/400');">
+                <div class="card-content"><h3>Card 18</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card19/600/400');">
+                <div class="card-content"><h3>Card 19</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card20/600/400');">
+                <div class="card-content"><h3>Card 20</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card21/600/400');">
+                <div class="card-content"><h3>Card 21</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card22/600/400');">
+                <div class="card-content"><h3>Card 22</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card23/600/400');">
+                <div class="card-content"><h3>Card 23</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card24/600/400');">
+                <div class="card-content"><h3>Card 24</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card25/600/400');">
+                <div class="card-content"><h3>Card 25</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card26/600/400');">
+                <div class="card-content"><h3>Card 26</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card27/600/400');">
+                <div class="card-content"><h3>Card 27</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card28/600/400');">
+                <div class="card-content"><h3>Card 28</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card29/600/400');">
+                <div class="card-content"><h3>Card 29</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card30/600/400');">
+                <div class="card-content"><h3>Card 30</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card31/600/400');">
+                <div class="card-content"><h3>Card 31</h3><p>Demo text</p></div>
+            </div>
+            <div class="card-inner" style="background-image: linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card32/600/400');">
+                <div class="card-content"><h3>Card 32</h3><p>Demo text</p></div>
+            </div>
+    </div>
+</interact-element>
 
 <script type="module">
-    import { Interact } from 'https://esm.sh/@wix/interact@1.79.0';
+    import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+    import { Tilt3DMouse } from 'https://esm.sh/@wix/motion-presets';
 
-    const container = document.getElementById('grid-container');
-    const numCards = 32; // 8 per row * 4 rows
-    const interactions = [];
-    const cardInnerElements = [];
+    Interact.registerEffects({ Tilt3DMouse });
 
-    // --- Generate Cards ---
-    for (let i = 0; i < numCards; i++) {
-        const cardPath = `card-${i + 1}`;
-        const contentPath = `card-content-${i + 1}`;
-
-        const cardWrapper = document.createElement('wix-interact-element');
-        cardWrapper.setAttribute('data-wix-path', cardPath);
-
-        const inner = document.createElement('div');
-        inner.classList.add('card-inner');
-        inner.style.backgroundImage = `linear-gradient(180deg,#0003,#000c), url('https://picsum.photos/seed/card${i + 1}/600/400')`;
-        cardInnerElements.push(inner);
-
-        const contentWrapper = document.createElement('wix-interact-element');
-        contentWrapper.setAttribute('data-wix-path', contentPath);
-
-        const content = document.createElement('div');
-        content.classList.add('card-content');
-        content.id = contentPath;
-        content.innerHTML = `<h3>Card ${i + 1}</h3><p>Demo text</p>`;
-
-        contentWrapper.appendChild(content);
-        inner.appendChild(contentWrapper);
-        cardWrapper.appendChild(inner);
-        container.appendChild(cardWrapper);
-
-        // Hover interaction for content
-        interactions.push({
-            key: cardPath,
-            trigger: 'hover',
-            params: { type: 'alternate' },
-            effects: [{
-                key: contentPath,
+    // Pure @wix/interact: no manual listeners, no rAF loop, no customEffect.
+    // 1) Per-card caption reveal uses the list context (listContainer/listItemSelector)
+    //    so a single hover interaction covers every card in the grid.
+    // 2) The 3D tilt is the GPU-tuned Tilt3DMouse preset driven by the grid's own
+    //    pointerMove trigger, applied to every .card-inner.
+    Interact.create({
+        conditions: {
+            hoverDevice: { type: 'media', predicate: '(hover: hover)' }
+        },
+        effects: {
+            'caption-reveal': {
+                listContainer: '.grid-container',
+                listItemSelector: '.card-inner',
+                selector: '.card-content',
                 keyframeEffect: {
-                    name: `content-reveal-${i + 1}`,
+                    name: 'content-reveal',
                     keyframes: [
                         { opacity: 0, transform: 'translateY(12px)' },
                         { opacity: 1, transform: 'translateY(0)' }
@@ -124,34 +198,38 @@
                 },
                 duration: 300,
                 easing: 'ease',
-                fill: 'both'
-            }]
-        });
-    }
-
-    // --- Pointer Move (Parallax) Interaction ---
-    interactions.push({
-        key: 'grid-container',
-        trigger: 'pointerMove',
-        effects: [{
-            key: 'grid-container',
-            customEffect: (element, progress) => {
-                const style = getComputedStyle(document.documentElement);
-                const maxRotate = parseFloat(style.getPropertyValue('--max-rotate')) || 40;
-                const direction = parseFloat(style.getPropertyValue('--pointer-direction')) || -1;
-                const percentX = progress.x;
-                const percentY = progress.y;
-
-                cardInnerElements.forEach(innerEl => {
-                    innerEl.style.transform = `rotateX(${percentY * maxRotate * direction}deg) rotateY(${-percentX * maxRotate * direction}deg) scale(1)`;
-                });
+                fill: 'both',
+                triggerType: 'alternate'
+            },
+            'card-tilt': {
+                selector: '.card-inner',
+                fill: 'both',
+                transitionDuration: 200,
+                transitionEasing: 'easeOut',
+                namedEffect: {
+                    type: 'Tilt3DMouse',
+                    angle: 40,
+                    perspective: 2000
+                }
             }
-        }]
+        },
+        interactions: [
+            {
+                key: 'grid-container',
+                trigger: 'hover',
+                listContainer: '.grid-container',
+                listItemSelector: '.card-inner',
+                effects: [{ effectId: 'caption-reveal' }]
+            },
+            {
+                key: 'grid-container',
+                trigger: 'pointerMove',
+                params: { hitArea: 'self' },
+                conditions: ['hoverDevice'],
+                effects: [{ effectId: 'card-tilt' }]
+            }
+        ]
     });
-
-    // Initialize @wix/interact
-    Interact.create({ interactions });
-
 </script>
 
 </body>

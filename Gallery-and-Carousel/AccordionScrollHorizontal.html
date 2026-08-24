@@ -10,22 +10,23 @@
         :root {
             --panel-default-width: 220px;
             --panel-open-width: 600px;
-            --panel-speed: 1;
+            --panel-default-height: 25vh;
+            --panel-open-height: 75vh;
         }
 
         /* Prevent horizontal scroll */
         html {
-            overflow-x: hidden;
+            overflow-x: clip;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
 
         /* Container settings */
@@ -41,25 +42,28 @@
         /* Column/Card styling */
         .feature-column {
             width: 100%;
-            max-height: 25vh; 
-            overflow: hidden;
+            max-height: var(--panel-default-height, 25vh);
+            overflow: clip;
             position: relative;
             z-index: 1;
             cursor: pointer;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             border-radius: 1.5rem;
             background: #eee;
+            outline-offset: 4px;
         }
 
         .feature-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            pointer-events: none; 
+            transform: scale(1.001);
+            transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
         }
 
-        .feature-column:hover .feature-image {
+        .feature-column:hover .feature-image,
+        .feature-column:focus-visible .feature-image {
             transform: scale(1.08);
         }
 
@@ -103,21 +107,22 @@
             transition: opacity 0.5s ease;
             pointer-events: none;
         }
-        
-        .feature-column:hover::after {
+
+        .feature-column:hover::after,
+        .feature-column:focus-visible::after {
             opacity: 1;
         }
 
-        /* Desktop specific styles */
+        /* Desktop specific styles — driven purely by the media query, no JS class toggling */
         @media (min-width: 769px) {
-            body.desktop-layout {
+            body {
                 height: 100vh;
                 display: flex;
                 align-items: center;
-                overflow: hidden;
+                overflow: clip;
             }
 
-            .desktop-layout .feature-container {
+            .feature-container {
                 flex-direction: row;
                 height: 80vh;
                 width: auto;
@@ -125,18 +130,28 @@
                 padding: 1rem 5vw;
                 gap: 1rem;
                 overflow-x: auto;
+                overflow-y: clip;
+                scroll-behavior: smooth;
+                overscroll-behavior-x: contain;
                 scrollbar-width: none;
             }
 
-            .desktop-layout .feature-container::-webkit-scrollbar {
+            .feature-container::-webkit-scrollbar {
                 display: none;
             }
 
-            .desktop-layout .feature-column {
-                width: var(--panel-default-width, 220px); 
+            .feature-column {
+                width: var(--panel-default-width, 220px);
                 max-height: none;
                 height: 100%;
                 flex-shrink: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .feature-image,
+            .feature-column::after {
+                transition-duration: 1ms;
             }
         }
     </style>
@@ -144,7 +159,7 @@
 <body>
 
     <main id="feature-container" class="feature-container">
-        
+
         <!-- Card 1 -->
         <interact-element data-interact-key="col-1">
             <div id="column-1" class="feature-column" tabindex="0">
@@ -225,150 +240,103 @@
     </main>
 
     <script type="module">
-        // Import web package from Wix Interact v2
+        // Pure @wix/interact — no hand-written listeners, observers or animation loops.
         import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-        document.addEventListener("DOMContentLoaded", () => {
+        const EXPAND_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-            // Read CSS variables for configurable keyframe values and speed
-            const rootStyle = getComputedStyle(document.documentElement);
-            const panelDefaultWidth = rootStyle.getPropertyValue('--panel-default-width').trim() || '220px';
-            const panelOpenWidth = rootStyle.getPropertyValue('--panel-open-width').trim() || '600px';
-            const panelSpeed = parseFloat(rootStyle.getPropertyValue('--panel-speed')) || 1;
-            
-            const config = {
-                effects: {
-                    'v-expand': {
-                        keyframeEffect: {
-                            name: 'v-exp',
-                            keyframes: [
-                                { maxHeight: '25vh' },
-                                { maxHeight: '75vh', zIndex: 10 }
-                            ]
-                        },
-                        duration: Math.round(600 / panelSpeed),
-                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                        fill: 'both'
+        const effects = {
+            // Desktop: card grows horizontally. Values come straight from CSS custom
+            // properties, so live tweaks to --panel-*-width apply without any JS.
+            // State effects declare their play-mode via `stateAction` on the effect.
+            'h-expand': {
+                stateAction: 'toggle',
+                transitionProperties: [
+                    {
+                        name: 'width',
+                        value: 'var(--panel-open-width, 600px)',
+                        duration: 700,
+                        easing: EXPAND_EASE
                     },
-                    'h-expand': {
-                        keyframeEffect: {
-                            name: 'h-exp',
-                            keyframes: [
-                                { width: panelDefaultWidth },
-                                { width: panelOpenWidth, zIndex: 10 }
-                            ]
-                        },
-                        duration: Math.round(600 / panelSpeed),
-                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                        fill: 'both'
+                    {
+                        name: 'box-shadow',
+                        value: '0 18px 50px rgba(0, 0, 0, 0.28)',
+                        duration: 700,
+                        easing: EXPAND_EASE
                     },
-                    'reveal': {
-                        keyframeEffect: {
-                            name: 't-rev',
-                            keyframes: [
-                                { opacity: 0, transform: 'translateY(20px)' },
-                                { opacity: 1, transform: 'translateY(0)' }
-                            ]
-                        },
-                        duration: Math.round(400 / panelSpeed),
-                        delay: Math.round(150 / panelSpeed),
-                        easing: 'ease-out',
-                        fill: 'both'
+                    { name: 'z-index', value: '10', duration: 0 }
+                ]
+            },
+            // Mobile: card grows vertically.
+            'v-expand': {
+                stateAction: 'toggle',
+                transitionProperties: [
+                    {
+                        name: 'max-height',
+                        value: 'var(--panel-open-height, 75vh)',
+                        duration: 700,
+                        easing: EXPAND_EASE
+                    },
+                    {
+                        name: 'box-shadow',
+                        value: '0 18px 50px rgba(0, 0, 0, 0.28)',
+                        duration: 700,
+                        easing: EXPAND_EASE
+                    },
+                    { name: 'z-index', value: '10', duration: 0 }
+                ]
+            },
+            // Caption rises into place slightly after the panel starts opening.
+            'reveal': {
+                stateAction: 'toggle',
+                transitionProperties: [
+                    { name: 'opacity', value: '1', duration: 420, delay: 140, easing: 'ease-out' },
+                    {
+                        name: 'transform',
+                        value: 'translateY(0)',
+                        duration: 560,
+                        delay: 140,
+                        easing: EXPAND_EASE
                     }
-                },
-                conditions: {
-                    'mobile': { type: 'media', predicate: '(max-width: 768px)' },
-                    'desktop': { type: 'media', predicate: '(min-width: 769px)' }
-                },
-                interactions: []
-            };
-
-            // Setup interactions for 6 items
-            for (let i = 1; i <= 6; i++) {
-                const colKey = `col-${i}`;
-                const txtKey = `txt-${i}`;
-
-                // Mobile triggers
-                config.interactions.push({
-                    key: colKey,
-                    trigger: 'hover',
-                    conditions: ['mobile'],
-                    effects: [
-                        { key: colKey, effectId: 'v-expand', triggerType: 'alternate' },
-                        { key: txtKey, effectId: 'reveal', triggerType: 'alternate' }
-                    ]
-                });
-
-                // Desktop triggers
-                config.interactions.push({
-                    key: colKey,
-                    trigger: 'hover',
-                    conditions: ['desktop'],
-                    effects: [
-                        { key: colKey, effectId: 'h-expand', triggerType: 'alternate' },
-                        { key: txtKey, effectId: 'reveal', triggerType: 'alternate' }
-                    ]
-                });
+                ]
             }
+        };
 
-            // Initialize Wix Interact
-            Interact.create(config);
+        const conditions = {
+            mobile: { type: 'media', predicate: '(max-width: 768px)' },
+            desktop: { type: 'media', predicate: '(min-width: 769px)' }
+        };
 
-            // Listen for CSS variable changes from explorer and update animation keyframes + timing
-            window.addEventListener('message', function(e) {
-                if (!e.data || !e.data.__explorer || e.data.type !== 'setCssVar') return;
-                // Use setTimeout so the bridge handler sets the CSS variable first
-                setTimeout(function() {
-                    var rs = getComputedStyle(document.documentElement);
-                    var dw = rs.getPropertyValue('--panel-default-width').trim() || '220px';
-                    var ow = rs.getPropertyValue('--panel-open-width').trim() || '600px';
-                    var spd = parseFloat(rs.getPropertyValue('--panel-speed')) || 1;
-                    try {
-                        document.getAnimations().forEach(function(anim) {
-                            if (!anim.effect || !anim.effect.getKeyframes) return;
-                            var kf = anim.effect.getKeyframes();
-                            // h-expand: has width keyframes
-                            if (kf.length >= 2 && kf[0].width !== undefined) {
-                                anim.effect.setKeyframes([
-                                    { width: dw, offset: 0 },
-                                    { width: ow, zIndex: 10, offset: 1 }
-                                ]);
-                                anim.effect.updateTiming({ duration: Math.round(600 / spd) });
-                            }
-                            // v-expand: has maxHeight keyframes
-                            else if (kf.length >= 2 && kf[0].maxHeight !== undefined) {
-                                anim.effect.updateTiming({ duration: Math.round(600 / spd) });
-                            }
-                            // reveal: has opacity keyframes
-                            else if (kf.length >= 2 && kf[0].opacity !== undefined) {
-                                anim.effect.updateTiming({
-                                    duration: Math.round(400 / spd),
-                                    delay: Math.round(150 / spd)
-                                });
-                            }
-                        });
-                    } catch(ex) {}
-                }, 0);
+        const interactions = [];
+
+        for (let i = 1; i <= 6; i++) {
+            const colKey = `col-${i}`;
+            const txtKey = `txt-${i}`;
+
+            // 'interest' = hover + keyboard focus, so the tabindex on each card works too.
+            // hover/click-family triggers take no params — playback lives on the effect.
+            interactions.push({
+                key: colKey,
+                trigger: 'interest',
+                conditions: ['mobile'],
+                effects: [
+                    { key: colKey, effectId: 'v-expand' },
+                    { key: txtKey, effectId: 'reveal' }
+                ]
             });
 
-            // Layout management and smooth scroll
-            const container = document.getElementById('feature-container');
-            const toggleLayout = () => {
-                const isDesktop = window.innerWidth >= 769;
-                document.body.classList.toggle('desktop-layout', isDesktop);
-            };
+            interactions.push({
+                key: colKey,
+                trigger: 'interest',
+                conditions: ['desktop'],
+                effects: [
+                    { key: colKey, effectId: 'h-expand' },
+                    { key: txtKey, effectId: 'reveal' }
+                ]
+            });
+        }
 
-            window.addEventListener('resize', toggleLayout);
-            toggleLayout();
-
-            // Horizontal mouse-wheel scroll for desktop
-            container.addEventListener('wheel', (e) => {
-                if (window.innerWidth >= 769) {
-                    e.preventDefault();
-                    container.scrollLeft += e.deltaY;
-                }
-            }, { passive: false });
-        });
+        Interact.create({ effects, conditions, interactions });
     </script>
 </body>
 </html>
