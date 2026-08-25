@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop by category — intro wipes, then the rail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #ecebe8;          /* almost-white grey */
+    --ink: #16161a;
+    --muted: rgba(22, 22, 26, 0.52);
+    --yellow: #f5e027;
+    --violet: #6d28d9;
+    --dots: radial-gradient(rgba(22, 22, 26, 0.07) 1px, transparent 1px);
+  }
+
+  body {
+    background: var(--bg) var(--dots);
+    background-size: 26px 26px;
+    background-attachment: fixed;   /* the dot grid stays put while you scroll */
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* interact-element must not take part in layout */
+  interact-element { display: contents; }
+
+  .pad {
+    height: 40vh;
+    display: grid;
+    place-content: center;
+    color: var(--muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /* ───────────────────────── section shell ─────────────────────────
+     .rail-track is the ViewTimeline SOURCE and starts at the very top of the
+     document — no lead-in scroll. Its extra height IS the scroll distance of
+     the animation; .rail-sticky pins for the whole of it. */
+
+  .rail-track { height: 620vh; }
+
+  .rail-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: clip;              /* never `hidden` — it would break the timeline */
+  }
+
+  /* ── the intro: centred in the middle of the section, inside a mask it
+        slides up out of as the rail arrives ── */
+
+  .intro-centre {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    padding: 0 clamp(1.5rem, 5vw, 4rem);
+  }
+  .intro { text-align: center; }
+  /* every line gets its own mask, so each is wiped in place on its own beat */
+  .wipe { overflow: clip; }
+
+  .eyebrow {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1.1;
+    margin-bottom: 0.2rem;
+  }
+
+  .intro h1 {
+    font-size: clamp(2.6rem, 7.6vw, 7rem);
+    font-weight: 800;
+    line-height: 1;
+    padding-bottom: 0.06em;      /* room for descenders inside the wipe */
+    letter-spacing: -0.05em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 0.24em;
+  }
+  .intro h1 .paren {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.03em;
+    font-weight: 300;
+  }
+  .intro h1 svg {
+    width: 0.6em;
+    height: 0.6em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 1.7rem;
+    padding: 0.95rem 1.8rem;
+    border-radius: 4px;
+    background: var(--violet);
+    color: #fff;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .smalls {
+    margin-top: 2.1rem;
+    display: flex;
+    justify-content: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ───────────────────────── the rail ─────────────────────────
+     Centred in the composition, with the icon on the left and the name on the
+     right. Every card sits in the SAME absolutely-centred box, so each card's
+     transform-origin is the same point on screen — which makes the per-card
+     perspective() read as one shared vanishing point. */
+
+  .rail-row {
+    position: absolute;
+    inset: 0;
+    z-index: 2;                  /* over the masthead */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .rail-stage {
+    position: relative;
+    width: min(480px, 92vw);
+    height: 100%;
+  }
+
+  .rail-card {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    overflow: clip;
+    background: var(--photo, #d7d6d2) center / cover no-repeat;
+    /* no opacity or filter here or in the keyframes — a card is either on the
+       rail or out of frame; it never fades */
+    transform: perspective(1400px) translateY(920px) translateZ(-140px) rotateX(-2deg) rotateY(88deg) rotateZ(-1.5deg);
+    box-shadow: 0 24px 50px rgba(22, 22, 26, 0.22);
+    will-change: transform;
+  }
+
+  /* On desktop the icon and the name both live in a flank and tick; on mobile
+     each card carries its own pair instead — the badge inside the card, the
+     name riding just below it. Both are off until the mobile block at the
+     bottom of this sheet switches them on. */
+  .card-badge { display: none; }
+  .card-name  { display: none; }
+
+  /* Two formats, alternating down the rail. SPAN (460px) is comfortably more
+     than the average of any two neighbours — (460 + 322) / 2 = 391 — so the
+     column keeps a constant 69px gap however the formats fall. */
+  .rail-card.is-portrait {
+    width: min(345px, 84%);
+    height: min(460px, 50vh);
+  }
+  .rail-card.is-landscape {
+    width: min(460px, 96%);
+    height: min(322px, 37vh);
+  }
+
+  /* At rest every card is below the frame — the intro has the stage to itself
+     until the scroll has run through INTRO. */
+
+  /* ── the flanks: an icon on the left, a name on the right ──
+     Each is a fixed mask; the strip inside slides so the entry for the card at
+     the middle is the one showing. --i is set by the scrub, once per change. */
+
+  .rail-flank { display: flex; align-items: center; }
+  .rail-flank.left  { justify-content: flex-end; padding-right: clamp(1rem, 3vw, 2.6rem); }
+  .rail-flank.right { justify-content: flex-start; padding-left: clamp(1rem, 3vw, 2.6rem); }
+
+  .mask { overflow: clip; }
+  /* the reveal slides the whole flank up into its mask once the intro is gone;
+     the strip inside it keeps doing the per-card ticking */
+  .reveal { transform: translateY(110%); }
+  .strip {
+    display: flex;
+    flex-direction: column;
+    /* one cell per step — a percentage here would resolve against the whole
+       strip, not a single cell */
+    transform: translateY(calc(var(--i, 0) * var(--cell) * -1));
+    transition: transform 620ms cubic-bezier(0.22, 0.9, 0.24, 1);
+  }
+
+  .icon-strip { --cell: 72px; }
+  .icon-mask {
+    width: 72px;
+    height: 72px;
+    flex: none;
+  }
+  .icon-reveal {
+    width: 72px;
+    height: 72px;
+    background: var(--yellow);
+  }
+  .icon-cell {
+    width: 72px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .icon-cell svg {
+    width: 32px;
+    height: 32px;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .name-strip { --cell: 22px; }
+  .name-mask {
+    height: 22px;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .name-cell {
+    height: 22px;
+    line-height: 22px;
+    white-space: nowrap;
+    flex: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .strip { transition: none; }
+  }
+
+  @media (max-width: 900px) {
+    .masthead { padding: 4vh 1.2rem 1.6rem; }
+    .smalls { display: none; }
+    .rail-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .rail-flank.left  { padding-right: 0.8rem; }
+    .rail-flank.right { padding-left: 0.8rem; }
+    .icon-strip { --cell: 52px; }
+    .icon-mask, .icon-reveal, .icon-cell { width: 52px; height: 52px; }
+    .icon-cell svg { width: 24px; height: 24px; }
+    .name-mask { font-size: 0.6rem; letter-spacing: 0.16em; }
+    .rail-card.is-portrait  { width: min(265px, 78%); height: min(345px, 40vh); }
+    .rail-card.is-landscape { width: min(345px, 94%); height: min(242px, 30vh); }
+  }
+
+  /* ───────────────────────── mobile ─────────────────────────
+     There is no room for two flanks either side of a card, so the pair of
+     tickers is taken apart:
+
+       · the icon rides in the card — a yellow badge in its bottom-left
+         corner, one per card;
+       · every card gets its own name, sitting just under it and travelling up
+         the rail with it. Only the card at the middle shows its name: it
+         rises into its mask as the card arrives and keeps rising out of it as
+         the next card takes over, so the categories appear and disappear one
+         at a time, in order.
+
+     With both flanks out of the row, the stage is the only thing in it — so
+     the cards sit exactly on the centre of the screen. */
+
+  @media (max-width: 768px) {
+    .rail-row {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+
+    /* the left flank is gone; its glyphs are cloned into the cards */
+    .rail-flank.left { display: none; }
+
+    .card-badge {
+      display: grid;
+      place-items: center;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 52px;
+      height: 52px;
+      background: var(--yellow);
+    }
+    .card-badge svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: var(--ink);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* the right flank goes too — nothing ticks on mobile */
+    .rail-flank.right { display: none; }
+
+    /* One label per card, parked the same distance under its own card's rest
+       position — so the gap is right for both formats — and carried up the
+       rail on the card's own translateY. The travel lives on .card-name, the
+       appear/disappear on the text inside it, so the two never fight over the
+       same transform. */
+    .card-name {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      text-align: center;
+      font-size: 1.09rem;          /* legible on a phone — 40% up again */
+      font-weight: 500;
+      letter-spacing: -1px;
+      will-change: transform;
+    }
+    .card-name.is-portrait  { margin-top: calc(min(345px, 40vh) / 2 + 22px); }
+    .card-name.is-landscape { margin-top: calc(min(242px, 30vh) / 2 + 22px); }
+
+    .card-name-mask {
+      display: block;
+      height: 34px;                /* the line box grows with the type */
+      overflow: clip;
+    }
+    .card-name-text {
+      display: block;
+      line-height: 34px;
+      white-space: nowrap;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 560ms cubic-bezier(0.22, 0.9, 0.24, 1),
+                  opacity 300ms ease;
+    }
+    /* the card at the middle owns the slot; the ones it has already passed
+       carry on upward and out */
+    .card-name-text.is-current { transform: translateY(0); opacity: 1; }
+    .card-name-text.is-past    { transform: translateY(-100%); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-name-text { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ the section — starts at scroll 0 ═══════════════════ -->
+<interact-element data-interact-key="rail-track">
+  <div class="rail-track">
+    <div class="rail-sticky">
+
+      <!-- ── the rail, centred, flanked by the icon and the name ── -->
+      <div class="rail-row">
+
+        <div class="rail-flank left">
+          <div class="mask icon-mask">
+            <div class="reveal icon-reveal">
+            <div class="strip icon-strip">
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><path d="M2 16h13l6 2v2H2z"/><path d="M2 16V9l4 2 3 2"/></svg></span>
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="14" r="4"/><circle cx="17.5" cy="14" r="4"/><path d="M10.5 13.5h3M2.5 10 5 8.2M21.5 10 19 8.2"/></svg></span>
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><rect x="7" y="4" width="10" height="16" rx="5"/><path d="M12 4v7"/></svg></span>
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><path d="M8.5 3 12 5l3.5-2L21 6l-2.2 4L17 9v12H7V9l-1.8 1L3 6z"/></svg></span>
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><rect x="5" y="7" width="14" height="14" rx="4"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7M9 14h6"/></svg></span>
+              <span class="icon-cell"><svg viewBox="0 0 24 24"><path d="M12 3 2.5 20h19z"/><path d="M12 3v17M8.5 20 12 13l3.5 7"/></svg></span>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rail-stage">
+
+          <article class="rail-card is-portrait" data-card="0"
+                   style="--photo: url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&crop=entropy&w=680&h=960&q=80')"><span class="card-badge"></span></article>
+
+          <article class="rail-card is-landscape" data-card="1"
+                   style="--photo: url('https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&crop=entropy&w=880&h=640&q=80')"><span class="card-badge"></span></article>
+
+          <article class="rail-card is-portrait" data-card="2"
+                   style="--photo: url('https://images.unsplash.com/photo-1522163182402-834f871fd851?auto=format&fit=crop&crop=entropy&w=680&h=960&q=80')"><span class="card-badge"></span></article>
+
+          <article class="rail-card is-landscape" data-card="3"
+                   style="--photo: url('https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&crop=entropy&w=880&h=640&q=80')"><span class="card-badge"></span></article>
+
+          <article class="rail-card is-portrait" data-card="4"
+                   style="--photo: url('https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&crop=entropy&w=680&h=960&q=80')"><span class="card-badge"></span></article>
+
+          <article class="rail-card is-landscape" data-card="5"
+                   style="--photo: url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&crop=entropy&w=880&h=640&q=80')"><span class="card-badge"></span></article>
+
+        </div>
+
+        <div class="rail-flank right">
+          <div class="mask name-mask">
+            <div class="reveal name-reveal">
+            <div class="strip name-strip">
+              <span class="name-cell">Footwear</span>
+              <span class="name-cell">Accessories</span>
+              <span class="name-cell">Climbing gear</span>
+              <span class="name-cell">Clothing</span>
+              <span class="name-cell">Packs</span>
+              <span class="name-cell">Camping gear</span>
+            </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── the intro: centred, and wiped away as the rail arrives ── -->
+      <div class="intro-centre">
+        <header class="intro">
+          <div class="wipe"><p class="eyebrow">New Arrivals</p></div>
+          <div class="wipe">
+            <h1>
+              shop by category
+              <span class="paren">(<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20 9 7l4 7 2-3 7 9z"/></svg>)</span>
+            </h1>
+          </div>
+          <div class="wipe"><a class="btn" href="#">Shop all categories</a></div>
+          <div class="wipe">
+            <div class="smalls">
+              <span>SS / 2026</span>
+              <span>Trail series</span>
+            </div>
+          </div>
+        </header>
+      </div>
+
+    </div>
+  </div>
+</interact-element>
+
+<section class="pad">end of section</section>
+
+<script type="module">
+  const { Interact } = await import('https://esm.sh/@wix/interact@2.2.1/web');
+
+  /* ─────────────────────────────────────────────────────────────
+     The rail is one ViewTimeline (the tall .rail-track) driving six
+     cards. Every card runs the SAME scroll window — the whole
+     `contain` phase, i.e. exactly while the sticky viewport is pinned
+     — and each one is placed at its own point on that timeline with
+     keyframe `offset`s.
+
+     The first INTRO of the scroll belongs to the intro copy: it slides up out
+     of its mask while the tickers slide in behind it, and no card has reached
+     the frame yet. The six cards then share what is left, so card i is
+     centred at INTRO + i × SLOT and the last one exits by progress 1.
+     ───────────────────────────────────────────────────────────── */
+
+  const CARDS = 6;
+  const INTRO = 0.3;               // the head of the scroll, before any card lands
+  const SLOT  = (1 - INTRO) / CARDS;
+  const SPAN  = 460;               // px between two cards on the rail
+
+  /* The rail is one rigid column that glides upward for the whole pinned
+     stretch: translateY is exactly -d × SPAN at every rung, so the vertical
+     travel is perfectly linear in scroll and the cards keep a constant
+     distance from one another — they can never drift together or overlap,
+     whatever the spin is doing.
+
+     What varies is the turn. Each card comes up turned 88° to one side, swings
+     around its Y axis — left to right, like a door — and is face-on as it
+     passes the middle, then keeps turning the same way on its way out. The
+     rotation curve flattens near the centre (10° → 0° → -10°), so a card reads
+     as holding still for the visitor even though the column never stops.
+
+     Nothing fades: no opacity, no brightness, anywhere in the schedule. Depth
+     comes from translateZ and perspective alone. On top of the spin every pose
+     carries the same slight rotateX/rotateZ tilt, so the column reads as one
+     tilted object. */
+  const pose = (d, z, ry, rx = -2, rz = -1.5) => ({
+    transform: `perspective(1400px) translateY(${Math.round(-d * SPAN)}px) translateZ(${z}px) `
+             + `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`,
+  });
+
+  /* [slots from this card's own centre moment, pose] — the y in each pose is
+     locked to that same number, which is what keeps the column rigid. */
+  const STOPS = [
+    [-2,    pose(-2,    -140,  88)],
+    [-1,    pose(-1,     -70,  64)],
+    [-0.5,  pose(-0.5,   -34,  42)],
+    [-0.12, pose(-0.12,   -8,  10)],
+    [ 0,    pose( 0,       0,   0)],
+    [ 0.12, pose( 0.12,   -8, -10)],
+    [ 0.5,  pose( 0.5,   -34, -42)],
+    [ 1,    pose( 1,     -70, -64)],
+    [ 2,    pose( 2,    -140, -88)],
+  ];
+
+  // reduced-motion variant: the same upward glide, without the 3D turn
+  const FLAT_STOPS = STOPS.map(([d]) => [d, { transform: `translateY(${Math.round(-d * SPAN)}px)` }]);
+
+  /* Places one card's rungs on the shared 0→1 timeline and clips the schedule
+     to that range: whatever pose the card would have held before progress 0
+     becomes its keyframe at 0, and likewise at 1. */
+  function buildKeyframes(index, stopList) {
+    const c = INTRO + index * SLOT;
+    const stops = stopList.map(([slots, frame]) => [c + slots * SLOT, frame]);
+
+    const inside = stops.filter(([o]) => o > 0 && o < 1);
+    const before = stops.filter(([o]) => o <= 0).pop();
+    const after  = stops.filter(([o]) => o >= 1).shift();
+
+    const schedule = [
+      [0, before ? before[1] : stops[0][1]],
+      ...inside,
+      [1, after ? after[1] : stops[stops.length - 1][1]],
+    ];
+
+    return schedule.map(([offset, frame]) => ({
+      offset: Math.round(offset * 1e4) / 1e4,
+      ...frame,
+    }));
+  }
+
+  const FULL_RANGE = {
+    rangeStart: { name: 'contain', offset: { value: 0, unit: 'percentage' } },
+    rangeEnd:   { name: 'contain', offset: { value: 100, unit: 'percentage' } },
+  };
+
+  const cardEffects = [];
+  for (let i = 0; i < CARDS; i++) {
+    cardEffects.push({
+      selector: `.rail-card[data-card="${i}"]`,
+      conditions: ['motion-ok'],
+      keyframeEffect: { name: `rail-card-${i}`, keyframes: buildKeyframes(i, STOPS) },
+      ...FULL_RANGE,
+      easing: 'linear',
+      fill: 'both',
+    });
+    cardEffects.push({
+      selector: `.rail-card[data-card="${i}"]`,
+      conditions: ['reduced-motion'],
+      keyframeEffect: { name: `rail-card-flat-${i}`, keyframes: buildKeyframes(i, FLAT_STOPS) },
+      ...FULL_RANGE,
+      easing: 'linear',
+      fill: 'both',
+    });
+  }
+
+  /* Mobile carries both the icon and the name in the card rather than in a
+     flank. Neither is written into the markup a second time — the glyph is
+     cloned out of the icon strip and the label text is read off the name
+     strip, so the desktop tickers stay the single source for both.
+
+     Each label is a sibling of the cards inside the stage, tagged with the
+     same format class as its card so it parks the right distance under it,
+     and it is given the card's own vertical travel below. */
+  const GLYPHS = document.querySelectorAll('.icon-cell svg');
+  const LABELS = document.querySelectorAll('.name-cell');
+  const STAGE  = document.querySelector('.rail-stage');
+
+  document.querySelectorAll('.rail-card').forEach((card) => {
+    const i = Number(card.dataset.card);
+
+    const glyph = GLYPHS[i];
+    const badge = card.querySelector('.card-badge');
+    if (glyph && badge) badge.append(glyph.cloneNode(true));
+
+    const name = document.createElement('div');
+    name.className = 'card-name ' + (card.classList.contains('is-portrait') ? 'is-portrait' : 'is-landscape');
+    name.dataset.name = String(i);
+    name.innerHTML = '<span class="card-name-mask"><span class="card-name-text"></span></span>';
+    name.querySelector('.card-name-text').textContent = LABELS[i].textContent;
+    STAGE.append(name);
+  });
+
+  const CARD_NAMES = [...document.querySelectorAll('.card-name-text')];
+  /* One effect per label: the flat schedule is the card schedule with the
+     spin taken out, so the label tracks its card exactly without the text
+     ever turning away from the reader. */
+  const nameEffects = [];
+  for (let i = 0; i < CARDS; i++) {
+    nameEffects.push({
+      selector: `.card-name[data-name="${i}"]`,
+      keyframeEffect: { name: `rail-name-${i}`, keyframes: buildKeyframes(i, FLAT_STOPS) },
+      ...FULL_RANGE,
+      easing: 'linear',
+      fill: 'both',
+    });
+  }
+
+  const TRACK = document.querySelector('.rail-track');
+
+  /* Which card is at the middle right now. The progress handed to a
+     customEffect is measured over a wider window than the CSS `contain` range
+     the cards animate on, so we read the track's own geometry instead, which
+     is exactly what the ViewTimeline uses. Card i lands at INTRO + i × SLOT;
+     the +0.5 of a slot hands the pair over at the moment the incoming card
+     takes the middle from the outgoing one, so the strips have finished
+     sliding by the time it settles face-on. */
+  function facingCard() {
+    const span = TRACK.offsetHeight - window.innerHeight;
+    if (span <= 0) return 0;
+    const progress = -TRACK.getBoundingClientRect().top / span;
+    const index = Math.floor((progress - INTRO) / SLOT + 0.5);
+    return Math.min(CARDS - 1, Math.max(0, index));
+  }
+
+  Interact.create({
+    conditions: {
+      'motion-ok':      { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+      'reduced-motion': { type: 'media', predicate: '(prefers-reduced-motion: reduce)' },
+    },
+
+    interactions: [
+      {
+        // SOURCE: the tall track. `contain` = the whole pinned stretch.
+        key: 'rail-track',
+        trigger: 'viewProgress',
+        effects: [
+          ...cardEffects,
+          ...nameEffects,
+
+          /* The intro is wiped upward inside its mask over the first stretch
+             of the scroll, and the two flanks slide into theirs right after
+             it — so the tickers only ever appear once the copy has gone. */
+          /* Each line drops out of its own mask, a beat after the one above
+             it — the wave runs down the block in the same direction as the
+             motion, which is what makes it read as one gesture. */
+          ...[
+            ['eyebrow', '.eyebrow',  2],
+            ['title',   '.intro h1', 5],
+            ['button',  '.btn',      8],
+            ['smalls',  '.smalls',  11],
+          ].map(([name, selector, from]) => ({
+            selector,
+            keyframeEffect: {
+              name: `intro-wipe-${name}`,
+              keyframes: [
+                { transform: 'translateY(0)' },
+                { transform: 'translateY(115%)' },
+              ],
+            },
+            rangeStart: { name: 'contain', offset: { value: from, unit: 'percentage' } },
+            rangeEnd:   { name: 'contain', offset: { value: from + 8, unit: 'percentage' } },
+            easing: 'cubic-bezier(0.5, 0, 0.75, 0)',
+            fill: 'both',
+          })),
+          ...['icon', 'name'].map((side) => ({
+            // one effect per flank: an effect's `selector` resolves a single
+            // element, so the two masks each need their own entry
+            selector: `.${side}-reveal`,
+            keyframeEffect: {
+              name: `flank-reveal-${side}`,
+              keyframes: [
+                { transform: 'translateY(110%)' },
+                { transform: 'translateY(0)' },
+              ],
+            },
+            rangeStart: { name: 'contain', offset: { value: 19, unit: 'percentage' } },
+            rangeEnd:   { name: 'contain', offset: { value: 27, unit: 'percentage' } },
+            easing: 'cubic-bezier(0.22, 0.9, 0.24, 1)',
+            fill: 'both',
+          })),
+
+          /* One handover, two readings of it. On desktop --i slides both
+             strips inside their masks; on mobile the strips are stacked in
+             place instead, and the classes pick out the one category that is
+             showing. Writing the same value twice is a no-op, so this only
+             fires on a real change. */
+          {
+            selector: '.rail-row',
+            customEffect: (element, progress) => {
+              if (progress === null) return;
+              const current = facingCard();
+              const i = String(current);
+              if (element.style.getPropertyValue('--i') === i) return;
+              element.style.setProperty('--i', i);
+              CARD_NAMES.forEach((text, n) => {
+                text.classList.toggle('is-current', n === current);
+                text.classList.toggle('is-past', n < current);
+              });
+            },
+            ...FULL_RANGE,
+            easing: 'linear',
+            fill: 'both',
+          },
+        ],
+      },
+    ],
+  });
+</script>
+</body>
+</html>
