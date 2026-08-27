@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Our location (circle closes)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   OUR LOCATION — IMAGE CLOSES TO A CIRCLE
+   Same page as the other two, third way out. At the top of the scroll the
+   photograph fills the section edge to edge; as you scroll it becomes a circle
+   and that circle closes to nothing, taking the picture with it. The contact
+   layout underneath never moves — it is uncovered from the outside in.
+
+   The reveal is a `clip-path: circle()`, not a border-radius. That matters: a
+   `border-radius: 50%` on a full-bleed box gives an ellipse stretched to the
+   window's aspect, whereas `circle()` is always a true circle whatever shape the
+   window is. It also means the photo itself is never scaled or distorted — only
+   the window onto it changes size.
+
+   Four keyframes, evenly spaced:
+     circle(75vmax) → 45vmax → 22vmax → 0
+   The first radius is deliberately larger than any half-diagonal, so at scroll 0
+   the circle is bigger than the viewport and nothing is cropped. The early drop
+   from 75 to 45 is fast on purpose: it spends the "still covering everything"
+   stretch quickly, so the corners round off and a real circle appears early
+   rather than in the last moments.
+
+   Inside it, the photo pulls back from `scale(1.12)` to `1` over the same range —
+   a separate effect on a separate element, because the clip and the photo are two
+   different things moving.
+
+   The two things that are easy to get wrong here:
+
+   1. The photo is not a background on the section: it is an absolutely positioned
+      element inside the sticky wrap, so it covers exactly the pinned viewport and
+      `object-fit: cover` can crop it without distortion at any window shape.
+   2. The timeline source is the tall `.stage`, not the sticky `.stage-wrap`. A
+      stuck element barely moves relative to the viewport, which makes it a poor
+      ViewTimeline source; the tall parent is the one that travels. And because the
+      source starts at the very top of the document, its `entry` range is already
+      spent at scroll 0 — the effects use `contain`, which for a source taller
+      than the viewport is exactly the stuck phase and opens at scroll 0.
+
+   `overflow` must be `clip`, never `hidden`, on every ancestor between the source
+   and the scroll container, or ViewTimeline breaks silently.
+
+   Content safety: the photo is `opacity: 0` in CSS. Its visible state lives in the
+   animation's keyframes, held by `fill: 'both'`. So if the library fails to load,
+   or the visitor prefers reduced motion, the form is simply there and the photo
+   never covers it — the failure mode is "no picture", never "no form".
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --ink:#0e0e0e;
+  --line:#c9c9c9;
+  --blue:#0b3fe4;
+  --blue-hi:#0932bb;
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  background:#fff;
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── The stage: the scroll distance the fade resolves over ── */
+.stage{
+  position: relative;
+  min-height: 230vh;
+}
+.stage-wrap{
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;                /* clip, never hidden — see the note above */
+}
+
+/* ── The photograph ── */
+.cover{
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;                    /* the animation owns the visible state */
+  pointer-events: none;          /* never in the way of the form beneath it */
+  will-change: clip-path;
+}
+.cover img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  will-change: transform;
+}
+
+/* ── The contact layout ── */
+.contact{
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1266px;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 49fr) minmax(0, 47fr);
+  column-gap: 4%;
+  align-items: start;
+}
+
+/* left column: the two headings up top, the address far below them */
+.side{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 30rem;
+}
+.eyebrow{
+  font-size: .95rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.side h2{
+  font-size: 1.62rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  margin-top: .55rem;
+}
+.address{
+  font-size: .88rem;
+  line-height: 1.42;
+  max-width: 15rem;
+}
+.address a{ color: inherit; text-decoration: none; }
+.address a:hover{ text-decoration: underline; }
+
+/* right column: underline fields */
+.form{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;
+  row-gap: 1.55rem;
+  container-type: inline-size;
+}
+.field{ display: flex; flex-direction: column; min-width: 0; }
+.field--wide{ grid-column: 1 / -1; }
+.field label{
+  font-size: .88rem;
+  margin-bottom: 1.6rem;
+}
+.control{
+  font: inherit; font-size: .95rem;
+  color: var(--ink);
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0 0 .5rem;
+  width: 100%;
+  transition: border-color .2s cubic-bezier(.4,0,.2,1);
+}
+.control:hover{ border-bottom-color: #9a9a9a; }
+.control:focus{ outline: none; border-bottom-color: var(--ink); }
+textarea.control{
+  min-height: 6.5rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.field--message label{ margin-bottom: .9rem; }
+
+.submit{
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 1.1rem;
+  font: inherit; font-size: .98rem;
+  color: #fff; background: var(--blue);
+  border: 0; border-radius: 0;
+  padding: .78rem 2.6rem;
+  min-width: 184px;
+  cursor: pointer;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px){
+  .stage{ min-height: 210vh; }
+  .stage-wrap{ align-items: flex-start; padding-top: 6vh; }
+  .contact{
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2.6rem;
+    padding: 2.5rem 1.25rem;
+  }
+  .side{ min-height: 0; gap: 2rem; }
+  .address{ max-width: 26rem; }
+}
+@container (max-width: 420px){
+  .form{ grid-template-columns: 1fr; }
+  .field label{ margin-bottom: 1.15rem; }
+  .submit{ width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<section class="stage">
+  <div class="stage-wrap">
+
+    <!-- the photograph that starts on top of everything -->
+    <div class="cover" aria-hidden="true">
+      <img src="https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg" alt="">
+    </div>
+
+    <div class="contact">
+
+      <div class="side">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>Our location</h2>
+        </div>
+
+        <address class="address">
+          This is the space to share your business&rsquo;s contact information.<br>
+          500 Terry Francine St.<br>
+          San Francisco, CA 94158<br>
+          <a href="tel:1234567890">123-456-7890</a><br>
+          <a href="mailto:info@mysite.com">info@mysite.com</a>
+        </address>
+      </div>
+
+      <form class="form" novalidate>
+
+        <div class="field">
+          <label for="firstname">First name *</label>
+          <input class="control" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+        </div>
+
+        <div class="field">
+          <label for="lastname">Last name</label>
+          <input class="control" id="lastname" name="lastname" type="text" autocomplete="family-name">
+        </div>
+
+        <div class="field field--wide">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="field field--wide field--message">
+          <label for="message">Write a message</label>
+          <textarea class="control" id="message" name="message" rows="4"></textarea>
+        </div>
+
+        <button class="submit" type="submit">Submit</button>
+      </form>
+
+    </div>
+  </div>
+</section>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
+/* CRITICAL — one effectId per effect, never shared. An interaction's internal id
+   is derived from `sourceKey::targetKey::effectId::interactionIndex`, so two
+   effects in one interaction pointing at the same registry entry collapse into a
+   single id: only the first survives, while generate() has already emitted the
+   initial rules for both. Here there is one scrubbed effect and one reference. */
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: {
+    /* ── the circle closes ──
+       Radius only. `linear`, so the closing tracks the wheel one to one; the
+       shaping is done by the keyframe spacing instead, which is what lets the
+       first, invisible stretch of the shrink go by quickly.
+
+       `fill: 'both'` is required for a scrubbed effect, and it is also what keeps
+       the photo visible before the range opens instead of starting it closed. */
+    'circle-close': {
+      rangeStart: { name: 'contain', offset: { value: 0,  unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 70, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      selector: '.cover',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'circle-close-kf',
+        keyframes: [
+          { clipPath: 'circle(75vmax at 50% 50%)', opacity: 1 },
+          { clipPath: 'circle(45vmax at 50% 50%)', opacity: 1 },
+          { clipPath: 'circle(22vmax at 50% 50%)', opacity: 1 },
+          { clipPath: 'circle(0vmax at 50% 50%)',  opacity: 1 },
+        ],
+      },
+    },
+
+    /* ── the photo pulls back inside it ──
+       A slow release from 1.12 to 1 across the same range. It gives the closing
+       circle something to close *over*, so the crop reads as a lens rather than a
+       hole punched in a flat picture. Its own effectId and keyframe name, since
+       two effects sharing a registry entry in one interaction would collapse into
+       a single id and only the first would survive. */
+    'photo-settle': {
+      rangeStart: { name: 'contain', offset: { value: 0,  unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 70, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      selector: '.cover img',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'photo-settle-kf',
+        keyframes: [
+          { transform: 'scale(1.12)' },
+          { transform: 'scale(1)'    },
+        ],
+      },
+    },
+  },
+
+  interactions: [
+    /* scroll: the source is the tall stage, the target is the photo inside it */
+    {
+      key: 'stage',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId: 'circle-close' },
+        { effectId: 'photo-settle' },
+      ],
+    },
+
+    /* Submit deepens on interest — `interest` rather than `hover` so keyboard
+       focus counts too. A StateEffect, not keyframes: a transform on a hover
+       source would shift its own hit area and cause re-entry jitter. */
+    {
+      key: 'submit',
+      trigger: 'interest',
+      effects: [{
+        stateAction: 'toggle',
+        transition: {
+          duration: 200,
+          easing: EASE,
+          styleProperties: [{ name: 'background-color', value: '#0932bb' }],
+        },
+      }],
+    },
+  ],
+};
+
+/* Optional self-check: open the page with ?debug to print the validator report. */
+if (new URLSearchParams(location.search).has('debug')) {
+  import('https://esm.sh/@wix/interact-validate@0.1.2')
+    .then(({ validateInteractConfig }) => {
+      const result = validateInteractConfig(config);
+      console.log('[location-circle] valid:', result.valid);
+      for (const e of result.errors ?? []) {
+        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
+      }
+    })
+    .catch(err => console.warn('[location-circle] validator unavailable:', err));
+}
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  add(document.querySelector('.stage'),  'stage');
+  add(document.querySelector('.submit'), 'submit');
+} catch (err) {
+  /* Nothing to un-hide: without the library the photo never appears and the form
+     is already there. */
+  console.error('[location-circle] @wix/interact failed to initialise — no reveal:', err);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get in Touch — Plumb (stand-up)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   PLUMB — STAND-UP
+   The form starts lying flat, face up, hinged along its bottom edge — a sheet on
+   a table seen at a raking angle. Scrolling stands it up until it faces you
+   square on. Behind it, the word CONTACT is set enormous and drifts down and
+   inward as the sheet rises, fading out as it goes.
+
+   No floor shadow: it read as a hard grey band under the sheet at rest, which
+   flattened the whole illusion instead of grounding it. The sheet's own soft
+   box-shadow is the only shadow left. No blur anywhere either, and no opacity on
+   any text — everything is legible the entire time, just foreshortened.
+
+   How the 3D is wired — this is the part that is easy to get wrong:
+   - `perspective` lives on `.stack`, the direct parent of the sheet. Put it on a
+     grandparent and the rotation flattens out into a shear, because perspective
+     only applies to an element's own children.
+   - `transform-origin: 50% 100%` is the hinge. Without it the sheet rotates about
+     its middle and sinks through the floor instead of pivoting up off it.
+
+   Carried over from the earlier files, still true:
+   - `overflow` must be `clip`, never `hidden`, on every ancestor between the
+     timeline source and the scroll container, or ViewTimeline breaks silently.
+   - The sticky wrap is a poor timeline source; the tall `.stage` is the source
+     and the elements inside it are the targets.
+   - The source starts at the top of the document, so its `entry` range is
+     already spent at scroll 0 — the scrubbed effects use `contain`, which for a
+     source taller than the viewport is the stuck phase, opening at scroll 0.
+   - Nothing is hidden in CSS. Every effect carries its own first keyframe and
+     `fill`, so a failed import costs the animation, never the content.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --ink:#1d1d1f;
+  --muted:#6e6e73;
+  --faint:#86868b;
+  --line:#d2d2d7;
+  --bg:#ececed;
+  --word:#121214;                /* the backdrop word is near-black, not grey */
+  --silk:cubic-bezier(.16,1,.3,1);
+}
+
+html{ overflow-x: clip; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden — see note above */
+  -webkit-font-smoothing: antialiased;
+}
+/* Flat grey, no gradients: the depth comes from the floor shadow and the
+   perspective alone, not from lighting painted into the background. */
+
+/* ── The stage ──
+   The whole page is this one section. Its height is the scroll distance the
+   stand-up resolves over; since it starts at the top of the document and is
+   taller than the viewport, its `contain` range runs from scroll 0 to
+   (height − 100vh). */
+.stage{
+  position: relative;
+  min-height: 240vh;
+}
+.stage-wrap{
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 2rem;
+}
+
+/* ── The word behind everything ──
+   Furniture, not a heading — the real heading is inside the sheet.
+
+   Its size is a share of the viewport, not a fixed value: `--word-fill` is the
+   fraction of the viewport width the word should span, and the fit script at the
+   bottom of the page solves the font-size for it. That is what makes it work with
+   ANY string — swap "Let's talk" for "Say hello" or דברו איתנו and it still lands
+   on the same width, because a `vw` font-size only tracks the viewport, never the number
+   of characters. The `clamp()` below is only the pre-script fallback. */
+.word{
+  --word-fill: 0.42;             /* 42% of the viewport width — a short mixed-case
+                                    phrase in near-black reads as a line of type,
+                                    so it wants far less width than the old
+                                    single all-caps word did */
+  --word-max-h: 0.34;            /* but never taller than 34% of its height */
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(3rem, 13vw, 11rem);   /* pre-script fallback only */
+  line-height: 0.9;
+  letter-spacing: -0.02em;       /* mixed case needs less negative tracking than caps */
+  color: var(--word);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ── The stack: the sheet and its shadow, sharing one perspective ── */
+.stack{
+  position: relative;
+  z-index: 1;
+  width: min(600px, 100%);       /* narrower sheet: a card, not a page */
+  perspective: 1500px;
+  perspective-origin: 50% 42%;
+}
+/* ── The sheet ── */
+.sheet{
+  position: relative;
+  z-index: 1;
+  overflow: clip;                /* for the sheen; clip, never hidden */
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 10px;           /* restrained — the shape should not announce itself */
+  padding: 3.5rem;
+  container-type: inline-size;
+  transform-origin: 50% 100%;    /* the hinge — see the note at the top */
+  backface-visibility: hidden;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 18px 50px rgba(0,0,0,0.07);
+  will-change: transform;
+}
+/* A band of light that crosses the sheet once, as it comes upright. */
+.sheen{
+  position: absolute; inset: -20% -60%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(104deg,
+    rgba(255,255,255,0) 34%,
+    rgba(29,29,31,0.055) 47%,
+    rgba(255,255,255,0) 60%);
+  will-change: transform, opacity;
+}
+.sheet-body{ position: relative; z-index: 1; }
+
+.sheet-head{ margin-bottom: clamp(1.75rem, 4cqi, 2.4rem); }
+
+.sheet h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(1.9rem, 6.2cqi, 2.7rem);
+  font-weight: 400;              /* DM Serif Display ships one weight only */
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+  margin-bottom: 0.65rem;
+}
+.sheet .subtitle {
+  color: var(--muted);
+  font-size: clamp(.95rem, 2.5cqi, 1.05rem);
+  line-height: 1.6;
+  letter-spacing: -0.006em;
+  max-width: 50ch;
+}
+
+/* ── The form: labels above, hairline underlines ── */
+.form-rows{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.3rem, 3.4cqi, 1.9rem) clamp(1.5rem, 4cqi, 2.5rem);
+}
+.field{ position: relative; display: flex; flex-direction: column; min-width: 0; }
+.field--full{ grid-column: 1 / -1; }
+.field label{
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 1.4rem;
+}
+/* the underline is a real element so it can be drawn in */
+.rule{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--line);
+  transform-origin: left center;
+  will-change: transform;
+}
+.rule-ink{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .6s var(--silk);
+}
+.field:focus-within .rule-ink{ transform: scaleX(1); }
+
+.line-input{
+  appearance: none; border: 0; background: transparent; border-radius: 0;
+  font: inherit; font-size: .98rem; color: var(--ink);
+  padding: 0 0 .6rem; width: 100%;
+}
+.line-input::placeholder{ color: #b0b0b5; }
+.line-input:focus{ outline: none; }
+textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
+.field--message label{ margin-bottom: .5rem; }
+
+/* ── Submit ── */
+.actions{ margin-top: clamp(1.6rem, 4cqi, 2.25rem); }
+.btn{
+  position: relative; overflow: clip;
+  display: inline-block;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 1px solid var(--ink);
+  background: var(--ink); color: #fff;
+  padding: .85rem 2.9rem; min-width: 210px;
+  border-radius: 0; text-align: center;
+}
+.btn .btn-label{ position: relative; z-index: 1; display: inline-block; color: inherit; }
+/* a single point opens into a circle and floods the block */
+.btn-fill{
+  position: absolute; left: 50%; top: 50%; width: 2px; height: 2px;
+  margin: -1px 0 0 -1px; border-radius: 50%; background: #fff;
+  transform: scale(0); will-change: transform;
+}
+
+/* ── Responsive ── */
+@container (max-width: 460px){
+  .form-rows{ grid-template-columns: 1fr; }
+  .field label{ margin-bottom: 1.1rem; }
+}
+@media (max-width: 750px){
+  .stage{ min-height: 210vh; }
+  .stage-wrap{ padding: 5vh 18px; }
+  .stack{ perspective: 1100px; }
+  .sheet{ border-radius: 8px; padding: 2.1rem; }
+  .btn{ width: 100%; }
+}
+@media (max-height: 720px){
+  .stage-wrap{ padding: 3vh 2rem; }
+  .sheet{ padding: 1.9rem 2.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── One stage: the word, the shadow, the sheet ── -->
+<section class="stage">
+  <div class="stage-wrap">
+
+    <div class="word" aria-hidden="true">Let&rsquo;s talk</div>
+
+    <div class="stack">
+      <div class="sheet">
+        <i class="sheen" aria-hidden="true"></i>
+
+        <div class="sheet-body">
+          <div class="sheet-head">
+            <h1>Send us a message</h1>
+            <p class="subtitle">We usually reply within one business day.</p>
+          </div>
+
+          <form class="form-rows" novalidate>
+
+            <div class="field">
+              <label for="firstname">First name *</label>
+              <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+              <i class="rule"></i><i class="rule-ink"></i>
+            </div>
+
+            <div class="field">
+              <label for="lastname">Last name</label>
+              <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+              <i class="rule"></i><i class="rule-ink"></i>
+            </div>
+
+            <div class="field field--full">
+              <label for="email">Email *</label>
+              <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+              <i class="rule"></i><i class="rule-ink"></i>
+            </div>
+
+            <div class="field field--full field--message">
+              <label for="message">Write a message</label>
+              <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+              <i class="rule"></i><i class="rule-ink"></i>
+            </div>
+
+          </form>
+
+          <div class="actions">
+            <button class="btn" type="submit">
+              <span class="btn-fill" aria-hidden="true"></span>
+              <span class="btn-label">Submit</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+/* ── Fit the backdrop word to a share of the viewport ──
+   Plain JS, and deliberately independent of the module below: the word must be
+   the right size whether or not the animation library resolves.
+
+   Measure the string once at a reference size, then solve for the size that makes
+   it span `--word-fill` of the viewport width. Because it is solved from the
+   text's own measured width, it holds for any string of any length — change the
+   markup and nothing else needs touching.
+
+   `offsetWidth`, not `getBoundingClientRect().width`: the scroll animation scales
+   this element up to 1.16, and the rect would include that scale and feed it back
+   into the measurement on every resize. offsetWidth is the untransformed layout
+   width. */
+(function(){
+  var word = document.querySelector('.word');
+  if (!word) return;
+
+  var REF = 200;                 // px — measure at this size, then scale the result
+
+  function fit(){
+    var cs   = getComputedStyle(word);
+    var fill = parseFloat(cs.getPropertyValue('--word-fill'))  || 0.70;
+    var maxH = parseFloat(cs.getPropertyValue('--word-max-h')) || 0.68;
+
+    word.style.fontSize = REF + 'px';
+    var natural = word.offsetWidth;
+    if (!natural) return;
+
+    var size = REF * (window.innerWidth * fill) / natural;
+    /* A short string would otherwise resolve to something taller than the screen,
+       so cap it on height as well. */
+    /* 0.9 is the element's line-height — keep the two in sync or the height cap
+       drifts. */
+    word.style.fontSize = Math.min(size, window.innerHeight * maxH / 0.9) + 'px';
+  }
+
+  var frame;
+  function schedule(){
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(fit);
+  }
+
+  schedule();
+  window.addEventListener('resize', schedule);
+  /* The serif is a webfont: its metrics are not final until it has loaded, so
+     measure again once it is. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+})();
+</script>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const SILK = 'cubic-bezier(.16,1,.3,1)';
+
+/* CRITICAL — one effectId per effect, never shared.
+   The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`. Several effects in the SAME
+   interaction that all reference the same registry entry collapse to one id, and
+   only the first survives — the rest are dropped as duplicates while generate()
+   has already emitted their initial rules. The result is invisible elements. */
+
+const scrub = (id, from, to, body) => [id, {
+  rangeStart: { name: 'contain', offset: { value: from, unit: 'percentage' } },
+  rangeEnd:   { name: 'contain', offset: { value: to,   unit: 'percentage' } },
+  easing: 'linear',
+  fill: 'both',                                            // required for scrubbed effects
+  ...body,
+}];
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: Object.fromEntries([
+    /* ── the stand-up ──
+       76deg of rotateX down to 0, hinged at the bottom edge, with a little lift
+       and a little scale so the sheet also comes toward you rather than merely
+       pivoting. Function order is identical in both keyframes, which is what lets
+       the browser interpolate them as a matrix instead of cross-fading.
+
+       `cubicOut` because the interesting part is the beginning: the sheet breaks
+       off the floor fast, then eases into upright over the rest of the scroll. */
+    scrub('sheet-standup', 0, 72, {
+      selector: '.sheet',
+      conditions: ['full-motion'],
+      easing: 'cubicOut',
+      keyframeEffect: {
+        name: 'sheet-standup-kf',
+        keyframes: [
+          { transform: 'translateY(9vh) rotateX(76deg) scale(0.92)' },
+          { transform: 'translateY(0vh) rotateX(0deg) scale(1)'     },
+        ],
+      },
+    }),
+
+    /* ── the word leaves the moment you scroll ──
+       The near-black word is a title card, not a companion to the stand-up: it is
+       fully gone by 18% of the range, which is the first flick of the wheel. It
+       settles down a touch and eases its scale back as it goes, so it reads as
+       withdrawing rather than blinking off, and `quartOut` puts most of the fade
+       in the first pixels of scroll.
+
+       Opacity is on the same effect as the transform rather than a second one:
+       one animation on one element, so the fade cannot drift out of step with
+       the drift. */
+    scrub('word-settle', 0, 18, {
+      selector: '.word',
+      conditions: ['full-motion'],
+      easing: 'quartOut',
+      keyframeEffect: {
+        name: 'word-settle-kf',
+        keyframes: [
+          { transform: 'translate(-50%, -56%) scale(1.06)', opacity: 1 },
+          { transform: 'translate(-50%, -50%) scale(0.98)', opacity: 0 },
+        ],
+      },
+    }),
+
+    /* ── the sheen crosses once ──
+       A single pass, timed to land while the sheet is mid-rotation, then gone. It
+       is clipped by the sheet's own `overflow: clip`. */
+    scrub('sheen-pass', 8, 68, {
+      selector: '.sheen',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'sheen-pass-kf',
+        keyframes: [
+          { transform: 'translateX(-70%)', opacity: 0 },
+          { transform: 'translateX(-24%)', opacity: 1 },
+          { transform: 'translateX(70%)',  opacity: 0 },
+        ],
+      },
+    }),
+
+    /* ── the one entrance: each field's underline draws in ── */
+    ['rule-draw', {
+      duration: 950,
+      easing: SILK,
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'rule-draw-kf',
+        keyframes: [
+          { transform: 'scaleX(0)' },
+          { transform: 'scaleX(1)' },
+        ],
+      },
+    }],
+  ]),
+
+  interactions: [
+    /* scroll: everything on the stage, driven by the one timeline */
+    {
+      key: 'stage',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId: 'sheet-standup'   },
+        { effectId: 'word-settle'     },
+        { effectId: 'sheen-pass'      },
+      ],
+    },
+
+    /* The underlines draw in, staggered, as the sheet comes into view — which is
+       immediately, since it is in the first fold, still lying flat. Seen at that
+       angle they read as light catching the ruled lines of a page. */
+    {
+      key: 'sheet',
+      trigger: 'viewEnter',
+      params: { threshold: 0.15 },
+      sequences: [{
+        delay: 260,
+        offset: 105,
+        offsetEasing: 'quadOut',
+        effects: [{ effectId: 'rule-draw', listContainer: '.form-rows', selector: '.rule' }],
+      }],
+    },
+
+    /* Submit: a point opens into a circle and floods the block, then the label
+       inverts behind it. `interest` rather than `hover` so keyboard focus counts
+       too, and the keyframe effect targets the child dot — a scale on the source
+       element itself would shift the hit area. */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.btn-fill',
+          triggerType: 'alternate',
+          duration: 820,
+          easing: SILK,
+          fill: 'both',
+          keyframeEffect: {
+            name: 'btn-flood',
+            keyframes: [
+              { transform: 'scale(0)'   },
+              { transform: 'scale(260)' },
+            ],
+          },
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 320,
+            delay: 190,
+            easing: SILK,
+            styleProperties: [{ name: 'color', value: '#1d1d1f' }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+/* Optional self-check: open the page with ?debug to print the validator report. */
+if (new URLSearchParams(location.search).has('debug')) {
+  import('https://esm.sh/@wix/interact-validate@0.1.2')
+    .then(({ validateInteractConfig }) => {
+      const result = validateInteractConfig(config);
+      console.log('[plumb-standup] valid:', result.valid);
+      for (const e of result.errors ?? []) {
+        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
+      }
+    })
+    .catch(err => console.warn('[plumb-standup] validator unavailable:', err));
+}
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  add(document.querySelector('.stage'),        'stage');
+  add(document.querySelector('.sheet'),        'sheet');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+} catch (err) {
+  /* Nothing to un-hide: the sheet is upright, sharp and usable without this. */
+  console.error('[plumb-standup] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

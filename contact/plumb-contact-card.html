@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get in Touch — Plumb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   PLUMB
+   One sticky card holding the contact form. It arrives from below the fold
+   tilted and undersized, and the scroll brings it to true — straight, full size,
+   settled — while the hero withdraws behind it. Everything else is quiet: the
+   field underlines draw themselves in, and that is the only entrance animation
+   on the page. Transform only, so no text ever fades or blurs.
+
+   Three things that matter for @wix/interact, all of them fixes to the original
+   snippet — see the module comments for the fourth (shared effectIds):
+
+   1. body used `overflow-x: hidden`. Per the viewProgress rules, `overflow:
+      hidden` on ANY ancestor between the timeline source and the scroll
+      container creates a new scroll context and silently breaks ViewTimeline —
+      the card would never move. It must be `clip`.
+   2. The card sits inside a `position: sticky` wrapper, so the card is a poor
+      ViewTimeline source: it barely moves relative to the viewport. The source
+      is the tall .card-section; the effects target the card inside it.
+   3. Nothing is hidden in CSS. Every entrance carries its own hidden first
+      keyframe and uses `fill: 'backwards'`, so a failed import costs you the
+      animation, never the content.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --ink:#1d1d1f;
+  --muted:#6e6e73;
+  --faint:#86868b;
+  --line:#d2d2d7;
+  --bg:#ffffff;
+  --silk:cubic-bezier(.16,1,.3,1);
+}
+
+html{ overflow-x: clip; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden — see note 1 */
+  -webkit-font-smoothing: antialiased;
+}
+/* The page is plain white now, so the light pool that used to lift the card off a
+   grey field is gone — on white it only muddied the corners. The card reads as
+   lifted from its own shadow instead. */
+
+/* ── Hero ── */
+.hero {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.hero-inner{
+  text-align: center;
+  will-change: transform;            /* the scroll recedes this, not .hero */
+}
+/* NOTE: DM Serif Display ships a single weight (400), so `font-weight` has no
+   effect on these headings — there is no lighter cut to fall back to. */
+.hero h1 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  margin-bottom: 0.9rem;
+}
+.hero p {
+  color: var(--muted);
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  letter-spacing: 0.01em;
+}
+.hero .scroll-cue{
+  display: block;
+  margin-top: 2.75rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ── The card section ──
+   No negative margin: the section starts exactly where the 100vh hero ends, so at
+   scroll 0 the sticky wrap sits entirely below the fold and the card is not on
+   screen at all. It only rises into view once you begin scrolling.
+
+   The section's height is also the scroll distance the entrance resolves over.
+   Its `entry` range spans precisely the window in which the card travels up into
+   the viewport, which is why the arrival maps onto it so cleanly. */
+.card-section {
+  position: relative;
+  z-index: 1;
+  min-height: 220vh;
+  margin-top: 0;
+}
+.card-wrap {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 2rem;
+}
+
+/* ── Card ── */
+/* The card has no set height: it sizes to its content, wrapped in a fixed 3rem
+   padding on all four sides. Nothing to clip, nothing to leave empty. */
+.card {
+  width: min(780px, calc(100vw - 40px));
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.045);
+  border-radius: 16px;
+  padding: 3.75rem;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.03),
+    0 12px 32px rgba(0,0,0,0.04),
+    0 56px 140px rgba(0,0,0,0.10);
+  container-type: inline-size;
+  will-change: transform;
+}
+.card-head{ margin-bottom: clamp(1.75rem, 4cqi, 2.4rem); }
+
+.card h2 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(1.9rem, 6.2cqi, 2.6rem);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+  margin-bottom: 0.65rem;
+}
+.card .subtitle {
+  color: var(--muted);
+  font-size: clamp(.95rem, 2.5cqi, 1.05rem);
+  line-height: 1.6;
+  letter-spacing: -0.006em;
+  max-width: 50ch;
+}
+
+/* ── The form, per the reference: labels above, hairline underlines ── */
+.form-rows{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.3rem, 3.4cqi, 1.9rem) clamp(1.5rem, 4cqi, 2.5rem);
+}
+.field{ position: relative; display: flex; flex-direction: column; min-width: 0; }
+.field--full{ grid-column: 1 / -1; }
+.field label{
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 1.4rem;
+}
+/* the underline is a real element so it can be drawn in */
+.rule{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--line);
+  transform-origin: left center;
+  will-change: transform;
+}
+.rule-ink{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .6s var(--silk);
+}
+.field:focus-within .rule-ink{ transform: scaleX(1); }
+
+.line-input{
+  appearance: none; border: 0; background: transparent; border-radius: 0;
+  font: inherit; font-size: .98rem; color: var(--ink);
+  padding: 0 0 .6rem; width: 100%;
+}
+.line-input::placeholder{ color: #b0b0b5; }
+.line-input:focus{ outline: none; }
+textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
+.field--message label{ margin-bottom: .5rem; }
+
+/* ── Submit ── */
+.actions{ margin-top: clamp(1.6rem, 4cqi, 2.25rem); }
+.btn{
+  position: relative; overflow: clip;
+  display: inline-block;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 1px solid var(--ink);
+  background: var(--ink); color: #fff;
+  padding: .85rem 2.9rem; min-width: 210px;
+  border-radius: 0; text-align: center;
+}
+.btn .btn-label{ position: relative; z-index: 1; display: inline-block; color: inherit; }
+/* a single point opens into a circle and floods the block */
+.btn-fill{
+  position: absolute; left: 50%; top: 50%; width: 2px; height: 2px;
+  margin: -1px 0 0 -1px; border-radius: 50%; background: #fff;
+  transform: scale(0); will-change: transform;
+}
+
+/* ── Responsive ── */
+@container (max-width: 460px){
+  .form-rows{ grid-template-columns: 1fr; }
+  .field label{ margin-bottom: 1.1rem; }
+}
+@media (max-width: 750px){
+  .card-section{ min-height: 190vh; margin-top: 0; }
+  .card-wrap{ padding: 4vh 20px; }
+  .card{ border-radius: 12px; padding: 2.25rem; }   /* fixed, just smaller */
+  .btn{ width: 100%; }
+}
+/* Short screens: the card is content-sized, so it may simply be taller than the
+   viewport — top-align it instead of centring it half off-screen. */
+@media (max-height: 700px){
+  .card-wrap{ align-items: flex-start; padding-top: 4vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1>Let&rsquo;s Talk</h1>
+    <p>Tell us what you have in mind</p>
+    <span class="scroll-cue">Scroll to write</span>
+  </div>
+</section>
+
+<!-- ── The one card ── -->
+<section class="card-section">
+  <div class="card-wrap">
+    <div class="card">
+
+      <div class="card-head">
+        <h2>Send us a message</h2>
+        <p class="subtitle">We usually reply within one business day.</p>
+      </div>
+
+      <form class="form-rows" novalidate>
+
+        <div class="field">
+          <label for="firstname">First name *</label>
+          <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field">
+          <label for="lastname">Last name</label>
+          <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field field--full">
+          <label for="email">Email *</label>
+          <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field field--full field--message">
+          <label for="message">Write a message</label>
+          <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+      </form>
+
+      <div class="actions">
+        <button class="btn" type="submit">
+          <span class="btn-fill" aria-hidden="true"></span>
+          <span class="btn-label">Submit</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const SILK = 'cubic-bezier(.16,1,.3,1)';
+
+/* CRITICAL — one effectId per effect, never shared.
+   The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`. Several effects in the SAME
+   interaction that all reference the same registry entry collapse to one id, and
+   only the first survives — the rest are dropped as duplicates while generate()
+   has already emitted their initial rules. The result is invisible elements.
+   So every target gets its own registry entry, built by these two factories. */
+
+/* The only entrance animation left is the field underlines drawing themselves in.
+   Everything else either moves on scroll (the card, the hero) or on hover (the
+   button). No text animates on entry at all. */
+
+const scrub = (id, body) => [id, {
+  rangeStart: { name: 'entry', offset: { value: 0,   unit: 'percentage' } },
+  rangeEnd:   { name: 'entry', offset: { value: 100, unit: 'percentage' } },
+  easing: 'linear',
+  fill: 'both',                                            // required for scrubbed effects
+  ...body,
+}];
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: Object.fromEntries([
+    /* ── scroll-driven: the card arrives ──
+       Rotation, scale and lift — transform only. No opacity, no blur: the card
+       travels up as a solid, sharp object. It is still absent at the start of the
+       scroll purely geometrically, because the section begins where the 100vh
+       hero ends, so at scroll 0 the sticky wrap sits entirely below the fold. */
+    scrub('card-arrive', {
+      selector: '.card',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'card-arrive-kf',
+        keyframes: [
+          { transform: 'rotate(-10deg) scale(0.90) translateY(14vh)' },
+          { transform: 'rotate(0deg) scale(1) translateY(0vh)'       },
+        ],
+      },
+    }),
+
+    /* ── scroll-driven: the hero recedes as the card covers it ──
+       Scale and travel only: the hero text is never faded and never blurred, so
+       it stays fully crisp the whole way. Targets .hero-inner via the 'hero' key,
+       never .hero itself, which is the sticky element doing the layout work. */
+    scrub('hero-recede', {
+      key: 'hero',
+      selector: '.hero-inner',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'hero-recede-kf',
+        keyframes: [
+          { transform: 'scale(1) translateY(0px)'      },
+          { transform: 'scale(0.92) translateY(-34px)' },
+        ],
+      },
+    }),
+
+    /* ── the one remaining entrance: each field's underline draws in ── */
+    ['rule-draw', {
+      duration: 950,
+      easing: SILK,
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'rule-draw-kf',
+        keyframes: [
+          { transform: 'scaleX(0)' },
+          { transform: 'scaleX(1)' },
+        ],
+      },
+    }],
+  ]),
+
+  interactions: [
+    /* The hero has no entrance interaction at all any more — an interaction with
+       an empty `effects` array would be an INTERACTION_EMPTY error, so it is gone
+       rather than emptied. The 'hero' key is still bound, because hero-recede
+       targets it from the scroll interaction below. */
+
+    /* scroll: the card arrives while the hero recedes behind it */
+    {
+      key: 'stack',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId: 'card-arrive' },
+        { effectId: 'hero-recede' },
+      ],
+    },
+
+    /* the underlines draw themselves in, staggered, once the card is in view —
+       the only entrance animation on the page */
+    {
+      key: 'card',
+      trigger: 'viewEnter',
+      params: { threshold: 0.15 },
+      sequences: [{
+        delay: 260,
+        offset: 105,
+        offsetEasing: 'quadOut',
+        effects: [{ effectId: 'rule-draw', listContainer: '.form-rows', selector: '.rule' }],
+      }],
+    },
+
+    /* Submit: a point opens into a circle and floods the block, then the label
+       inverts behind it. `interest` rather than `hover` so keyboard focus counts
+       too, and the keyframe effect targets the child dot — a scale on the source
+       element itself would shift the hit area. */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.btn-fill',
+          triggerType: 'alternate',
+          duration: 820,
+          easing: SILK,
+          fill: 'both',
+          keyframeEffect: {
+            name: 'btn-flood',
+            keyframes: [
+              { transform: 'scale(0)'   },
+              { transform: 'scale(260)' },
+            ],
+          },
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 320,
+            delay: 190,
+            easing: SILK,
+            styleProperties: [{ name: 'color', value: '#1d1d1f' }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+/* Optional self-check: open the page with ?debug to print the validator report. */
+if (new URLSearchParams(location.search).has('debug')) {
+  import('https://esm.sh/@wix/interact-validate@0.1.2')
+    .then(({ validateInteractConfig }) => {
+      const result = validateInteractConfig(config);
+      console.log('[plumb] valid:', result.valid);
+      for (const e of result.errors ?? []) {
+        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
+      }
+    })
+    .catch(err => console.warn('[plumb] validator unavailable:', err));
+}
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  add(document.querySelector('.hero'),         'hero');
+  add(document.querySelector('.card-section'), 'stack');
+  add(document.querySelector('.card'),         'card');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+} catch (err) {
+  /* Nothing to un-hide: the design does not depend on this succeeding. */
+  console.error('[plumb] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

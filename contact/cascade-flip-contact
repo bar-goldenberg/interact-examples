@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Cascade Flip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   CASCADE FLIP — CONTACT
+   Same page as the serpentine shutter: black, standing copy left, dark form card
+   right. Different way in.
+
+   The white curtain is a 6 × 10 grid of tiles, and instead of sliding away, each
+   tile FLIPS. It is hinged along its top edge and swings backwards through 92°,
+   away from the viewer, until it is edge-on and effectively gone. Each row sits
+   in its own `perspective`, so the swing foreshortens properly: a tile mid-flip
+   is a shallow white band with the black page opening beneath it.
+
+   The order is diagonal. Columns go 42ms apart and each row starts 75ms after the
+   one above, so the leading edge crosses the screen as a diagonal wave from the
+   top-left, and at any instant a band of tiles is caught in mid-swing. Each flip
+   takes 700ms on `expoOut`, so a tile leaves fast and the tail is slow — the wave
+   reads as a release rather than a wipe. All told the reveal runs about 1.5s:
+   unhurried, but the page is legible well before it finishes.
+
+   Why the flip and not just an opacity fade: a flipping tile is opaque the whole
+   way, and the page underneath appears through real geometry rather than through
+   transparency. Nothing on the page ever renders semi-transparent.
+
+   Two implementation notes:
+   - `perspective` belongs on each row, the direct parent of the tiles. On a
+     grandparent it degenerates into a shear and the flip looks like a squash.
+   - Content safety: the tiles are `scaleY(0)` in CSS — invisible. The covered
+     state is the animation's FIRST keyframe, held by `fill: 'backwards'` and
+     painted by `generate()`. So if the library fails to load, or the visitor
+     prefers reduced motion, the curtain never exists and the page is simply
+     there. It cannot get stuck covering the content, which a CSS-side upright
+     tile would risk. When a flip finishes the tile snaps from 92° (edge-on, a
+     hairline) back to that `scaleY(0)`, which is imperceptible.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --black:#000000;
+  --card:#1a1a1a;
+  --field:#222222;
+  --field-line:#2e2e2e;
+  --white:#ffffff;
+  --dim:#9a9a9a;
+  --placeholder:#7c7c7c;
+  --sheet:#ffffff;               /* was the brand blue — the curtain and the
+                                    button are now plain white */
+  --sheet-hi:#e6e6e6;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;              /* NOT hidden */
+}
+
+/* ── The two columns ── */
+.main{
+  position: relative;
+  z-index: 1;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 5rem 2rem 7rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
+  gap: 5.5rem;
+  align-items: start;
+}
+.standfirst{
+  font-size: 1.28rem;
+  line-height: 1.52;
+  letter-spacing: -0.008em;
+  color: var(--white);
+  max-width: 27ch;
+}
+
+/* ── The form card ── */
+.card{
+  background: var(--card);
+  border-radius: 14px;
+  padding: 2.4rem 2.3rem 2.6rem;
+  container-type: inline-size;
+}
+.card h2{
+  font-size: 1.42rem;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin-bottom: .75rem;
+}
+.card .note{
+  font-size: .92rem;
+  color: var(--dim);
+  margin-bottom: 1.9rem;
+}
+
+.field{ margin-bottom: 1.35rem; }
+.field:last-of-type{ margin-bottom: 0; }
+.field label{
+  display: block;
+  font-size: .95rem;
+  margin-bottom: .62rem;
+}
+.control{
+  width: 100%;
+  height: 48px;
+  font: inherit; font-size: .95rem;
+  color: var(--white);
+  background: var(--field);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 1rem;
+  transition: border-color .22s var(--ease), background-color .22s var(--ease);
+}
+.control::placeholder{ color: var(--placeholder); }
+.control:hover{ border-color: var(--field-line); }
+.control:focus{ outline: none; border-color: #5a7fa8; background: #262626; }
+textarea.control{
+  height: auto; min-height: 118px;
+  padding: .85rem 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* the phone row: country code, then the number */
+.row-phone{
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: .75rem;
+}
+/* native selects, restyled — the chevron is drawn with gradients so it takes the
+   field's colours rather than the OS palette */
+select.control{
+  appearance: none;
+  padding-right: 2.4rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 21px,
+    calc(100% - 14px) 21px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+select.control option{ background: var(--card); color: var(--white); }
+
+.submit{
+  margin-top: 1.9rem;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 0; border-radius: 6px;
+  background: var(--sheet); color: #111;
+  padding: .92rem 2.2rem;
+}
+
+/* ── The curtain: 6 rows × 10 flipping tiles ──
+   `scaleY(0)` on purpose: the covered state belongs to the animation, not to the
+   stylesheet — see the note at the top of the file. */
+.reveal{
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  pointer-events: none;          /* decorative, and never in the way */
+}
+/* The perspective lives here, on the tiles' direct parent, and looks down at the
+   row's own top edge so each tile swings away from the viewer rather than sliding. */
+.band{
+  display: flex;
+  perspective: 900px;
+  perspective-origin: 50% 0%;
+}
+.tile{
+  flex: 1 1 0;                   /* ten equal columns */
+  background: var(--sheet);
+  transform: scaleY(0);
+  transform-origin: top center;  /* the hinge, along the tile's top edge */
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1080px){
+  .main{
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.8rem;
+    padding: 3rem 1.25rem 4rem;
+  }
+  .standfirst{ font-size: 1.12rem; max-width: 46ch; }
+  .card{ padding: 1.7rem 1.4rem 2rem; }
+}
+@container (max-width: 420px){
+  .row-phone{ grid-template-columns: 88px minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Copy + form ── -->
+  <main class="main">
+
+    <p class="standfirst">
+      Please complete the form to reach our team regarding career opportunities,
+      investor inquiries, or supplier partnerships. We will review your message
+      and respond as soon as possible.
+    </p>
+
+    <section class="card">
+      <h2>Send Us an Email</h2>
+      <p class="note">Please fill in the information below. Fields marked with * are required.</p>
+
+      <form novalidate>
+
+        <div class="field">
+          <label for="name">Name *</label>
+          <input class="control" id="name" name="name" type="text" placeholder="Enter your name" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="company">Company</label>
+          <input class="control" id="company" name="company" type="text" placeholder="Enter your company" autocomplete="organization">
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone *</label>
+          <div class="row-phone">
+            <select class="control" id="dial" name="dial" aria-label="Country code">
+              <option>+1</option>
+              <option>+44</option>
+              <option>+972</option>
+              <option>+49</option>
+            </select>
+            <input class="control" id="phone" name="phone" type="tel" placeholder="Enter your number" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inquiry">Inquiry Type *</label>
+          <select class="control" id="inquiry" name="inquiry" required>
+            <option value="" disabled selected>Select your inquiry type</option>
+            <option>Careers</option>
+            <option>Investors</option>
+            <option>Suppliers</option>
+            <option>Press</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea class="control" id="message" name="message" placeholder="Enter your message"></textarea>
+        </div>
+
+        <button class="submit" type="submit">Send message</button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ── The curtain: six rows of ten tiles. DOM order is the flip order within
+       a row, left to right; each row's own delay adds the diagonal. ── -->
+  <div class="reveal" aria-hidden="true">
+    <div class="band" data-band="1">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band" data-band="2">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band" data-band="3">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band" data-band="4">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band" data-band="5">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band" data-band="6">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
+/* CRITICAL — one effectId per effect, and one keyframe name per effect, never
+   shared. The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`, so reusing a registry entry
+   across the six rows would collapse them into one id: only the first would
+   survive, while generate() had already emitted initial rules for all six. The
+   result is tiles that cover the page and never leave. Hence one entry per row,
+   built by this factory, each with its own keyframe name. */
+const tileFlip = (n) => ['tile-flip-' + n, {
+  duration: 700,
+  easing: 'expoOut',             /* leaves fast, tail slow — a release, not a wipe */
+  fill: 'backwards',             /* holds the tile upright until its turn comes */
+  triggerType: 'once',
+  conditions: ['full-motion'],
+  keyframeEffect: {
+    name: 'tile-flip-' + n + '-kf',
+    keyframes: [
+      /* 92°, not 90°: a hair past edge-on, so no seam is left standing at the
+         end of the swing. Same function list in both keyframes, which is what
+         lets the browser interpolate a matrix instead of cross-fading. */
+      { transform: 'rotateX(0deg)'   },
+      { transform: 'rotateX(-92deg)' },
+    ],
+  },
+}];
+
+/* One sequence per row. `selector: '.tile'` matches every tile in that row and the
+   sequence's `offset` is the gap between them, applied in DOM order — left to
+   right. The row's own `delay` is what tilts the whole thing into a diagonal:
+   55ms more for each row down the page. */
+const bandFlip = (n) => ({
+  key: 'band' + n,
+  trigger: 'viewEnter',
+  params: { threshold: 0 },
+  sequences: [{
+    delay: 75 * (n - 1),
+    offset: 42,
+    offsetEasing: 'linear',      /* an even stagger; nothing bunches up */
+    effects: [{ effectId: 'tile-flip-' + n, selector: '.tile' }],
+  }],
+});
+
+const ROWS = [1, 2, 3, 4, 5, 6];
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: Object.fromEntries(ROWS.map(tileFlip)),
+
+  interactions: [
+    /* The reveal: six rows of flips, each row a beat behind the one above. */
+    ...ROWS.map(bandFlip),
+
+    /* The button warms up on interest — `interest` rather than `hover` so
+       keyboard focus counts too. A StateEffect, not keyframes: a transform on a
+       hover source would shift its own hit area and cause re-entry jitter. */
+    {
+      key: 'send',
+      trigger: 'interest',
+      effects: [{
+        stateAction: 'toggle',
+        transition: {
+          duration: 220,
+          easing: EASE,
+          styleProperties: [{ name: 'background-color', value: '#e6e6e6' }],
+        },
+      }],
+    },
+  ],
+};
+
+/* Optional self-check: open the page with ?debug to print the validator report. */
+if (new URLSearchParams(location.search).has('debug')) {
+  import('https://esm.sh/@wix/interact-validate@0.1.2')
+    .then(({ validateInteractConfig }) => {
+      const result = validateInteractConfig(config);
+      console.log('[cascade-flip] valid:', result.valid);
+      for (const e of result.errors ?? []) {
+        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
+      }
+    })
+    .catch(err => console.warn('[cascade-flip] validator unavailable:', err));
+}
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  document.querySelectorAll('.band').forEach((band, i) => add(band, 'band' + (i + 1)));
+  add(document.querySelector('.submit'), 'send');
+} catch (err) {
+  /* Nothing to un-hide: with no library there is no curtain, and the page is
+     simply visible. */
+  console.error('[cascade-flip] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

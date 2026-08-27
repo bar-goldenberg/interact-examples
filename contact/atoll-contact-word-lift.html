@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>contact — atoll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   ATOLL — CONTACT, WORD LIFT
+   A reconstruction of the recorded intro, measured off the video frame by frame
+   at 60fps rather than eyeballed. The whole thing is one word and one fade, in
+   three beats:
+
+   1. RISE — the word "contact" comes up from below the fold to sit low on an
+      otherwise empty page. Fitted: starts at 40ms, runs 940ms, travels 310px of
+      the 866px-tall frame (35.8vh), on `cubicOut`. The fit is within ±1.5px of
+      the measured position across twelve samples, and cubicOut beat circOut,
+      quartOut, quadOut, quintOut, sineOut and expoOut on residuals.
+   2. HOLD — roughly 320ms where nothing moves and the word just sits there.
+      It is not a keyframe: it is the gap between the two animations.
+   3. LIFT — the word travels 585px (67.6vh) up to its final place as the page
+      headline. Fitted: starts at 1300ms, runs 880ms, on `quartInOut` — a
+      symmetric curve, slow at both ends, fastest through the middle.
+   4. Then the page itself fades in: the form first (2030ms, 600ms, cubicOut) and
+      the copy last (2200ms, 700ms) — the measured ramps, minus the chrome that
+      has since been taken out.
+
+   How the two moves compose: they are separate animations on NESTED spans.
+   `.hw-lift` carries the 67.6vh move and `.hw-rise` inside it carries the 35.8vh
+   one, so the browser composes them through the DOM and neither has to know
+   about the other. Trying to put both on one element would mean either
+   `composite: 'add'` or a single hand-merged keyframe track, and the hold in the
+   middle would have to become a keyframe plateau.
+
+   Nothing is hidden in CSS. Every element's resting state IS its CSS state; the
+   off-screen and transparent states live in each animation's first keyframe and
+   are held by `fill: 'backwards'`. So a failed import, or a visitor who prefers
+   reduced motion, gets the finished page immediately — never a blank one.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --bg:#ffffff;                  /* the video's grey was #ebedf0; now plain white */
+  --ink:#08121c;
+  --field-line:#c9cbd0;
+  --muted:#5b626b;
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The headline sits hard against the left edge, and is now the first thing on the
+   page, so it carries its own top breathing room. */
+.headline{
+  padding: 0 1.5rem;
+  font-size: 15.4vw;             /* ≈260px at the recorded 1694px width */
+  font-weight: 400;
+  line-height: .78;
+  letter-spacing: -0.035em;
+  margin-top: 2.2rem;
+}
+/* Two nested spans, one per move. `display: block` so the transforms apply
+   cleanly, and `will-change` because these two are the only things moving. */
+.hw-lift, .hw-rise{ display: block; will-change: transform; }
+
+/* ── Body: copy on the left, form on the right ── */
+.body{
+  display: grid;
+  grid-template-columns: minmax(0, 26fr) minmax(0, 61fr);
+  column-gap: 12.8%;
+  padding: 3.4rem 16% 5rem 1.6rem;
+}
+.copy{
+  font-size: 1.06rem;
+  line-height: 1.38;
+  letter-spacing: -0.004em;
+  max-width: 22ch;
+}
+
+.form{ container-type: inline-size; }
+.rows{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 6%;
+  row-gap: 1.55rem;
+}
+.field{ display: flex; flex-direction: column; min-width: 0; }
+.field--wide{ grid-column: 1 / -1; }
+.field label{
+  font-size: .92rem;
+  margin-bottom: .5rem;
+}
+.control{
+  height: 40px;
+  width: 100%;
+  font: inherit; font-size: .95rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--field-line);
+  border-radius: 2px;
+  padding: 0 .75rem;
+  transition: border-color .2s cubic-bezier(.4,0,.2,1);
+}
+.control:hover{ border-color: #a9adb5; }
+.control:focus{ outline: none; border-color: var(--ink); }
+textarea.control{
+  height: 96px;
+  padding: .6rem .75rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.submit{
+  margin-top: 1.9rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 1.5rem;
+  min-width: 216px; height: 54px;
+  font: inherit; font-size: .72rem; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: #fff; background: var(--ink);
+  border: 0; border-radius: 2px;
+  cursor: pointer;
+}
+.submit svg{ width: 15px; height: 15px; flex: none; }
+
+/* ── Responsive ──
+   The headline stays a share of the viewport, so it never needs a breakpoint of
+   its own; only the two-column body needs breakpoints. */
+@media (max-width: 1100px){
+  .body{
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2.4rem;
+    padding: 2.6rem 1.6rem 4rem;
+  }
+  .copy{ max-width: 46ch; }
+}
+@media (max-width: 760px){
+  .headline{ font-size: 21vw; }
+  .body{ padding: 2rem 1.1rem 3rem; }
+  .submit{ width: 100%; }
+}
+@container (max-width: 430px){
+  .rows{ grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <h1 class="headline"><span class="hw-lift"><span class="hw-rise">contact</span></span></h1>
+
+  <!-- ── Copy + form ── -->
+  <div class="body">
+
+    <p class="copy">We&rsquo;re thrilled that you&rsquo;re here! Please tell us more about your project.</p>
+
+    <section class="form">
+      <form class="rows" novalidate>
+
+        <div class="field">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="firstname">First Name</label>
+          <input class="control" id="firstname" name="firstname" type="text" autocomplete="given-name">
+        </div>
+
+        <div class="field">
+          <label for="company">Company name</label>
+          <input class="control" id="company" name="company" type="text" autocomplete="organization">
+        </div>
+
+        <div class="field field--wide">
+          <label for="message">Message</label>
+          <textarea class="control" id="message" name="message"></textarea>
+        </div>
+
+        <div class="field field--wide">
+          <button class="submit" type="submit">
+            Submit
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+  </div>
+
+</div>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+
+/* CRITICAL — one effectId per effect, and one keyframe name per effect, never
+   shared. An interaction's internal id is derived from
+   `sourceKey::targetKey::effectId::interactionIndex`. Every effect below runs off
+   the same source ('page'), in the same interaction, and resolves to the same
+   target root — so if any two of them referenced one registry entry they would
+   collapse to a single id: only the first would survive, while generate() had
+   already emitted the hidden first keyframe for both, and something would stay
+   off-screen or transparent for good. Hence one entry per target, even where the
+   timing is identical. */
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: {
+    /* ── beat 1: the word rises from below the fold ──
+       310px of the recorded 866px frame = 35.8vh, `cubicOut`, 940ms, after a
+       40ms beat. All four numbers are fitted, not chosen. */
+    'word-rise': {
+      duration: 940,
+      delay: 40,
+      easing: 'cubicOut',
+      fill: 'backwards',
+      triggerType: 'once',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'word-rise-kf',
+        keyframes: [
+          { transform: 'translateY(35.8vh)' },
+          { transform: 'translateY(0vh)'    },
+        ],
+      },
+    },
+
+    /* ── beat 3: the word lifts to its final place ──
+       67.6vh on `quartInOut` over 880ms, starting at 1300ms. The ~320ms hold
+       before it is simply the gap between this delay and the end of the rise —
+       no keyframe plateau, no second animation. */
+    'word-lift': {
+      duration: 880,
+      delay: 1300,
+      easing: 'quartInOut',
+      fill: 'backwards',
+      triggerType: 'once',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'word-lift-kf',
+        keyframes: [
+          { transform: 'translateY(67.6vh)' },
+          { transform: 'translateY(0vh)'    },
+        ],
+      },
+    },
+
+    /* ── beat 4: the page arrives ──
+       Two fades, measured separately because they are not in step: the form ramps
+       first and fastest, the copy follows. Opacity only — nothing here moves. */
+    'form-in': {
+      duration: 600,
+      delay: 2030,
+      easing: 'cubicOut',
+      fill: 'backwards',
+      triggerType: 'once',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'form-in-kf',
+        keyframes: [{ opacity: 0 }, { opacity: 1 }],
+      },
+    },
+    'copy-in': {
+      duration: 700,
+      delay: 2200,
+      easing: 'cubicOut',
+      fill: 'backwards',
+      triggerType: 'once',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'copy-in-kf',
+        keyframes: [{ opacity: 0 }, { opacity: 1 }],
+      },
+    },
+  },
+
+  interactions: [
+    /* One trigger for the whole intro. The source is the page shell, which is in
+       view at load, so this fires immediately — the choreography lives entirely
+       in the per-effect delays above. */
+    {
+      key: 'page',
+      trigger: 'viewEnter',
+      params: { threshold: 0 },
+      effects: [
+        { effectId: 'word-rise', selector: '.hw-rise'  },
+        { effectId: 'word-lift', selector: '.hw-lift'  },
+        { effectId: 'form-in',   selector: '.form'     },
+        { effectId: 'copy-in',   selector: '.copy'     },
+      ],
+    },
+  ],
+};
+
+/* Optional self-check: open the page with ?debug to print the validator report. */
+if (new URLSearchParams(location.search).has('debug')) {
+  import('https://esm.sh/@wix/interact-validate@0.1.2')
+    .then(({ validateInteractConfig }) => {
+      const result = validateInteractConfig(config);
+      console.log('[atoll] valid:', result.valid);
+      for (const e of result.errors ?? []) {
+        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
+      }
+    })
+    .catch(err => console.warn('[atoll] validator unavailable:', err));
+}
+
+try {
+  /* useFirstChild = false for the vanilla integration */
+  const style = document.createElement('style');
+  style.textContent = generate(config, false);
+  document.head.appendChild(style);
+
+  Interact.create(config);
+
+  add(document.querySelector('.shell'), 'page');
+} catch (err) {
+  /* Nothing to un-hide: without the library the page is simply already there. */
+  console.error('[atoll] @wix/interact failed to initialise — no intro:', err);
+}
+</script>
+</body>
+</html>
