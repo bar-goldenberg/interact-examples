@@ -17,7 +17,7 @@
             background-color: #ffffff;
             color: black;
             font-family: 'Helvetica Neue', sans-serif;
-            user-select: none; /* easier dragging */
+            user-select: none;
         }
 
         /* The keyed interact root must not disturb layout */
@@ -28,13 +28,7 @@
             width: 100vw;
             height: 100vh;
             overflow: clip;
-            cursor: grab;
             position: relative;
-            touch-action: none; /* the drag owns the gesture */
-        }
-
-        #gallery-viewport:active {
-            cursor: grabbing;
         }
 
         /* Container - No longer a grid, just a coordinate space */
@@ -144,18 +138,12 @@
     // The only module-scope state: the handful of numbers the pointer effect
     // writes and the engine effect reads. All behaviour lives in the effects.
     const input = {
-        x: window.innerWidth / 2,   // pointer position, desktop tracking
+        x: window.innerWidth / 2,   // pointer position
         y: window.innerHeight / 2,
-        active: false,
-        dragging: false,
-        dragStartX: 0,
-        dragStartY: 0,
-        targetX: 0,                 // drag target, mobile
-        targetY: 0
+        active: false
     };
 
     const HOVER_BLUR = 8;
-    const MOBILE_BREAKPOINT = 768;
 
     Interact.create({
         interactions: [
@@ -177,9 +165,8 @@
                             const TOTAL_ITEMS = 40;
                             const GRID_COLS = 8;
                             const GRID_ROWS = 5;
-                            const MAX_SPEED = 6;        // Desktop: max px per frame
-                            const VELOCITY_LERP = 0.03; // Desktop: momentum
-                            const DRAG_LERP = 0.08;     // Mobile: drag responsiveness
+                            const MAX_SPEED = 6;        // Max px per frame
+                            const VELOCITY_LERP = 0.03; // Momentum
                             const PARALLAX_FACTOR = 0.08;
 
                             const TITLES = [
@@ -238,24 +225,10 @@
                                 document.getElementById('loading').style.display = 'none';
                             };
 
-                            // Marks a drag gesture. No trigger expresses "is the
-                            // pointer held down", so these two listeners stay —
-                            // registered here, inside the effect.
-                            const wireDrag = () => {
-                                const viewport = document.getElementById('gallery-viewport');
-                                viewport.addEventListener('pointerdown', (e) => {
-                                    if (window.innerWidth >= MOBILE_BREAKPOINT) return;
-                                    input.dragging = true;
-                                    input.dragStartX = e.clientX - input.targetX;
-                                    input.dragStartY = e.clientY - input.targetY;
-                                    viewport.style.cursor = 'grabbing';
-                                });
-                                const stop = () => {
-                                    input.dragging = false;
-                                    viewport.style.cursor = 'grab';
-                                };
-                                window.addEventListener('pointerup', stop);
-                                window.addEventListener('pointercancel', stop);
+                            // Re-measures the world when the viewport changes.
+                            // No trigger reports a resize, so this one listener
+                            // stays — registered here, inside the effect.
+                            const wireResize = () => {
                                 window.addEventListener('resize', () => {
                                     measure();
                                     input.x = window.innerWidth / 2;
@@ -269,31 +242,21 @@
                                     started = true;
                                     build();
                                     measure();
-                                    wireDrag();
+                                    wireResize();
                                 }
 
                                 const cx = window.innerWidth / 2;
                                 const cy = window.innerHeight / 2;
 
-                                if (window.innerWidth < MOBILE_BREAKPOINT) {
-                                    // Drag: ease the camera toward the dragged position
-                                    camera.x += (input.targetX - camera.x) * DRAG_LERP;
-                                    camera.y += (input.targetY - camera.y) * DRAG_LERP;
-                                    velocity.x = 0;
-                                    velocity.y = 0;
-                                } else {
-                                    // Track: cursor offset from centre sets a target
-                                    // velocity, the camera eases toward it and keeps
-                                    // its momentum when the pointer stops.
-                                    const targetVx = input.active ? -((input.x - cx) / cx) * MAX_SPEED : 0;
-                                    const targetVy = input.active ? -((input.y - cy) / cy) * MAX_SPEED : 0;
-                                    velocity.x += (targetVx - velocity.x) * VELOCITY_LERP;
-                                    velocity.y += (targetVy - velocity.y) * VELOCITY_LERP;
-                                    camera.x += velocity.x;
-                                    camera.y += velocity.y;
-                                    input.targetX = camera.x;
-                                    input.targetY = camera.y;
-                                }
+                                // Pointer offset from centre sets a target velocity,
+                                // the camera eases toward it and keeps its momentum
+                                // when the pointer stops.
+                                const targetVx = input.active ? -((input.x - cx) / cx) * MAX_SPEED : 0;
+                                const targetVy = input.active ? -((input.y - cy) / cy) * MAX_SPEED : 0;
+                                velocity.x += (targetVx - velocity.x) * VELOCITY_LERP;
+                                velocity.y += (targetVy - velocity.y) * VELOCITY_LERP;
+                                camera.x += velocity.x;
+                                camera.y += velocity.y;
 
                                 const offsetX = layout.itemSize / 2;
                                 const offsetY = layout.itemSize / 2 + layout.itemSize * 0.125;
@@ -317,6 +280,7 @@
                 // ── Pointer feed ──────────────────────────────────────────
                 // Replaces the mousemove/touchmove listeners: interact reports
                 // the position and whether the pointer is still in the page.
+                // Touch drives it too — a moving finger moves the camera.
                 key: 'gallery',
                 trigger: 'pointerMove',
                 params: { hitArea: 'root' },
@@ -324,18 +288,9 @@
                     {
                         fill: 'both',
                         customEffect: (element, progress) => {
-                            const x = progress.x * window.innerWidth;
-                            const y = progress.y * window.innerHeight;
-
-                            if (window.innerWidth < MOBILE_BREAKPOINT) {
-                                if (!input.dragging) return;
-                                input.targetX = x - input.dragStartX;
-                                input.targetY = y - input.dragStartY;
-                            } else {
-                                input.x = x;
-                                input.y = y;
-                                input.active = progress.active !== false;
-                            }
+                            input.x = progress.x * window.innerWidth;
+                            input.y = progress.y * window.innerHeight;
+                            input.active = progress.active !== false;
                         }
                     }
                 ]
