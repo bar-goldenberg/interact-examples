@@ -194,6 +194,261 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
   .media{min-height:0}
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes soft-bloom-lede-kf {
+0% {
+opacity: 0;
+transform: scale(0.975);
+}
+100% {
+opacity: 1;
+transform: scale(1);
+}
+}
+@keyframes soft-bloom-actions-kf {
+0% {
+opacity: 0;
+transform: scale(0.975);
+}
+100% {
+opacity: 1;
+transform: scale(1);
+}
+}
+@keyframes word-bloom-kf {
+0% {
+opacity: 0;
+transform: scale(0.94);
+}
+100% {
+opacity: 1;
+transform: scale(1);
+}
+}
+@keyframes soft-bloom-fields-kf {
+0% {
+opacity: 0;
+transform: scale(0.975);
+}
+100% {
+opacity: 1;
+transform: scale(1);
+}
+}
+@keyframes rule-open-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes iris-open-kf {
+0% {
+clip-path: circle(0vmin at 50% 132%);
+animation-timing-function: cubic-bezier(.16,1,.3,1);
+}
+12% {
+clip-path: circle(13vmin at 50% 120%);
+animation-timing-function: cubic-bezier(.16,1,.3,1);
+}
+42% {
+clip-path: circle(13vmin at 50% 50%);
+animation-timing-function: cubic-bezier(.28,.72,.18,1);
+}
+100% {
+clip-path: circle(90vmax at 50% 50%);
+}
+}
+@keyframes photo-drift-kf {
+0% {
+transform: translateY(9%);
+}
+100% {
+transform: translateY(0%);
+}
+}
+@keyframes zoom-develop-kf {
+0% {
+transform: scale(1.3);
+filter: brightness(1.3) saturate(0.6);
+}
+100% {
+transform: scale(1);
+filter: brightness(1) saturate(1);
+}
+}
+@keyframes haze-clear-kf {
+0% {
+opacity: 0.55;
+}
+100% {
+opacity: 0;
+}
+}
+@keyframes dot-flood {
+0% {
+transform: scale(0);
+}
+100% {
+transform: scale(240);
+}
+}
+[data-interact-key="panel"] .lede {
+--animation-0-81u714zkok: soft-bloom-lede-kf 1400ms 680ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-81u714zkok: replace;
+--animation-timeline-0-81u714zkok: auto;
+--animation-range-0-81u714zkok: normal;
+}
+[data-interact-key="panel"] .actions {
+--animation-0-nehvtf30zm: soft-bloom-actions-kf 1400ms 1620ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-nehvtf30zm: replace;
+--animation-timeline-0-nehvtf30zm: auto;
+--animation-range-0-nehvtf30zm: normal;
+}
+[data-interact-key="panel"] .words > * {
+--animation-0-0-e4pswp9pzk: word-bloom-kf 1500ms calc((300 + (1 - (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1))) * (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)))) * 140 * var(--motion-seq-0-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-e4pswp9pzk: replace;
+--animation-timeline-0-0-e4pswp9pzk: auto;
+--animation-range-0-0-e4pswp9pzk: normal;
+}
+[data-interact-key="panel"] .words > * {
+--animation-0-e4pswp9pzk: var(--animation-0-0-e4pswp9pzk, none);
+--animation-composition-0-e4pswp9pzk: var(--animation-composition-0-0-e4pswp9pzk, replace);
+--animation-timeline-0-e4pswp9pzk: var(--animation-timeline-0-0-e4pswp9pzk, auto);
+--animation-range-0-e4pswp9pzk: var(--animation-range-0-0-e4pswp9pzk, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-0-8l32eaa0es: soft-bloom-fields-kf 1400ms calc((900 + (1 - (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1))) * (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1)))) * 150 * var(--motion-seq-0-1-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-8l32eaa0es: replace;
+--animation-timeline-0-0-8l32eaa0es: auto;
+--animation-range-0-0-8l32eaa0es: normal;
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-8l32eaa0es: var(--animation-0-0-8l32eaa0es, none);
+--animation-composition-0-8l32eaa0es: var(--animation-composition-0-0-8l32eaa0es, replace);
+--animation-timeline-0-8l32eaa0es: var(--animation-timeline-0-0-8l32eaa0es, auto);
+--animation-range-0-8l32eaa0es: var(--animation-range-0-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-0-s71p044fnv: rule-open-kf 1300ms calc((1080 + (1 - (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1))) * (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1)))) * 150 * var(--motion-seq-0-2-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-s71p044fnv: replace;
+--animation-timeline-0-0-s71p044fnv: auto;
+--animation-range-0-0-s71p044fnv: normal;
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-s71p044fnv: var(--animation-0-0-s71p044fnv, none);
+--animation-composition-0-s71p044fnv: var(--animation-composition-0-0-s71p044fnv, replace);
+--animation-timeline-0-s71p044fnv: var(--animation-timeline-0-0-s71p044fnv, auto);
+--animation-range-0-s71p044fnv: var(--animation-range-0-0-s71p044fnv, normal);
+}
+[data-interact-key="media"] .plate {
+--animation-1-akfs8u7v3p: iris-open-kf 3900ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-akfs8u7v3p: replace;
+--animation-timeline-1-akfs8u7v3p: auto;
+--animation-range-1-akfs8u7v3p: normal;
+}
+[data-interact-key="media"] .slide {
+--animation-1-algybczpkp: photo-drift-kf 3900ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-algybczpkp: replace;
+--animation-timeline-1-algybczpkp: auto;
+--animation-range-1-algybczpkp: normal;
+}
+[data-interact-key="media"] .zoom {
+--animation-1-62dbyjc9cc: zoom-develop-kf 4100ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-62dbyjc9cc: replace;
+--animation-timeline-1-62dbyjc9cc: auto;
+--animation-range-1-62dbyjc9cc: normal;
+}
+[data-interact-key="media"] .scrim {
+--animation-1-aldhekwu3g: haze-clear-kf 3700ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-aldhekwu3g: replace;
+--animation-timeline-1-aldhekwu3g: auto;
+--animation-range-1-aldhekwu3g: normal;
+}
+[data-interact-key="btn-submit"] .dot {
+--animation-2-16ikp2o8g5f: dot-flood 820ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-16ikp2o8g5f: replace;
+--animation-timeline-2-16ikp2o8g5f: auto;
+--animation-range-2-16ikp2o8g5f: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 300ms cubic-bezier(.16,1,.3,1) 200ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+color: #000000;
+}
+[data-interact-key="panel"] .lede {
+animation: var(--animation-0-81u714zkok, none);
+animation-composition: var(--animation-composition-0-81u714zkok, replace);
+animation-timeline: var(--animation-timeline-0-81u714zkok, auto);
+animation-range: var(--animation-range-0-81u714zkok, normal);
+}
+[data-interact-key="panel"] .actions {
+animation: var(--animation-0-nehvtf30zm, none);
+animation-composition: var(--animation-composition-0-nehvtf30zm, replace);
+animation-timeline: var(--animation-timeline-0-nehvtf30zm, auto);
+animation-range: var(--animation-range-0-nehvtf30zm, normal);
+}
+[data-interact-key="panel"] .words > * {
+animation: var(--animation-0-e4pswp9pzk, none);
+animation-composition: var(--animation-composition-0-e4pswp9pzk, replace);
+animation-timeline: var(--animation-timeline-0-e4pswp9pzk, auto);
+animation-range: var(--animation-range-0-e4pswp9pzk, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+animation: var(--animation-0-8l32eaa0es, none);
+animation-composition: var(--animation-composition-0-8l32eaa0es, replace);
+animation-timeline: var(--animation-timeline-0-8l32eaa0es, auto);
+animation-range: var(--animation-range-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+animation: var(--animation-0-s71p044fnv, none);
+animation-composition: var(--animation-composition-0-s71p044fnv, replace);
+animation-timeline: var(--animation-timeline-0-s71p044fnv, auto);
+animation-range: var(--animation-range-0-s71p044fnv, normal);
+}
+[data-interact-key="media"] .plate {
+animation: var(--animation-1-akfs8u7v3p, none);
+animation-composition: var(--animation-composition-1-akfs8u7v3p, replace);
+animation-timeline: var(--animation-timeline-1-akfs8u7v3p, auto);
+animation-range: var(--animation-range-1-akfs8u7v3p, normal);
+}
+[data-interact-key="media"] .slide {
+animation: var(--animation-1-algybczpkp, none);
+animation-composition: var(--animation-composition-1-algybczpkp, replace);
+animation-timeline: var(--animation-timeline-1-algybczpkp, auto);
+animation-range: var(--animation-range-1-algybczpkp, normal);
+}
+[data-interact-key="media"] .zoom {
+animation: var(--animation-1-62dbyjc9cc, none);
+animation-composition: var(--animation-composition-1-62dbyjc9cc, replace);
+animation-timeline: var(--animation-timeline-1-62dbyjc9cc, auto);
+animation-range: var(--animation-range-1-62dbyjc9cc, normal);
+}
+[data-interact-key="media"] .scrim {
+animation: var(--animation-1-aldhekwu3g, none);
+animation-composition: var(--animation-composition-1-aldhekwu3g, replace);
+animation-timeline: var(--animation-timeline-1-aldhekwu3g, auto);
+animation-range: var(--animation-range-1-aldhekwu3g, normal);
+}
+[data-interact-key="btn-submit"] .dot {
+animation: var(--animation-2-16ikp2o8g5f, none);
+animation-composition: var(--animation-composition-2-16ikp2o8g5f, replace);
+animation-timeline: var(--animation-timeline-2-16ikp2o8g5f, auto);
+animation-range: var(--animation-range-2-16ikp2o8g5f, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
 <script>
   /* Classic, blocking, no imports: hide the animated elements before first paint.
      If this is the only script that ever runs, the reveal script at the end of
@@ -205,7 +460,7 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
 
 <div class="wrap">
 
-  <section class="panel">
+  <section class="panel" data-interact-key="panel">
     <div class="form-shell">
 
       <h1 data-split>Let&rsquo;s Build Together.</h1>
@@ -241,7 +496,7 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
       </form>
 
       <div class="actions">
-        <button class="btn" type="submit">
+        <button class="btn" type="submit" data-interact-key="btn-submit">
           <span class="dot" aria-hidden="true"></span>
           <span class="label">Submit</span>
         </button>
@@ -250,7 +505,7 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
     </div>
   </section>
 
-  <aside class="media">
+  <aside class="media" data-interact-key="media">
     <div class="plate">
       <div class="slide">
         <div class="zoom">
@@ -316,7 +571,7 @@ textarea.line-input{resize:none;line-height:1.55;min-height:96px}
    exports are Interact / add / remove — there is no `generate`, so the named
    import below throws and the entire module never runs. 2.5.8 is the version the
    rules file documents, and it exports Interact / add / generate / remove. */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 /* One shared curve for the entire composition. */
 const SILK = 'cubic-bezier(.16,1,.3,1)';
@@ -565,26 +820,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug in the URL to print the
-   @wix/interact-validate report for this config to the console. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[iris] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[iris] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   /* Bind each key to its element. In the vanilla integration the keyed element is

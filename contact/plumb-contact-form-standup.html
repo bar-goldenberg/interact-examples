@@ -242,17 +242,158 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
   .sheet{ padding: 1.9rem 2.2rem; }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes sheet-standup-kf {
+0% {
+transform: translateY(9vh) rotateX(76deg) scale(0.92);
+}
+100% {
+transform: translateY(0vh) rotateX(0deg) scale(1);
+}
+}
+@keyframes word-settle-kf {
+0% {
+transform: translate(-50%, -56%) scale(1.06);
+opacity: 1;
+}
+100% {
+transform: translate(-50%, -50%) scale(0.98);
+opacity: 0;
+}
+}
+@keyframes sheen-pass-kf {
+0% {
+transform: translateX(-70%);
+opacity: 0;
+}
+50% {
+transform: translateX(-24%);
+opacity: 1;
+}
+100% {
+transform: translateX(70%);
+opacity: 0;
+}
+}
+@keyframes rule-draw-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes btn-flood {
+0% {
+transform: scale(0);
+}
+100% {
+transform: scale(260);
+}
+}
+[data-interact-key="stage"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .sheet {
+--animation-0-368sk3je86: sheet-standup-kf auto cubic-bezier(0.215, 0.61, 0.355, 1) both 1 ;
+--animation-composition-0-368sk3je86: replace;
+--animation-timeline-0-368sk3je86: --trigger-0;
+--animation-range-0-368sk3je86: contain 0% contain 72%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .word {
+--animation-0-11an4hojohc: word-settle-kf auto cubic-bezier(0.165, 0.84, 0.44, 1) both 1 ;
+--animation-composition-0-11an4hojohc: replace;
+--animation-timeline-0-11an4hojohc: --trigger-0;
+--animation-range-0-11an4hojohc: contain 0% contain 18%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .sheen {
+--animation-0-368sjzsjq4: sheen-pass-kf auto linear both 1 ;
+--animation-composition-0-368sjzsjq4: replace;
+--animation-timeline-0-368sjzsjq4: --trigger-0;
+--animation-range-0-368sjzsjq4: contain 8% contain 68%;
+}
+}
+[data-interact-key="sheet"] .form-rows .rule {
+--animation-1-0-7fw2aw8uow: rule-draw-kf 950ms calc((260 + (1 - (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1))) * (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)))) * 105 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) backwards 1 paused;
+--animation-composition-1-0-7fw2aw8uow: replace;
+--animation-timeline-1-0-7fw2aw8uow: auto;
+--animation-range-1-0-7fw2aw8uow: normal;
+}
+[data-interact-key="sheet"] .form-rows .rule {
+--animation-1-7fw2aw8uow: var(--animation-1-0-7fw2aw8uow, none);
+--animation-composition-1-7fw2aw8uow: var(--animation-composition-1-0-7fw2aw8uow, replace);
+--animation-timeline-1-7fw2aw8uow: var(--animation-timeline-1-0-7fw2aw8uow, auto);
+--animation-range-1-7fw2aw8uow: var(--animation-range-1-0-7fw2aw8uow, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+--animation-2-mc50xd2iqh: btn-flood 820ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-mc50xd2iqh: replace;
+--animation-timeline-2-mc50xd2iqh: auto;
+--animation-range-2-mc50xd2iqh: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 320ms cubic-bezier(.16,1,.3,1) 190ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+color: #1d1d1f;
+}
+[data-interact-key="stage"] .sheet {
+animation: var(--animation-0-368sk3je86, none);
+animation-composition: var(--animation-composition-0-368sk3je86, replace);
+animation-timeline: var(--animation-timeline-0-368sk3je86, auto);
+animation-range: var(--animation-range-0-368sk3je86, normal);
+}
+[data-interact-key="stage"] .word {
+animation: var(--animation-0-11an4hojohc, none);
+animation-composition: var(--animation-composition-0-11an4hojohc, replace);
+animation-timeline: var(--animation-timeline-0-11an4hojohc, auto);
+animation-range: var(--animation-range-0-11an4hojohc, normal);
+}
+[data-interact-key="stage"] .sheen {
+animation: var(--animation-0-368sjzsjq4, none);
+animation-composition: var(--animation-composition-0-368sjzsjq4, replace);
+animation-timeline: var(--animation-timeline-0-368sjzsjq4, auto);
+animation-range: var(--animation-range-0-368sjzsjq4, normal);
+}
+[data-interact-key="sheet"] .form-rows .rule {
+animation: var(--animation-1-7fw2aw8uow, none);
+animation-composition: var(--animation-composition-1-7fw2aw8uow, replace);
+animation-timeline: var(--animation-timeline-1-7fw2aw8uow, auto);
+animation-range: var(--animation-range-1-7fw2aw8uow, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+animation: var(--animation-2-mc50xd2iqh, none);
+animation-composition: var(--animation-composition-2-mc50xd2iqh, replace);
+animation-timeline: var(--animation-timeline-2-mc50xd2iqh, auto);
+animation-range: var(--animation-range-2-mc50xd2iqh, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
 </head>
 <body>
 
 <!-- ── One stage: the word, the shadow, the sheet ── -->
-<section class="stage">
+<section class="stage" data-interact-key="stage">
   <div class="stage-wrap">
 
     <div class="word" aria-hidden="true">Let&rsquo;s talk</div>
 
     <div class="stack">
-      <div class="sheet">
+      <div class="sheet" data-interact-key="sheet">
         <i class="sheen" aria-hidden="true"></i>
 
         <div class="sheet-body">
@@ -290,7 +431,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
           </form>
 
           <div class="actions">
-            <button class="btn" type="submit">
+            <button class="btn" type="submit" data-interact-key="btn-submit">
               <span class="btn-fill" aria-hidden="true"></span>
               <span class="btn-label">Submit</span>
             </button>
@@ -361,7 +502,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const SILK = 'cubic-bezier(.16,1,.3,1)';
 
@@ -524,25 +665,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[plumb-standup] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[plumb-standup] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.stage'),        'stage');

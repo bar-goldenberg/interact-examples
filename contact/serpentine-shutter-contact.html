@@ -206,6 +206,128 @@ select.control option{ background: var(--card); color: var(--white); }
   .row-phone{ grid-template-columns: 88px minmax(0, 1fr); }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes tile-close-1-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-2-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-3-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-4-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+[data-interact-key="band1"] .tile {
+--animation-0-0-kdxkyok4k: tile-close-1-kf 420ms calc((0 + (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)) * 35 * var(--motion-seq-0-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-0-0-kdxkyok4k: replace;
+--animation-timeline-0-0-kdxkyok4k: auto;
+--animation-range-0-0-kdxkyok4k: normal;
+}
+[data-interact-key="band1"] .tile {
+--animation-0-kdxkyok4k: var(--animation-0-0-kdxkyok4k, none);
+--animation-composition-0-kdxkyok4k: var(--animation-composition-0-0-kdxkyok4k, replace);
+--animation-timeline-0-kdxkyok4k: var(--animation-timeline-0-0-kdxkyok4k, auto);
+--animation-range-0-kdxkyok4k: var(--animation-range-0-0-kdxkyok4k, normal);
+}
+[data-interact-key="band2"] .tile {
+--animation-1-0-q8yvb5w451: tile-close-2-kf 420ms calc((0 + (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)) * 35 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-1-0-q8yvb5w451: replace;
+--animation-timeline-1-0-q8yvb5w451: auto;
+--animation-range-1-0-q8yvb5w451: normal;
+}
+[data-interact-key="band2"] .tile {
+--animation-1-q8yvb5w451: var(--animation-1-0-q8yvb5w451, none);
+--animation-composition-1-q8yvb5w451: var(--animation-composition-1-0-q8yvb5w451, replace);
+--animation-timeline-1-q8yvb5w451: var(--animation-timeline-1-0-q8yvb5w451, auto);
+--animation-range-1-q8yvb5w451: var(--animation-range-1-0-q8yvb5w451, normal);
+}
+[data-interact-key="band3"] .tile {
+--animation-2-0-7l5nxj3t9h: tile-close-3-kf 420ms calc((0 + (var(--motion-seq-2-0-index, 0) / var(--motion-seq-2-0-last, 1)) * 35 * var(--motion-seq-2-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-2-0-7l5nxj3t9h: replace;
+--animation-timeline-2-0-7l5nxj3t9h: auto;
+--animation-range-2-0-7l5nxj3t9h: normal;
+}
+[data-interact-key="band3"] .tile {
+--animation-2-7l5nxj3t9h: var(--animation-2-0-7l5nxj3t9h, none);
+--animation-composition-2-7l5nxj3t9h: var(--animation-composition-2-0-7l5nxj3t9h, replace);
+--animation-timeline-2-7l5nxj3t9h: var(--animation-timeline-2-0-7l5nxj3t9h, auto);
+--animation-range-2-7l5nxj3t9h: var(--animation-range-2-0-7l5nxj3t9h, normal);
+}
+[data-interact-key="band4"] .tile {
+--animation-3-0-x9qlnqbd86: tile-close-4-kf 420ms calc((0 + (var(--motion-seq-3-0-index, 0) / var(--motion-seq-3-0-last, 1)) * 35 * var(--motion-seq-3-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-3-0-x9qlnqbd86: replace;
+--animation-timeline-3-0-x9qlnqbd86: auto;
+--animation-range-3-0-x9qlnqbd86: normal;
+}
+[data-interact-key="band4"] .tile {
+--animation-3-x9qlnqbd86: var(--animation-3-0-x9qlnqbd86, none);
+--animation-composition-3-x9qlnqbd86: var(--animation-composition-3-0-x9qlnqbd86, replace);
+--animation-timeline-3-x9qlnqbd86: var(--animation-timeline-3-0-x9qlnqbd86, auto);
+--animation-range-3-x9qlnqbd86: var(--animation-range-3-0-x9qlnqbd86, normal);
+}
+[data-interact-key="send"] {
+--transition-4-kfvkw7fuj8: background-color 220ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="send"]:is(:state(eff-4-0), :--eff-4-0, [data-interact-effect~="eff-4-0"]) {
+background-color: #e6e6e6;
+}
+[data-interact-key="band1"] .tile {
+animation: var(--animation-0-kdxkyok4k, none);
+animation-composition: var(--animation-composition-0-kdxkyok4k, replace);
+animation-timeline: var(--animation-timeline-0-kdxkyok4k, auto);
+animation-range: var(--animation-range-0-kdxkyok4k, normal);
+}
+[data-interact-key="band2"] .tile {
+animation: var(--animation-1-q8yvb5w451, none);
+animation-composition: var(--animation-composition-1-q8yvb5w451, replace);
+animation-timeline: var(--animation-timeline-1-q8yvb5w451, auto);
+animation-range: var(--animation-range-1-q8yvb5w451, normal);
+}
+[data-interact-key="band3"] .tile {
+animation: var(--animation-2-7l5nxj3t9h, none);
+animation-composition: var(--animation-composition-2-7l5nxj3t9h, replace);
+animation-timeline: var(--animation-timeline-2-7l5nxj3t9h, auto);
+animation-range: var(--animation-range-2-7l5nxj3t9h, normal);
+}
+[data-interact-key="band4"] .tile {
+animation: var(--animation-3-x9qlnqbd86, none);
+animation-composition: var(--animation-composition-3-x9qlnqbd86, replace);
+animation-timeline: var(--animation-timeline-3-x9qlnqbd86, auto);
+animation-range: var(--animation-range-3-x9qlnqbd86, normal);
+}
+[data-interact-key="send"] {
+transition: var(--transition-4-kfvkw7fuj8, _);
+}
+</style>
 </head>
 <body>
 
@@ -270,7 +392,7 @@ select.control option{ background: var(--card); color: var(--white); }
           <textarea class="control" id="message" name="message" placeholder="Enter your message"></textarea>
         </div>
 
-        <button class="submit" type="submit">Send message</button>
+        <button class="submit" type="submit" data-interact-key="send">Send message</button>
       </form>
     </section>
 
@@ -315,7 +437,7 @@ select.control option{ background: var(--card); color: var(--white); }
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const EASE = 'cubic-bezier(.4,0,.2,1)';
 
@@ -385,25 +507,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[zettajoule] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[zettajoule] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   document.querySelectorAll('.band').forEach((band, i) => add(band, 'band' + (i + 1)));

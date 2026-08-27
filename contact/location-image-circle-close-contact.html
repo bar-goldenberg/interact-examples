@@ -208,10 +208,85 @@ textarea.control{
   .submit{ width: 100%; }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes circle-close-kf {
+0% {
+clip-path: circle(75vmax at 50% 50%);
+opacity: 1;
+}
+33.33% {
+clip-path: circle(45vmax at 50% 50%);
+opacity: 1;
+}
+66.67% {
+clip-path: circle(22vmax at 50% 50%);
+opacity: 1;
+}
+100% {
+clip-path: circle(0vmax at 50% 50%);
+opacity: 1;
+}
+}
+@keyframes photo-settle-kf {
+0% {
+transform: scale(1.12);
+}
+100% {
+transform: scale(1);
+}
+}
+[data-interact-key="stage"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .cover {
+--animation-0-30u2zg5vlw: circle-close-kf auto linear both 1 ;
+--animation-composition-0-30u2zg5vlw: replace;
+--animation-timeline-0-30u2zg5vlw: --trigger-0;
+--animation-range-0-30u2zg5vlw: contain 0% contain 70%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .cover img {
+--animation-0-15uzi433rx7: photo-settle-kf auto linear both 1 ;
+--animation-composition-0-15uzi433rx7: replace;
+--animation-timeline-0-15uzi433rx7: --trigger-0;
+--animation-range-0-15uzi433rx7: contain 0% contain 70%;
+}
+}
+[data-interact-key="submit"] {
+--transition-1-3lk2bmo076: background-color 200ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="submit"]:is(:state(eff-1-0), :--eff-1-0, [data-interact-effect~="eff-1-0"]) {
+background-color: #0932bb;
+}
+[data-interact-key="stage"] .cover {
+animation: var(--animation-0-30u2zg5vlw, none);
+animation-composition: var(--animation-composition-0-30u2zg5vlw, replace);
+animation-timeline: var(--animation-timeline-0-30u2zg5vlw, auto);
+animation-range: var(--animation-range-0-30u2zg5vlw, normal);
+}
+[data-interact-key="stage"] .cover img {
+animation: var(--animation-0-15uzi433rx7, none);
+animation-composition: var(--animation-composition-0-15uzi433rx7, replace);
+animation-timeline: var(--animation-timeline-0-15uzi433rx7, auto);
+animation-range: var(--animation-range-0-15uzi433rx7, normal);
+}
+[data-interact-key="submit"] {
+transition: var(--transition-1-3lk2bmo076, _);
+}
+</style>
 </head>
 <body>
 
-<section class="stage">
+<section class="stage" data-interact-key="stage">
   <div class="stage-wrap">
 
     <!-- the photograph that starts on top of everything -->
@@ -258,7 +333,7 @@ textarea.control{
           <textarea class="control" id="message" name="message" rows="4"></textarea>
         </div>
 
-        <button class="submit" type="submit">Submit</button>
+        <button class="submit" type="submit" data-interact-key="submit">Submit</button>
       </form>
 
     </div>
@@ -273,7 +348,7 @@ textarea.control{
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const EASE = 'cubic-bezier(.4,0,.2,1)';
 
@@ -366,25 +441,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[location-circle] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[location-circle] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.stage'),  'stage');

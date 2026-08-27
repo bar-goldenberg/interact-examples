@@ -201,6 +201,56 @@ select.control option{ background: var(--card); color: var(--white); }
   .row-phone{ grid-template-columns: 88px minmax(0, 1fr); }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes px-out-kf {
+0% {
+opacity: 1;
+}
+33.33% {
+opacity: 1;
+}
+66.67% {
+opacity: 1;
+}
+100% {
+opacity: 0;
+}
+}
+[data-interact-key="pixels"] .px {
+--animation-0-0-19yjt5jtnf: px-out-kf 160ms calc((0 + (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)) * 3 * var(--motion-seq-0-0-last, 1)) * 1ms) linear backwards 1 paused;
+--animation-composition-0-0-19yjt5jtnf: replace;
+--animation-timeline-0-0-19yjt5jtnf: auto;
+--animation-range-0-0-19yjt5jtnf: normal;
+}
+[data-interact-key="pixels"] .px {
+--animation-0-19yjt5jtnf: var(--animation-0-0-19yjt5jtnf, none);
+--animation-composition-0-19yjt5jtnf: var(--animation-composition-0-0-19yjt5jtnf, replace);
+--animation-timeline-0-19yjt5jtnf: var(--animation-timeline-0-0-19yjt5jtnf, auto);
+--animation-range-0-19yjt5jtnf: var(--animation-range-0-0-19yjt5jtnf, normal);
+}
+[data-interact-key="send"] {
+--transition-1-kfvkw7fuj8: background-color 220ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="send"]:is(:state(eff-1-0), :--eff-1-0, [data-interact-effect~="eff-1-0"]) {
+background-color: #e6e6e6;
+}
+[data-interact-key="pixels"] .px {
+animation: var(--animation-0-19yjt5jtnf, none);
+animation-composition: var(--animation-composition-0-19yjt5jtnf, replace);
+animation-timeline: var(--animation-timeline-0-19yjt5jtnf, auto);
+animation-range: var(--animation-range-0-19yjt5jtnf, normal);
+}
+[data-interact-key="send"] {
+transition: var(--transition-1-kfvkw7fuj8, _);
+}
+</style>
 </head>
 <body>
 
@@ -265,7 +315,7 @@ select.control option{ background: var(--card); color: var(--white); }
           <textarea class="control" id="message" name="message" placeholder="Enter your message"></textarea>
         </div>
 
-        <button class="submit" type="submit">Send message</button>
+        <button class="submit" type="submit" data-interact-key="send">Send message</button>
       </form>
     </section>
 
@@ -273,7 +323,7 @@ select.control option{ background: var(--card); color: var(--white); }
 
   <!-- ── The curtain: 448 tiles, emitted in dissolve order. Each one
        states its own cell, so DOM order is free to be the timeline. ── -->
-  <div class="pixels" aria-hidden="true">
+  <div class="pixels" aria-hidden="true" data-interact-key="pixels">
     <i class="px" style="grid-area:1/2"></i><i class="px" style="grid-area:3/1"></i><i class="px" style="grid-area:2/1"></i><i class="px" style="grid-area:1/1"></i><i class="px" style="grid-area:1/4"></i><i class="px" style="grid-area:4/1"></i><i class="px" style="grid-area:4/2"></i>
     <i class="px" style="grid-area:1/7"></i><i class="px" style="grid-area:2/6"></i><i class="px" style="grid-area:2/2"></i><i class="px" style="grid-area:6/2"></i><i class="px" style="grid-area:2/4"></i><i class="px" style="grid-area:2/7"></i><i class="px" style="grid-area:5/4"></i>
     <i class="px" style="grid-area:1/3"></i><i class="px" style="grid-area:4/5"></i><i class="px" style="grid-area:1/6"></i><i class="px" style="grid-area:1/9"></i><i class="px" style="grid-area:6/1"></i><i class="px" style="grid-area:4/3"></i><i class="px" style="grid-area:2/3"></i>
@@ -350,7 +400,7 @@ select.control option{ background: var(--card); color: var(--white); }
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const EASE = 'cubic-bezier(.4,0,.2,1)';
 
@@ -408,7 +458,10 @@ const config = {
       params: { threshold: 0 },
       sequences: [{
         delay: 0,
-        offset: 3.2,
+        /* Integer milliseconds. The runtime tolerates a fractional offset, but
+           the config schema rejects it, so the file failed validation as
+           authored. 3 vs 3.2 is 0.2ms per step — no visible change. */
+        offset: 3,
         offsetEasing: 'linear',
         effects: [{ effectId: 'px-out', selector: '.px' }],
       }],
@@ -432,25 +485,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[pixel-dissolve] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[pixel-dissolve] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.pixels'), 'pixels');

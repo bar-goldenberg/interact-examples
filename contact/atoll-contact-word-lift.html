@@ -151,10 +151,107 @@ textarea.control{
   .rows{ grid-template-columns: 1fr; }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes word-rise-kf {
+0% {
+transform: translateY(35.8vh);
+}
+100% {
+transform: translateY(0vh);
+}
+}
+@keyframes word-lift-kf {
+0% {
+transform: translateY(67.6vh);
+}
+100% {
+transform: translateY(0vh);
+}
+}
+@keyframes form-in-kf {
+0% {
+opacity: 0;
+}
+100% {
+opacity: 1;
+}
+}
+@keyframes copy-in-kf {
+0% {
+opacity: 0;
+}
+100% {
+opacity: 1;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="page"] .hw-rise {
+--animation-0-11v1b3qv0vn: word-rise-kf 940ms 40ms cubic-bezier(0.215, 0.61, 0.355, 1) backwards 1 paused;
+--animation-composition-0-11v1b3qv0vn: replace;
+--animation-timeline-0-11v1b3qv0vn: auto;
+--animation-range-0-11v1b3qv0vn: normal;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="page"] .hw-lift {
+--animation-0-11uywtae5hi: word-lift-kf 880ms 1300ms cubic-bezier(0.77, 0, 0.175, 1) backwards 1 paused;
+--animation-composition-0-11uywtae5hi: replace;
+--animation-timeline-0-11uywtae5hi: auto;
+--animation-range-0-11uywtae5hi: normal;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="page"] .form {
+--animation-0-pkotusynyv: form-in-kf 600ms 2030ms cubic-bezier(0.215, 0.61, 0.355, 1) backwards 1 paused;
+--animation-composition-0-pkotusynyv: replace;
+--animation-timeline-0-pkotusynyv: auto;
+--animation-range-0-pkotusynyv: normal;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="page"] .copy {
+--animation-0-pknms2miz7: copy-in-kf 700ms 2200ms cubic-bezier(0.215, 0.61, 0.355, 1) backwards 1 paused;
+--animation-composition-0-pknms2miz7: replace;
+--animation-timeline-0-pknms2miz7: auto;
+--animation-range-0-pknms2miz7: normal;
+}
+}
+[data-interact-key="page"] .hw-rise {
+animation: var(--animation-0-11v1b3qv0vn, none);
+animation-composition: var(--animation-composition-0-11v1b3qv0vn, replace);
+animation-timeline: var(--animation-timeline-0-11v1b3qv0vn, auto);
+animation-range: var(--animation-range-0-11v1b3qv0vn, normal);
+}
+[data-interact-key="page"] .hw-lift {
+animation: var(--animation-0-11uywtae5hi, none);
+animation-composition: var(--animation-composition-0-11uywtae5hi, replace);
+animation-timeline: var(--animation-timeline-0-11uywtae5hi, auto);
+animation-range: var(--animation-range-0-11uywtae5hi, normal);
+}
+[data-interact-key="page"] .form {
+animation: var(--animation-0-pkotusynyv, none);
+animation-composition: var(--animation-composition-0-pkotusynyv, replace);
+animation-timeline: var(--animation-timeline-0-pkotusynyv, auto);
+animation-range: var(--animation-range-0-pkotusynyv, normal);
+}
+[data-interact-key="page"] .copy {
+animation: var(--animation-0-pknms2miz7, none);
+animation-composition: var(--animation-composition-0-pknms2miz7, replace);
+animation-timeline: var(--animation-timeline-0-pknms2miz7, auto);
+animation-range: var(--animation-range-0-pknms2miz7, normal);
+}
+</style>
 </head>
 <body>
 
-<div class="shell">
+<div class="shell" data-interact-key="page">
 
   <h1 class="headline"><span class="hw-lift"><span class="hw-rise">contact</span></span></h1>
 
@@ -208,7 +305,7 @@ textarea.control{
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 /* CRITICAL — one effectId per effect, and one keyframe name per effect, never
    shared. An interaction's internal id is derived from
@@ -312,25 +409,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[atoll] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[atoll] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.shell'), 'page');

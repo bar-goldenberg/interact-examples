@@ -10,6 +10,16 @@
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+  /* --i is the index of the category at the middle of the rail. Registering it
+     is what lets the scrub animate it: an unregistered custom property would
+     flip discretely halfway between keyframes, which is not the tick. It has
+     to inherit — it is set on .rail-row and read by both strips. */
+  @property --i {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
   :root {
     --bg: #ecebe8;          /* almost-white grey */
     --ink: #16161a;
@@ -201,9 +211,10 @@
     display: flex;
     flex-direction: column;
     /* one cell per step — a percentage here would resolve against the whole
-       strip, not a single cell */
+       strip, not a single cell. --i is scrubbed, so this expression is the
+       whole ticker: no transition, and the px cell stays responsive because
+       only --i is animated, never the distance. */
     transform: translateY(calc(var(--i, 0) * var(--cell) * -1));
-    transition: transform 620ms cubic-bezier(0.22, 0.9, 0.24, 1);
   }
 
   .icon-strip { --cell: 72px; }
@@ -247,10 +258,6 @@
     line-height: 22px;
     white-space: nowrap;
     flex: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .strip { transition: none; }
   }
 
   @media (max-width: 900px) {
@@ -339,24 +346,18 @@
       height: 34px;                /* the line box grows with the type */
       overflow: clip;
     }
+    /* Parked below its mask. The scrub owns it from here: the card at the
+       middle rises into the slot, and the ones it has already passed carry on
+       upward and out. This is the pre-script resting state only. */
     .card-name-text {
       display: block;
       line-height: 34px;
       white-space: nowrap;
       transform: translateY(100%);
       opacity: 0;
-      transition: transform 560ms cubic-bezier(0.22, 0.9, 0.24, 1),
-                  opacity 300ms ease;
     }
-    /* the card at the middle owns the slot; the ones it has already passed
-       carry on upward and out */
-    .card-name-text.is-current { transform: translateY(0); opacity: 1; }
-    .card-name-text.is-past    { transform: translateY(-100%); opacity: 0; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .card-name-text { transition: none; }
-  }
 </style>
 </head>
 <body>
@@ -450,7 +451,7 @@
 <section class="pad">end of section</section>
 
 <script type="module">
-  const { Interact } = await import('https://esm.sh/@wix/interact@2.2.1/web');
+  const { Interact } = await import('https://esm.sh/@wix/interact@2.5.1/web');
 
   /* ─────────────────────────────────────────────────────────────
      The rail is one ViewTimeline (the tall .rail-track) driving six
@@ -583,7 +584,6 @@
     STAGE.append(name);
   });
 
-  const CARD_NAMES = [...document.querySelectorAll('.card-name-text')];
   /* One effect per label: the flat schedule is the card schedule with the
      spin taken out, so the label tracks its card exactly without the text
      ever turning away from the reader. */
@@ -598,22 +598,95 @@
     });
   }
 
-  const TRACK = document.querySelector('.rail-track');
+  /* ── the handover, as keyframes ──
+     Which card is at the middle is a step function of the very progress the
+     cards already run on: card i owns the middle until INTRO + (i + 0.5) × SLOT,
+     the moment the incoming card takes over from the outgoing one. That is
+     five boundaries on a 0→1 timeline, so it can be scheduled rather than
+     computed — no reading the track's geometry, and no customEffect.
 
-  /* Which card is at the middle right now. The progress handed to a
-     customEffect is measured over a wider window than the CSS `contain` range
-     the cards animate on, so we read the track's own geometry instead, which
-     is exactly what the ViewTimeline uses. Card i lands at INTRO + i × SLOT;
-     the +0.5 of a slot hands the pair over at the moment the incoming card
-     takes the middle from the outgoing one, so the strips have finished
-     sliding by the time it settles face-on. */
-  function facingCard() {
-    const span = TRACK.offsetHeight - window.innerHeight;
-    if (span <= 0) return 0;
-    const progress = -TRACK.getBoundingClientRect().top / span;
-    const index = Math.floor((progress - INTRO) / SLOT + 0.5);
-    return Math.min(CARDS - 1, Math.max(0, index));
-  }
+     --i is scrubbed from 0 to 5 at those boundaries and BOTH strips move,
+     because each one's transform is calc(var(--i) * var(--cell) * -1) and --i
+     inherits from .rail-row. Animating the index rather than a distance is
+     what keeps the two cell sizes (72px, 52px under 900px) working from one
+     schedule.
+
+     The one change in kind: the slide used to be a 620ms CSS transition fired
+     by the class change, and is now the TICK ramp below — scroll-linked, like
+     everything else in the section. Under reduced motion the ramp becomes a
+     single step, which is what `transition: none` used to give. */
+  const HANDOVER = 0.5;                          // slots past a card's centre
+  const TICK = 0.18;                             // slot fraction the slide spans
+  const SLIDE = 'cubic-bezier(0.22, 0.9, 0.24, 1)';
+  const SNAP = 'steps(1, end)';
+  const boundary = (i) => INTRO + (i + HANDOVER) * SLOT;
+  const at = (offset) => Math.round(offset * 1e4) / 1e4;
+
+  const tickKeyframes = (ease) => {
+    const frames = [{ offset: 0, '--i': '0', easing: 'linear' }];
+    for (let i = 0; i < CARDS - 1; i++) {
+      const b = boundary(i);
+      frames.push({ offset: at(b), '--i': String(i), easing: ease });
+      frames.push({ offset: at(b + TICK * SLOT), '--i': String(i + 1), easing: 'linear' });
+    }
+    frames.push({ offset: 1, '--i': String(CARDS - 1) });
+    return frames;
+  };
+
+  /* The mobile label: below its mask, up into the slot while its card holds the
+     middle, then on up and out as the next one takes over. Card 0 starts in the
+     slot and the last card never hands over, which is exactly where the old
+     index clamped. */
+  const BELOW = { transform: 'translateY(100%)', opacity: 0 };
+  const SHOWN = { transform: 'translateY(0)', opacity: 1 };
+  const ABOVE = { transform: 'translateY(-100%)', opacity: 0 };
+
+  const labelKeyframes = (index, ease) => {
+    const rise = index === 0 ? null : boundary(index - 1);
+    const exit = index === CARDS - 1 ? null : boundary(index);
+    const frames = [];
+
+    if (rise === null) {
+      frames.push({ offset: 0, ...SHOWN, easing: 'linear' });
+    } else {
+      frames.push({ offset: 0, ...BELOW, easing: 'linear' });
+      frames.push({ offset: at(rise), ...BELOW, easing: ease });
+      frames.push({ offset: at(rise + TICK * SLOT), ...SHOWN, easing: 'linear' });
+    }
+
+    if (exit !== null) {
+      frames.push({ offset: at(exit), ...SHOWN, easing: ease });
+      frames.push({ offset: at(exit + TICK * SLOT), ...ABOVE, easing: 'linear' });
+    }
+
+    frames.push({ offset: 1, ...(exit === null ? SHOWN : ABOVE) });
+    return frames;
+  };
+
+  const tickEffects = [['motion-ok', SLIDE], ['reduced-motion', SNAP]]
+    .flatMap(([condition, ease]) => [
+      {
+        selector: '.rail-row',
+        conditions: [condition],
+        keyframeEffect: { name: `rail-tick-${condition}`, keyframes: tickKeyframes(ease) },
+        ...FULL_RANGE,
+        easing: 'linear',
+        fill: 'both',
+      },
+      ...Array.from({ length: CARDS }, (_, i) => ({
+        // the label lives inside the travelling .card-name, so the two never
+        // fight over the same transform
+        selector: `.card-name[data-name="${i}"] .card-name-text`,
+        conditions: [condition],
+        keyframeEffect: {
+          name: `rail-label-${condition}-${i}`,
+          keyframes: labelKeyframes(i, ease),
+        },
+        ...FULL_RANGE,
+        easing: 'linear',
+        fill: 'both',
+      })),
+    ]);
 
   Interact.create({
     conditions: {
@@ -629,6 +702,7 @@
         effects: [
           ...cardEffects,
           ...nameEffects,
+          ...tickEffects,
 
           /* The intro is wiped upward inside its mask over the first stretch
              of the scroll, and the two flanks slide into theirs right after
@@ -672,28 +746,6 @@
             fill: 'both',
           })),
 
-          /* One handover, two readings of it. On desktop --i slides both
-             strips inside their masks; on mobile the strips are stacked in
-             place instead, and the classes pick out the one category that is
-             showing. Writing the same value twice is a no-op, so this only
-             fires on a real change. */
-          {
-            selector: '.rail-row',
-            customEffect: (element, progress) => {
-              if (progress === null) return;
-              const current = facingCard();
-              const i = String(current);
-              if (element.style.getPropertyValue('--i') === i) return;
-              element.style.setProperty('--i', i);
-              CARD_NAMES.forEach((text, n) => {
-                text.classList.toggle('is-current', n === current);
-                text.classList.toggle('is-past', n < current);
-              });
-            },
-            ...FULL_RANGE,
-            easing: 'linear',
-            fill: 'both',
-          },
         ],
       },
     ],

@@ -243,14 +243,131 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
   .scroll-cue{ display: none; }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes surface-expand-kf {
+0% {
+width: 100%;
+height: 100%;
+border-radius: 20px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.04), 0 56px 140px rgba(0,0,0,0.10);
+}
+100% {
+width: 100vw;
+height: 100vh;
+border-radius: 0px;
+box-shadow: 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0);
+}
+}
+@keyframes cue-out-kf {
+0% {
+opacity: 1;
+}
+100% {
+opacity: 0;
+}
+}
+@keyframes rule-draw-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes btn-flood {
+0% {
+transform: scale(0);
+}
+100% {
+transform: scale(260);
+}
+}
+[data-interact-key="stage"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .card-surface {
+--animation-0-aiyoxen2e3: surface-expand-kf auto cubic-bezier(0.55, 0.055, 0.675, 0.19) both 1 ;
+--animation-composition-0-aiyoxen2e3: replace;
+--animation-timeline-0-aiyoxen2e3: --trigger-0;
+--animation-range-0-aiyoxen2e3: contain 0% contain 60%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .scroll-cue {
+--animation-0-1h1htbxa2: cue-out-kf auto linear both 1 ;
+--animation-composition-0-1h1htbxa2: replace;
+--animation-timeline-0-1h1htbxa2: --trigger-0;
+--animation-range-0-1h1htbxa2: contain 0% contain 12%;
+}
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-0-14x7knz76q9: rule-draw-kf 950ms calc((220 + (1 - (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1))) * (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)))) * 105 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) backwards 1 paused;
+--animation-composition-1-0-14x7knz76q9: replace;
+--animation-timeline-1-0-14x7knz76q9: auto;
+--animation-range-1-0-14x7knz76q9: normal;
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-14x7knz76q9: var(--animation-1-0-14x7knz76q9, none);
+--animation-composition-1-14x7knz76q9: var(--animation-composition-1-0-14x7knz76q9, replace);
+--animation-timeline-1-14x7knz76q9: var(--animation-timeline-1-0-14x7knz76q9, auto);
+--animation-range-1-14x7knz76q9: var(--animation-range-1-0-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+--animation-2-mc50xd2iqh: btn-flood 820ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-mc50xd2iqh: replace;
+--animation-timeline-2-mc50xd2iqh: auto;
+--animation-range-2-mc50xd2iqh: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 320ms cubic-bezier(.16,1,.3,1) 190ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+color: #1d1d1f;
+}
+[data-interact-key="stage"] .card-surface {
+animation: var(--animation-0-aiyoxen2e3, none);
+animation-composition: var(--animation-composition-0-aiyoxen2e3, replace);
+animation-timeline: var(--animation-timeline-0-aiyoxen2e3, auto);
+animation-range: var(--animation-range-0-aiyoxen2e3, normal);
+}
+[data-interact-key="stage"] .scroll-cue {
+animation: var(--animation-0-1h1htbxa2, none);
+animation-composition: var(--animation-composition-0-1h1htbxa2, replace);
+animation-timeline: var(--animation-timeline-0-1h1htbxa2, auto);
+animation-range: var(--animation-range-0-1h1htbxa2, normal);
+}
+[data-interact-key="card"] .form-rows .rule {
+animation: var(--animation-1-14x7knz76q9, none);
+animation-composition: var(--animation-composition-1-14x7knz76q9, replace);
+animation-timeline: var(--animation-timeline-1-14x7knz76q9, auto);
+animation-range: var(--animation-range-1-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+animation: var(--animation-2-mc50xd2iqh, none);
+animation-composition: var(--animation-composition-2-mc50xd2iqh, replace);
+animation-timeline: var(--animation-timeline-2-mc50xd2iqh, auto);
+animation-range: var(--animation-range-2-mc50xd2iqh, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
 </head>
 <body>
 
 <!-- ── One stage, one card, in the first fold ── -->
-<section class="stage">
+<section class="stage" data-interact-key="stage">
   <div class="stage-wrap">
 
-    <div class="card">
+    <div class="card" data-interact-key="card">
       <i class="card-surface" aria-hidden="true"></i>
 
       <div class="card-body">
@@ -288,7 +405,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
         </form>
 
         <div class="actions">
-          <button class="btn" type="submit">
+          <button class="btn" type="submit" data-interact-key="btn-submit">
             <span class="btn-fill" aria-hidden="true"></span>
             <span class="btn-label">Submit</span>
           </button>
@@ -309,7 +426,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const SILK = 'cubic-bezier(.16,1,.3,1)';
 
@@ -458,25 +575,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[plumb-expand] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[plumb-expand] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.stage'),        'stage');

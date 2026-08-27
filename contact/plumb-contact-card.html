@@ -228,11 +228,122 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
   .card-wrap{ align-items: flex-start; padding-top: 4vh; }
 }
 </style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes card-arrive-kf {
+0% {
+transform: rotate(-10deg) scale(0.90) translateY(14vh);
+}
+100% {
+transform: rotate(0deg) scale(1) translateY(0vh);
+}
+}
+@keyframes hero-recede-kf {
+0% {
+transform: scale(1) translateY(0px);
+}
+100% {
+transform: scale(0.92) translateY(-34px);
+}
+}
+@keyframes rule-draw-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes btn-flood {
+0% {
+transform: scale(0);
+}
+100% {
+transform: scale(260);
+}
+}
+[data-interact-key="stack"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stack"] .card {
+--animation-0-m4i2d2xjgb: card-arrive-kf auto linear both 1 ;
+--animation-composition-0-m4i2d2xjgb: replace;
+--animation-timeline-0-m4i2d2xjgb: --trigger-0;
+--animation-range-0-m4i2d2xjgb: entry 0% entry 100%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="hero"] .hero-inner {
+--animation-0-4j8hpg3eni: hero-recede-kf auto linear both 1 ;
+--animation-composition-0-4j8hpg3eni: replace;
+--animation-timeline-0-4j8hpg3eni: --trigger-0;
+--animation-range-0-4j8hpg3eni: entry 0% entry 100%;
+}
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-0-14x7knz76q9: rule-draw-kf 950ms calc((260 + (1 - (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1))) * (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)))) * 105 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) backwards 1 paused;
+--animation-composition-1-0-14x7knz76q9: replace;
+--animation-timeline-1-0-14x7knz76q9: auto;
+--animation-range-1-0-14x7knz76q9: normal;
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-14x7knz76q9: var(--animation-1-0-14x7knz76q9, none);
+--animation-composition-1-14x7knz76q9: var(--animation-composition-1-0-14x7knz76q9, replace);
+--animation-timeline-1-14x7knz76q9: var(--animation-timeline-1-0-14x7knz76q9, auto);
+--animation-range-1-14x7knz76q9: var(--animation-range-1-0-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+--animation-2-mc50xd2iqh: btn-flood 820ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-mc50xd2iqh: replace;
+--animation-timeline-2-mc50xd2iqh: auto;
+--animation-range-2-mc50xd2iqh: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 320ms cubic-bezier(.16,1,.3,1) 190ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+color: #1d1d1f;
+}
+[data-interact-key="stack"] .card {
+animation: var(--animation-0-m4i2d2xjgb, none);
+animation-composition: var(--animation-composition-0-m4i2d2xjgb, replace);
+animation-timeline: var(--animation-timeline-0-m4i2d2xjgb, auto);
+animation-range: var(--animation-range-0-m4i2d2xjgb, normal);
+}
+[data-interact-key="hero"] .hero-inner {
+animation: var(--animation-0-4j8hpg3eni, none);
+animation-composition: var(--animation-composition-0-4j8hpg3eni, replace);
+animation-timeline: var(--animation-timeline-0-4j8hpg3eni, auto);
+animation-range: var(--animation-range-0-4j8hpg3eni, normal);
+}
+[data-interact-key="card"] .form-rows .rule {
+animation: var(--animation-1-14x7knz76q9, none);
+animation-composition: var(--animation-composition-1-14x7knz76q9, replace);
+animation-timeline: var(--animation-timeline-1-14x7knz76q9, auto);
+animation-range: var(--animation-range-1-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+animation: var(--animation-2-mc50xd2iqh, none);
+animation-composition: var(--animation-composition-2-mc50xd2iqh, replace);
+animation-timeline: var(--animation-timeline-2-mc50xd2iqh, auto);
+animation-range: var(--animation-range-2-mc50xd2iqh, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
 </head>
 <body>
 
 <!-- ── Hero ── -->
-<section class="hero">
+<section class="hero" data-interact-key="hero">
   <div class="hero-inner">
     <h1>Let&rsquo;s Talk</h1>
     <p>Tell us what you have in mind</p>
@@ -241,9 +352,9 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
 </section>
 
 <!-- ── The one card ── -->
-<section class="card-section">
+<section class="card-section" data-interact-key="stack">
   <div class="card-wrap">
-    <div class="card">
+    <div class="card" data-interact-key="card">
 
       <div class="card-head">
         <h2>Send us a message</h2>
@@ -279,7 +390,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
       </form>
 
       <div class="actions">
-        <button class="btn" type="submit">
+        <button class="btn" type="submit" data-interact-key="btn-submit">
           <span class="btn-fill" aria-hidden="true"></span>
           <span class="btn-label">Submit</span>
         </button>
@@ -297,7 +408,7 @@ textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
 
    Vanilla integration: no <interact-element> wrappers, keys bound to the real
    layout elements with add(), and generate(config, false). */
-import { Interact, add, generate } from 'https://esm.sh/@wix/interact@2.5.8';
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
 
 const SILK = 'cubic-bezier(.16,1,.3,1)';
 
@@ -442,25 +553,10 @@ const config = {
   ],
 };
 
-/* Optional self-check: open the page with ?debug to print the validator report. */
-if (new URLSearchParams(location.search).has('debug')) {
-  import('https://esm.sh/@wix/interact-validate@0.1.2')
-    .then(({ validateInteractConfig }) => {
-      const result = validateInteractConfig(config);
-      console.log('[plumb] valid:', result.valid);
-      for (const e of result.errors ?? []) {
-        console.warn(`[${e.severity}] ${e.code}: ${e.message} (at ${(e.path ?? []).join('.')})`);
-      }
-    })
-    .catch(err => console.warn('[plumb] validator unavailable:', err));
-}
 
 try {
-  /* useFirstChild = false for the vanilla integration */
-  const style = document.createElement('style');
-  style.textContent = generate(config, false);
-  document.head.appendChild(style);
-
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
   Interact.create(config);
 
   add(document.querySelector('.hero'),         'hero');
