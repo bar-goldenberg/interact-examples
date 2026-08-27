@@ -16,11 +16,11 @@
      body {
        margin: 0;
        font-family: "Inter", sans-serif;
-       overflow-x: hidden;
+       overflow-x: clip;
        background-color: #111827;
        color: #f3f4f6;
      }
-     /* Main scrollable area, 600vh for animation + pause */
+     /* Main scrollable area, 700vh for animation + pause */
      #scroll-section {
        position: relative;
        width: 100%;
@@ -32,7 +32,8 @@
        top: 0;
        height: 100vh;
        width: 100vw;
-       overflow: hidden;
+       /* clip (not hidden) so the ViewTimeline keeps sampling */
+       overflow: clip;
      }
      /* Base styles for the four animated panels */
      .box {
@@ -71,14 +72,17 @@
        color: white;
        z-index: 50;
      }
-     /* Letter animation styles for the title */
-     .title-letter {
-       display: inline-block;
-       /* Initial state for @wix/interact animation */
-       opacity: 0;
-       transform: translateY(20px);
+     /* FOUC guard: keep the headline hidden until @wix/splittext has split it */
+     .static-title:not([data-splittext-ready]) {
+       visibility: hidden;
      }
-     /* Dynamic Paragraph styles */
+     /* Per-character wrappers produced by @wix/splittext (default class .split-c) */
+     .static-title .split-c {
+       display: inline-block;
+       /* Initial state for the @wix/interact entrance animation */
+       opacity: 0;
+     }
+     /* Dynamic Paragraph styles — all five stack, opacity is scrub-driven */
      .dynamic-paragraph {
        position: absolute;
        top: 20vh;
@@ -87,7 +91,7 @@
        color: #d1d5db;
        z-index: 50;
        max-width: 300px;
-       opacity: 1; /* Opacity will be controlled by customEffect */
+       opacity: 0;
      }
    </style>
  </head>
@@ -105,53 +109,42 @@
    <interact-element data-interact-key="#scroll-section">
      <div id="scroll-section">
        <div id="sticky-container">
-         <!-- Static Title -->
-         <h1 class="static-title">
-           <interact-element data-interact-key=".title-letter-0"
-             ><span class="title-letter title-letter-0">T</span></interact-element
-           ><interact-element data-interact-key=".title-letter-1"
-             ><span class="title-letter title-letter-1">h</span></interact-element
-           ><interact-element data-interact-key=".title-letter-2"
-             ><span class="title-letter title-letter-2">e</span></interact-element
-           ><interact-element data-interact-key=".title-letter-3"
-             ><span class="title-letter title-letter-3">&nbsp;</span></interact-element
-           ><interact-element data-interact-key=".title-letter-4"
-             ><span class="title-letter title-letter-4">S</span></interact-element
-           ><interact-element data-interact-key=".title-letter-5"
-             ><span class="title-letter title-letter-5">t</span></interact-element
-           ><interact-element data-interact-key=".title-letter-6"
-             ><span class="title-letter title-letter-6">o</span></interact-element
-           ><interact-element data-interact-key=".title-letter-7"
-             ><span class="title-letter title-letter-7">r</span></interact-element
-           ><interact-element data-interact-key=".title-letter-8"
-             ><span class="title-letter title-letter-8">y</span></interact-element
-           ><interact-element data-interact-key=".title-letter-9"
-             ><span class="title-letter title-letter-9">&nbsp;</span></interact-element
-           ><interact-element data-interact-key=".title-letter-10"
-             ><span class="title-letter title-letter-10">o</span></interact-element
-           ><interact-element data-interact-key=".title-letter-11"
-             ><span class="title-letter title-letter-11">f</span></interact-element
-           ><interact-element data-interact-key=".title-letter-12"
-             ><span class="title-letter title-letter-12">&nbsp;</span></interact-element
-           ><interact-element data-interact-key=".title-letter-13"
-             ><span class="title-letter title-letter-13">P</span></interact-element
-           ><interact-element data-interact-key=".title-letter-14"
-             ><span class="title-letter title-letter-14">a</span></interact-element
-           ><interact-element data-interact-key=".title-letter-15"
-             ><span class="title-letter title-letter-15">n</span></interact-element
-           ><interact-element data-interact-key=".title-letter-16"
-             ><span class="title-letter title-letter-16">e</span></interact-element
-           ><interact-element data-interact-key=".title-letter-17"
-             ><span class="title-letter title-letter-17">l</span></interact-element
-           ><interact-element data-interact-key=".title-letter-18"
-             ><span class="title-letter title-letter-18">s</span></interact-element
-           >
-         </h1>
+         <!-- Static Title — split into characters at runtime by @wix/splittext -->
+         <interact-element data-interact-key="#story-title">
+           <h1 id="story-title" class="static-title">The Story of Panels</h1>
+         </interact-element>
 
 
-         <!-- Dynamic Paragraph -->
-         <interact-element data-interact-key="#dynamic-paragraph">
-            <p id="dynamic-paragraph" class="dynamic-paragraph"></p>
+         <!-- Story paragraphs: one element per beat, crossfaded by scroll -->
+         <interact-element data-interact-key="#story-text-0">
+           <p id="story-text-0" class="dynamic-paragraph">
+             The story begins with a blank canvas, a space of pure potential
+             before the first element arrives.
+           </p>
+         </interact-element>
+         <interact-element data-interact-key="#story-text-1">
+           <p id="story-text-1" class="dynamic-paragraph">
+             This is the first panel. It introduces our journey with a bold
+             statement.
+           </p>
+         </interact-element>
+         <interact-element data-interact-key="#story-text-2">
+           <p id="story-text-2" class="dynamic-paragraph">
+             The second panel builds on the first, adding complexity and a new
+             layer of color.
+           </p>
+         </interact-element>
+         <interact-element data-interact-key="#story-text-3">
+           <p id="story-text-3" class="dynamic-paragraph">
+             Our third panel shifts the mood, introducing a cooler, more
+             introspective tone.
+           </p>
+         </interact-element>
+         <interact-element data-interact-key="#story-text-4">
+           <p id="story-text-4" class="dynamic-paragraph">
+             Finally, the fourth panel concludes the story, bringing all the
+             elements into a final, cohesive view.
+           </p>
          </interact-element>
 
 
@@ -210,18 +203,16 @@
 
    <script type="module">
      import { Interact } from "https://esm.sh/@wix/interact@2.5.1/web";
+     import { splitText } from "https://esm.sh/@wix/splittext@0.1.2";
 
 
-     // --- STATE & CONSTANTS ---
-     const storyTexts = [
-       "The story begins with a blank canvas, a space of pure potential before the first element arrives.",
-       "This is the first panel. It introduces our journey with a bold statement.",
-       "The second panel builds on the first, adding complexity and a new layer of color.",
-       "Our third panel shifts the mood, introducing a cooler, more introspective tone.",
-       "Finally, the fourth panel concludes the story, bringing all the elements into a final, cohesive view.",
-     ];
-     let currentText = "";
-     const paragraph = document.getElementById("dynamic-paragraph");
+     // --- SPLIT THE HEADLINE INTO PER-CHARACTER SPANS -------------------
+     // Must run BEFORE Interact.create() so the generated `.split-c` spans
+     // exist when the effect `selector` is resolved.
+     const titleEl = document.getElementById('story-title');
+     const titleSplit = splitText(titleEl, { type: 'chars' });
+     titleEl.setAttribute('data-splittext-ready', '');
+
 
      // --- ANIMATION TIMELINE & CALCULATION CONSTANTS ---
      const pauseStartPercent = 16.67;
@@ -235,54 +226,101 @@
      const finalImageLeftVW = Math.max(5, 45 - (imageWidthVW * maxScale));
 
 
-     // --- HELPER FUNCTION for text updates ---
-     function updateText(newText) {
-       if (newText !== currentText) {
-         paragraph.style.transition = 'opacity 0.3s ease-in-out';
-         paragraph.style.opacity = '0';
-         setTimeout(() => {
-           paragraph.textContent = newText;
-           currentText = newText;
-           paragraph.style.opacity = '1';
-         }, 300);
+     // --- STORY TEXT CROSSFADE WINDOWS (as % of the cover range) ---
+     // Beat i is visible between textBounds[i] and textBounds[i + 1].
+     const textBounds = [
+       0,
+       pauseStartPercent + panelDurationPercent,        // 33.34
+       pauseStartPercent + 2 * panelDurationPercent,    // 50.01
+       pauseStartPercent + 3 * panelDurationPercent,    // 66.68
+       pauseStartPercent + 4 * panelDurationPercent,    // 83.35
+       100,
+     ];
+     const FADE = 0.015; // crossfade width in progress units
+
+
+     // Build an opacity keyframe set that keeps beat `i` visible in its window.
+     function storyTextKeyframes(i) {
+       const start = textBounds[i] / 100;
+       const end = textBounds[i + 1] / 100;
+       const keyframes = [];
+
+
+       if (start <= 0) {
+         keyframes.push({ opacity: 0, offset: 0 }, { opacity: 1, offset: FADE });
+       } else {
+         keyframes.push(
+           { opacity: 0, offset: 0 },
+           { opacity: 0, offset: start },
+           { opacity: 1, offset: Math.min(start + FADE, end) }
+         );
        }
+
+
+       if (end >= 1) {
+         keyframes.push({ opacity: 1, offset: 1 });
+       } else {
+         keyframes.push(
+           { opacity: 1, offset: Math.max(end - FADE, Math.min(start + FADE, end)) },
+           { opacity: 0, offset: end },
+           { opacity: 0, offset: 1 }
+         );
+       }
+
+
+       return keyframes;
      }
 
-     // --- HELPER to generate staggered title interactions ---
-     function buildStaggeredTitle() {
-       const letterCount = 19;
-       const interactions = [];
-       for (let i = 0; i < letterCount; i++) {
-         interactions.push({
-           key: '#scroll-section',
-           trigger: 'viewEnter',
-           params: { threshold: 0.05 },
-           effects: [{
-             key: `.title-letter-${i}`,
-             triggerType: 'once',
-             keyframeEffect: {
-               name: `title-letter-in-${i}`,
-               keyframes: [
-                 { opacity: 0, transform: 'translateY(20px)' },
-                 { opacity: 1, transform: 'translateY(0px)' }
-               ]
-             },
-             duration: 400,
-             easing: 'ease-out',
-             delay: i * 50,
-             fill: 'both'
-           }]
-         });
-       }
-       return interactions;
-     }
+
+     const storyTextEffects = textBounds.slice(0, -1).map((_, i) => ({
+       key: `#story-text-${i}`,
+       keyframeEffect: {
+         name: `story-text-${i}`,
+         keyframes: storyTextKeyframes(i),
+       },
+       rangeStart: { name: 'cover', offset: { value: 0, unit: 'percentage' } },
+       rangeEnd: { name: 'cover', offset: { value: 100, unit: 'percentage' } },
+       easing: 'linear',
+       fill: 'both',
+     }));
+
+
+     // --- Staggered title reveal, as a single sequence over the split chars ---
+     // One keyed wrapper (#story-title) + a `selector` on the effect fans the
+     // sequence out across every generated character span.
+     const titleSequence = {
+       triggerType: 'once',
+       offset: 50,
+       offsetEasing: 'linear',
+       effects: [
+         {
+           key: '#story-title',
+           selector: '.split-c',
+           keyframeEffect: {
+             name: 'title-letter-in',
+             keyframes: [
+               { opacity: 0, transform: 'translateY(20px)' },
+               { opacity: 1, transform: 'translateY(0px)' },
+             ],
+           },
+           duration: 400,
+           easing: 'ease-out',
+           fill: 'both',
+         },
+       ],
+     };
 
 
      // --- @wix/interact CONFIGURATION ---
      const config = {
        interactions: [
          // Staggered title reveal
-         ...buildStaggeredTitle(),
+         {
+           key: '#scroll-section',
+           trigger: 'viewEnter',
+           params: { threshold: 0.05 },
+           sequences: [titleSequence],
+         },
 
 
          // --- PANEL MOVEMENT ---
@@ -404,54 +442,25 @@
          },
 
 
-         // --- DYNAMIC TEXT UPDATE ---
+         // --- STORY TEXT CROSSFADE (was a customEffect, now keyframes) ---
          {
            key: '#scroll-section',
            trigger: 'viewProgress',
-           effects: [{
-             key: '#dynamic-paragraph',
-             customEffect: (el, progress) => {
-               const p1End = (pauseStartPercent + panelDurationPercent) / 100;
-               const p2End = (pauseStartPercent + 2 * panelDurationPercent) / 100;
-               const p3End = (pauseStartPercent + 3 * panelDurationPercent) / 100;
-               const p4End = (pauseStartPercent + 4 * panelDurationPercent) / 100;
-
-
-               let textIndex;
-               if (progress >= p4End) {
-                   textIndex = 4;
-               } else if (progress >= p3End) {
-                   textIndex = 3;
-               } else if (progress >= p2End) {
-                   textIndex = 2;
-               } else if (progress >= p1End) {
-                   textIndex = 1;
-               } else {
-                   textIndex = 0;
-               }
-               updateText(storyTexts[textIndex]);
-             },
-             rangeStart: { name: 'cover', offset: { value: 0, unit: 'percentage' } },
-             rangeEnd: { name: 'cover', offset: { value: 100, unit: 'percentage' } },
-             fill: 'both'
-           }]
+           effects: storyTextEffects
          }
        ]
      };
 
 
      // Initialize all interactions
-     document.addEventListener('DOMContentLoaded', () => {
-       document.getElementById('box1').style.left = box1Left;
-       document.getElementById('box2').style.left = box2Left;
-       document.getElementById('box3').style.left = box3Left;
-       document.getElementById('box4').style.left = box4Left;
-       document.querySelectorAll('.panel-image').forEach(el => {
-         el.style.width = imageWidthVW + 'vw';
-       });
-       Interact.create(config);
-       updateText(storyTexts[0]);
+     document.getElementById('box1').style.left = box1Left;
+     document.getElementById('box2').style.left = box2Left;
+     document.getElementById('box3').style.left = box3Left;
+     document.getElementById('box4').style.left = box4Left;
+     document.querySelectorAll('.panel-image').forEach(el => {
+       el.style.width = imageWidthVW + 'vw';
      });
+     Interact.create(config);
    </script>
  </body>
 </html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Pixel Dissolve</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   PIXEL DISSOLVE — CONTACT
+   Same page as the cascade flip: black, standing copy left, dark form card right.
+   Different way in.
+
+   The white curtain is a 28 × 16 grid of near-square tiles — 448 of them, each
+   about 50px, small enough to read as pixels rather than panels. They switch off
+   one by one — each holds at full opacity and then blinks out in 40ms, no shrink,
+   no fade to sit and watch — and the page appears underneath as the coverage
+   thins. It looks like an image resolving.
+
+   The order is the whole trick. A sequence staggers its targets in DOM ORDER, not
+   in layout order, so every tile is placed explicitly with `grid-area` and the
+   markup is emitted in the order they should go. That order was generated as a
+   diagonal sweep with heavy jitter — sorted by `x + 0.6y + noise` — so the
+   dissolve travels from the top-left corner without any straight edge to it:
+   individual pixels run ahead of the front and others lag behind it.
+
+   Because the order is baked into the markup, no JavaScript computes anything at
+   runtime and the stagger stays a plain 2.2ms per tile, linear.
+
+   Two notes:
+   - Each tile carries a 1px ring of its own white (`box-shadow`), because
+     fractional cell sizes otherwise leave sub-pixel cracks that read as a faint
+     grid over the whole curtain.
+   - Content safety: the tiles are `opacity: 0` in CSS — invisible. The covered
+     state is the animation's FIRST keyframe, held by `fill: 'backwards'` and
+     painted by `generate()`. If the library fails to load, or the visitor prefers
+     reduced motion, the curtain never exists and the page is simply there. It
+     cannot get stuck covering the content.
+   - No `will-change` on the tiles: at 448 elements it would ask the compositor
+     for 448 layers up front. A plain transform on a small square is cheap enough.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --black:#000000;
+  --card:#1a1a1a;
+  --field:#222222;
+  --field-line:#2e2e2e;
+  --white:#ffffff;
+  --dim:#9a9a9a;
+  --placeholder:#7c7c7c;
+  --sheet:#ffffff;               /* was the brand blue — the curtain and the
+                                    button are now plain white */
+  --sheet-hi:#e6e6e6;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;              /* NOT hidden */
+}
+
+/* ── The two columns ── */
+.main{
+  position: relative;
+  z-index: 1;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 5rem 2rem 7rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
+  gap: 5.5rem;
+  align-items: start;
+}
+.standfirst{
+  font-size: 1.28rem;
+  line-height: 1.52;
+  letter-spacing: -0.008em;
+  color: var(--white);
+  max-width: 27ch;
+}
+
+/* ── The form card ── */
+.card{
+  background: var(--card);
+  border-radius: 14px;
+  padding: 2.4rem 2.3rem 2.6rem;
+  container-type: inline-size;
+}
+.card h2{
+  font-size: 1.42rem;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin-bottom: .75rem;
+}
+.card .note{
+  font-size: .92rem;
+  color: var(--dim);
+  margin-bottom: 1.9rem;
+}
+
+.field{ margin-bottom: 1.35rem; }
+.field:last-of-type{ margin-bottom: 0; }
+.field label{
+  display: block;
+  font-size: .95rem;
+  margin-bottom: .62rem;
+}
+.control{
+  width: 100%;
+  height: 48px;
+  font: inherit; font-size: .95rem;
+  color: var(--white);
+  background: var(--field);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 1rem;
+  transition: border-color .22s var(--ease), background-color .22s var(--ease);
+}
+.control::placeholder{ color: var(--placeholder); }
+.control:hover{ border-color: var(--field-line); }
+.control:focus{ outline: none; border-color: #5a7fa8; background: #262626; }
+textarea.control{
+  height: auto; min-height: 118px;
+  padding: .85rem 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* the phone row: country code, then the number */
+.row-phone{
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: .75rem;
+}
+/* native selects, restyled — the chevron is drawn with gradients so it takes the
+   field's colours rather than the OS palette */
+select.control{
+  appearance: none;
+  padding-right: 2.4rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 21px,
+    calc(100% - 14px) 21px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+select.control option{ background: var(--card); color: var(--white); }
+
+.submit{
+  margin-top: 1.9rem;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 0; border-radius: 6px;
+  background: var(--sheet); color: #111;
+  padding: .92rem 2.2rem;
+}
+
+/* ── The curtain: a 28 × 16 pixel grid ──
+   `opacity: 0` on purpose: the covered state belongs to the animation, not to the
+   stylesheet — see the note at the top of the file. */
+.pixels{
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  grid-template-rows: repeat(16, 1fr);
+  pointer-events: none;          /* decorative, and never in the way */
+}
+.px{
+  background: var(--sheet);
+  /* No seams: fractional cell sizes leave sub-pixel cracks between tiles that read
+     as a faint grid over the curtain. This ring paints 1px of the same white just
+     outside each tile and closes them. */
+  box-shadow: 0 0 0 1px var(--sheet);
+  opacity: 0;                    /* the off state: a pixel is either on or gone */
+  /* every tile carries its own grid-area inline, because the markup order is the
+     animation order and no longer the layout order */
+}
+
+/* ── Responsive ── */
+@media (max-width: 1080px){
+  .main{
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.8rem;
+    padding: 3rem 1.25rem 4rem;
+  }
+  .standfirst{ font-size: 1.12rem; max-width: 46ch; }
+  .card{ padding: 1.7rem 1.4rem 2rem; }
+}
+@container (max-width: 420px){
+  .row-phone{ grid-template-columns: 88px minmax(0, 1fr); }
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes px-out-kf {
+0% {
+opacity: 1;
+}
+33.33% {
+opacity: 1;
+}
+66.67% {
+opacity: 1;
+}
+100% {
+opacity: 0;
+}
+}
+[data-interact-key="pixels"] .px {
+--animation-0-0-19yjt5jtnf: px-out-kf 160ms calc((0 + (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)) * 3 * var(--motion-seq-0-0-last, 1)) * 1ms) linear backwards 1 paused;
+--animation-composition-0-0-19yjt5jtnf: replace;
+--animation-timeline-0-0-19yjt5jtnf: auto;
+--animation-range-0-0-19yjt5jtnf: normal;
+}
+[data-interact-key="pixels"] .px {
+--animation-0-19yjt5jtnf: var(--animation-0-0-19yjt5jtnf, none);
+--animation-composition-0-19yjt5jtnf: var(--animation-composition-0-0-19yjt5jtnf, replace);
+--animation-timeline-0-19yjt5jtnf: var(--animation-timeline-0-0-19yjt5jtnf, auto);
+--animation-range-0-19yjt5jtnf: var(--animation-range-0-0-19yjt5jtnf, normal);
+}
+[data-interact-key="send"] {
+--transition-1-kfvkw7fuj8: background-color 220ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="send"]:is(:state(eff-1-0), :--eff-1-0, [data-interact-effect~="eff-1-0"]) {
+background-color: #e6e6e6;
+}
+[data-interact-key="pixels"] .px {
+animation: var(--animation-0-19yjt5jtnf, none);
+animation-composition: var(--animation-composition-0-19yjt5jtnf, replace);
+animation-timeline: var(--animation-timeline-0-19yjt5jtnf, auto);
+animation-range: var(--animation-range-0-19yjt5jtnf, normal);
+}
+[data-interact-key="send"] {
+transition: var(--transition-1-kfvkw7fuj8, _);
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Copy + form ── -->
+  <main class="main">
+
+    <p class="standfirst">
+      Please complete the form to reach our team regarding career opportunities,
+      investor inquiries, or supplier partnerships. We will review your message
+      and respond as soon as possible.
+    </p>
+
+    <section class="card">
+      <h2>Send Us an Email</h2>
+      <p class="note">Please fill in the information below. Fields marked with * are required.</p>
+
+      <form novalidate>
+
+        <div class="field">
+          <label for="name">Name *</label>
+          <input class="control" id="name" name="name" type="text" placeholder="Enter your name" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="company">Company</label>
+          <input class="control" id="company" name="company" type="text" placeholder="Enter your company" autocomplete="organization">
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone *</label>
+          <div class="row-phone">
+            <select class="control" id="dial" name="dial" aria-label="Country code">
+              <option>+1</option>
+              <option>+44</option>
+              <option>+972</option>
+              <option>+49</option>
+            </select>
+            <input class="control" id="phone" name="phone" type="tel" placeholder="Enter your number" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inquiry">Inquiry Type *</label>
+          <select class="control" id="inquiry" name="inquiry" required>
+            <option value="" disabled selected>Select your inquiry type</option>
+            <option>Careers</option>
+            <option>Investors</option>
+            <option>Suppliers</option>
+            <option>Press</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea class="control" id="message" name="message" placeholder="Enter your message"></textarea>
+        </div>
+
+        <button class="submit" type="submit" data-interact-key="send">Send message</button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ── The curtain: 448 tiles, emitted in dissolve order. Each one
+       states its own cell, so DOM order is free to be the timeline. ── -->
+  <div class="pixels" aria-hidden="true" data-interact-key="pixels">
+    <i class="px" style="grid-area:1/2"></i><i class="px" style="grid-area:3/1"></i><i class="px" style="grid-area:2/1"></i><i class="px" style="grid-area:1/1"></i><i class="px" style="grid-area:1/4"></i><i class="px" style="grid-area:4/1"></i><i class="px" style="grid-area:4/2"></i>
+    <i class="px" style="grid-area:1/7"></i><i class="px" style="grid-area:2/6"></i><i class="px" style="grid-area:2/2"></i><i class="px" style="grid-area:6/2"></i><i class="px" style="grid-area:2/4"></i><i class="px" style="grid-area:2/7"></i><i class="px" style="grid-area:5/4"></i>
+    <i class="px" style="grid-area:1/3"></i><i class="px" style="grid-area:4/5"></i><i class="px" style="grid-area:1/6"></i><i class="px" style="grid-area:1/9"></i><i class="px" style="grid-area:6/1"></i><i class="px" style="grid-area:4/3"></i><i class="px" style="grid-area:2/3"></i>
+    <i class="px" style="grid-area:1/5"></i><i class="px" style="grid-area:5/1"></i><i class="px" style="grid-area:3/2"></i><i class="px" style="grid-area:7/1"></i><i class="px" style="grid-area:7/2"></i><i class="px" style="grid-area:2/8"></i><i class="px" style="grid-area:3/6"></i>
+    <i class="px" style="grid-area:2/5"></i><i class="px" style="grid-area:3/4"></i><i class="px" style="grid-area:10/2"></i><i class="px" style="grid-area:1/11"></i><i class="px" style="grid-area:5/2"></i><i class="px" style="grid-area:3/3"></i><i class="px" style="grid-area:9/4"></i>
+    <i class="px" style="grid-area:9/1"></i><i class="px" style="grid-area:1/8"></i><i class="px" style="grid-area:9/3"></i><i class="px" style="grid-area:1/12"></i><i class="px" style="grid-area:6/7"></i><i class="px" style="grid-area:8/5"></i><i class="px" style="grid-area:4/6"></i>
+    <i class="px" style="grid-area:5/3"></i><i class="px" style="grid-area:8/2"></i><i class="px" style="grid-area:1/10"></i><i class="px" style="grid-area:6/8"></i><i class="px" style="grid-area:6/5"></i><i class="px" style="grid-area:10/5"></i><i class="px" style="grid-area:2/11"></i>
+    <i class="px" style="grid-area:2/10"></i><i class="px" style="grid-area:3/5"></i><i class="px" style="grid-area:4/4"></i><i class="px" style="grid-area:4/7"></i><i class="px" style="grid-area:10/4"></i><i class="px" style="grid-area:10/1"></i><i class="px" style="grid-area:9/2"></i>
+    <i class="px" style="grid-area:3/7"></i><i class="px" style="grid-area:3/8"></i><i class="px" style="grid-area:11/1"></i><i class="px" style="grid-area:6/6"></i><i class="px" style="grid-area:14/1"></i><i class="px" style="grid-area:6/3"></i><i class="px" style="grid-area:8/1"></i>
+    <i class="px" style="grid-area:1/15"></i><i class="px" style="grid-area:5/11"></i><i class="px" style="grid-area:12/1"></i><i class="px" style="grid-area:2/9"></i><i class="px" style="grid-area:3/10"></i><i class="px" style="grid-area:8/3"></i><i class="px" style="grid-area:3/9"></i>
+    <i class="px" style="grid-area:10/3"></i><i class="px" style="grid-area:7/3"></i><i class="px" style="grid-area:4/11"></i><i class="px" style="grid-area:5/9"></i><i class="px" style="grid-area:1/13"></i><i class="px" style="grid-area:14/2"></i><i class="px" style="grid-area:14/3"></i>
+    <i class="px" style="grid-area:5/6"></i><i class="px" style="grid-area:5/5"></i><i class="px" style="grid-area:11/2"></i><i class="px" style="grid-area:6/9"></i><i class="px" style="grid-area:7/9"></i><i class="px" style="grid-area:13/1"></i><i class="px" style="grid-area:6/10"></i>
+    <i class="px" style="grid-area:3/15"></i><i class="px" style="grid-area:2/14"></i><i class="px" style="grid-area:5/13"></i><i class="px" style="grid-area:5/10"></i><i class="px" style="grid-area:11/3"></i><i class="px" style="grid-area:12/2"></i><i class="px" style="grid-area:10/7"></i>
+    <i class="px" style="grid-area:12/5"></i><i class="px" style="grid-area:1/16"></i><i class="px" style="grid-area:2/13"></i><i class="px" style="grid-area:6/4"></i><i class="px" style="grid-area:2/12"></i><i class="px" style="grid-area:6/13"></i><i class="px" style="grid-area:8/4"></i>
+    <i class="px" style="grid-area:7/12"></i><i class="px" style="grid-area:6/12"></i><i class="px" style="grid-area:16/3"></i><i class="px" style="grid-area:15/1"></i><i class="px" style="grid-area:5/14"></i><i class="px" style="grid-area:4/12"></i><i class="px" style="grid-area:13/4"></i>
+    <i class="px" style="grid-area:13/5"></i><i class="px" style="grid-area:7/5"></i><i class="px" style="grid-area:5/7"></i><i class="px" style="grid-area:4/8"></i><i class="px" style="grid-area:7/4"></i><i class="px" style="grid-area:8/6"></i><i class="px" style="grid-area:3/13"></i>
+    <i class="px" style="grid-area:4/13"></i><i class="px" style="grid-area:5/8"></i><i class="px" style="grid-area:14/4"></i><i class="px" style="grid-area:4/9"></i><i class="px" style="grid-area:16/1"></i><i class="px" style="grid-area:7/13"></i><i class="px" style="grid-area:7/6"></i>
+    <i class="px" style="grid-area:8/11"></i><i class="px" style="grid-area:9/7"></i><i class="px" style="grid-area:2/17"></i><i class="px" style="grid-area:9/6"></i><i class="px" style="grid-area:7/11"></i><i class="px" style="grid-area:4/16"></i><i class="px" style="grid-area:3/11"></i>
+    <i class="px" style="grid-area:7/7"></i><i class="px" style="grid-area:11/8"></i><i class="px" style="grid-area:4/10"></i><i class="px" style="grid-area:7/10"></i><i class="px" style="grid-area:7/8"></i><i class="px" style="grid-area:16/2"></i><i class="px" style="grid-area:5/15"></i>
+    <i class="px" style="grid-area:9/9"></i><i class="px" style="grid-area:12/6"></i><i class="px" style="grid-area:1/14"></i><i class="px" style="grid-area:14/5"></i><i class="px" style="grid-area:8/10"></i><i class="px" style="grid-area:5/16"></i><i class="px" style="grid-area:10/8"></i>
+    <i class="px" style="grid-area:4/17"></i><i class="px" style="grid-area:11/5"></i><i class="px" style="grid-area:5/12"></i><i class="px" style="grid-area:3/14"></i><i class="px" style="grid-area:9/5"></i><i class="px" style="grid-area:15/7"></i><i class="px" style="grid-area:9/12"></i>
+    <i class="px" style="grid-area:12/9"></i><i class="px" style="grid-area:8/8"></i><i class="px" style="grid-area:14/6"></i><i class="px" style="grid-area:13/9"></i><i class="px" style="grid-area:1/22"></i><i class="px" style="grid-area:8/7"></i><i class="px" style="grid-area:6/16"></i>
+    <i class="px" style="grid-area:12/8"></i><i class="px" style="grid-area:3/12"></i><i class="px" style="grid-area:10/6"></i><i class="px" style="grid-area:1/17"></i><i class="px" style="grid-area:5/18"></i><i class="px" style="grid-area:13/2"></i><i class="px" style="grid-area:7/14"></i>
+    <i class="px" style="grid-area:13/3"></i><i class="px" style="grid-area:11/4"></i><i class="px" style="grid-area:12/4"></i><i class="px" style="grid-area:8/9"></i><i class="px" style="grid-area:13/10"></i><i class="px" style="grid-area:16/4"></i><i class="px" style="grid-area:12/7"></i>
+    <i class="px" style="grid-area:2/15"></i><i class="px" style="grid-area:5/19"></i><i class="px" style="grid-area:4/18"></i><i class="px" style="grid-area:2/16"></i><i class="px" style="grid-area:15/5"></i><i class="px" style="grid-area:8/13"></i><i class="px" style="grid-area:10/11"></i>
+    <i class="px" style="grid-area:12/3"></i><i class="px" style="grid-area:6/18"></i><i class="px" style="grid-area:1/20"></i><i class="px" style="grid-area:7/15"></i><i class="px" style="grid-area:9/13"></i><i class="px" style="grid-area:6/11"></i><i class="px" style="grid-area:12/12"></i>
+    <i class="px" style="grid-area:11/12"></i><i class="px" style="grid-area:15/6"></i><i class="px" style="grid-area:15/8"></i><i class="px" style="grid-area:15/3"></i><i class="px" style="grid-area:15/2"></i><i class="px" style="grid-area:1/19"></i><i class="px" style="grid-area:2/18"></i>
+    <i class="px" style="grid-area:4/19"></i><i class="px" style="grid-area:14/8"></i><i class="px" style="grid-area:5/17"></i><i class="px" style="grid-area:15/9"></i><i class="px" style="grid-area:11/6"></i><i class="px" style="grid-area:3/16"></i><i class="px" style="grid-area:12/10"></i>
+    <i class="px" style="grid-area:15/4"></i><i class="px" style="grid-area:10/10"></i><i class="px" style="grid-area:11/9"></i><i class="px" style="grid-area:16/7"></i><i class="px" style="grid-area:11/13"></i><i class="px" style="grid-area:3/20"></i><i class="px" style="grid-area:13/7"></i>
+    <i class="px" style="grid-area:2/19"></i><i class="px" style="grid-area:16/9"></i><i class="px" style="grid-area:9/8"></i><i class="px" style="grid-area:3/17"></i><i class="px" style="grid-area:10/9"></i><i class="px" style="grid-area:6/15"></i><i class="px" style="grid-area:16/5"></i>
+    <i class="px" style="grid-area:9/14"></i><i class="px" style="grid-area:4/14"></i><i class="px" style="grid-area:14/10"></i><i class="px" style="grid-area:3/23"></i><i class="px" style="grid-area:10/15"></i><i class="px" style="grid-area:5/20"></i><i class="px" style="grid-area:9/15"></i>
+    <i class="px" style="grid-area:2/22"></i><i class="px" style="grid-area:14/12"></i><i class="px" style="grid-area:11/7"></i><i class="px" style="grid-area:2/24"></i><i class="px" style="grid-area:5/21"></i><i class="px" style="grid-area:10/12"></i><i class="px" style="grid-area:11/15"></i>
+    <i class="px" style="grid-area:4/23"></i><i class="px" style="grid-area:9/10"></i><i class="px" style="grid-area:13/13"></i><i class="px" style="grid-area:16/6"></i><i class="px" style="grid-area:1/25"></i><i class="px" style="grid-area:8/12"></i><i class="px" style="grid-area:1/18"></i>
+    <i class="px" style="grid-area:3/21"></i><i class="px" style="grid-area:1/24"></i><i class="px" style="grid-area:12/15"></i><i class="px" style="grid-area:4/15"></i><i class="px" style="grid-area:9/11"></i><i class="px" style="grid-area:13/6"></i><i class="px" style="grid-area:13/8"></i>
+    <i class="px" style="grid-area:8/16"></i><i class="px" style="grid-area:1/26"></i><i class="px" style="grid-area:6/17"></i><i class="px" style="grid-area:14/9"></i><i class="px" style="grid-area:5/23"></i><i class="px" style="grid-area:10/13"></i><i class="px" style="grid-area:14/7"></i>
+    <i class="px" style="grid-area:4/20"></i><i class="px" style="grid-area:4/22"></i><i class="px" style="grid-area:16/11"></i><i class="px" style="grid-area:9/17"></i><i class="px" style="grid-area:14/11"></i><i class="px" style="grid-area:14/14"></i><i class="px" style="grid-area:6/14"></i>
+    <i class="px" style="grid-area:8/17"></i><i class="px" style="grid-area:15/11"></i><i class="px" style="grid-area:16/10"></i><i class="px" style="grid-area:11/17"></i><i class="px" style="grid-area:15/12"></i><i class="px" style="grid-area:16/8"></i><i class="px" style="grid-area:7/18"></i>
+    <i class="px" style="grid-area:13/12"></i><i class="px" style="grid-area:15/13"></i><i class="px" style="grid-area:11/14"></i><i class="px" style="grid-area:3/19"></i><i class="px" style="grid-area:7/16"></i><i class="px" style="grid-area:8/14"></i><i class="px" style="grid-area:9/19"></i>
+    <i class="px" style="grid-area:3/25"></i><i class="px" style="grid-area:2/21"></i><i class="px" style="grid-area:11/16"></i><i class="px" style="grid-area:10/17"></i><i class="px" style="grid-area:8/20"></i><i class="px" style="grid-area:14/13"></i><i class="px" style="grid-area:2/20"></i>
+    <i class="px" style="grid-area:11/10"></i><i class="px" style="grid-area:6/19"></i><i class="px" style="grid-area:3/18"></i><i class="px" style="grid-area:12/11"></i><i class="px" style="grid-area:11/11"></i><i class="px" style="grid-area:16/13"></i><i class="px" style="grid-area:3/26"></i>
+    <i class="px" style="grid-area:2/27"></i><i class="px" style="grid-area:4/21"></i><i class="px" style="grid-area:5/22"></i><i class="px" style="grid-area:8/21"></i><i class="px" style="grid-area:12/14"></i><i class="px" style="grid-area:12/13"></i><i class="px" style="grid-area:3/27"></i>
+    <i class="px" style="grid-area:9/16"></i><i class="px" style="grid-area:1/27"></i><i class="px" style="grid-area:1/21"></i><i class="px" style="grid-area:13/11"></i><i class="px" style="grid-area:2/25"></i><i class="px" style="grid-area:10/18"></i><i class="px" style="grid-area:16/14"></i>
+    <i class="px" style="grid-area:3/22"></i><i class="px" style="grid-area:9/18"></i><i class="px" style="grid-area:3/24"></i><i class="px" style="grid-area:13/17"></i><i class="px" style="grid-area:10/16"></i><i class="px" style="grid-area:10/14"></i><i class="px" style="grid-area:12/16"></i>
+    <i class="px" style="grid-area:6/23"></i><i class="px" style="grid-area:8/22"></i><i class="px" style="grid-area:1/23"></i><i class="px" style="grid-area:4/24"></i><i class="px" style="grid-area:8/15"></i><i class="px" style="grid-area:12/19"></i><i class="px" style="grid-area:7/23"></i>
+    <i class="px" style="grid-area:16/12"></i><i class="px" style="grid-area:15/10"></i><i class="px" style="grid-area:4/25"></i><i class="px" style="grid-area:5/26"></i><i class="px" style="grid-area:7/22"></i><i class="px" style="grid-area:6/25"></i><i class="px" style="grid-area:7/17"></i>
+    <i class="px" style="grid-area:13/19"></i><i class="px" style="grid-area:7/24"></i><i class="px" style="grid-area:14/17"></i><i class="px" style="grid-area:6/24"></i><i class="px" style="grid-area:9/21"></i><i class="px" style="grid-area:2/23"></i><i class="px" style="grid-area:8/19"></i>
+    <i class="px" style="grid-area:11/21"></i><i class="px" style="grid-area:7/25"></i><i class="px" style="grid-area:13/15"></i><i class="px" style="grid-area:2/28"></i><i class="px" style="grid-area:5/27"></i><i class="px" style="grid-area:16/15"></i><i class="px" style="grid-area:6/22"></i>
+    <i class="px" style="grid-area:8/25"></i><i class="px" style="grid-area:7/19"></i><i class="px" style="grid-area:16/16"></i><i class="px" style="grid-area:2/26"></i><i class="px" style="grid-area:8/18"></i><i class="px" style="grid-area:10/20"></i><i class="px" style="grid-area:6/21"></i>
+    <i class="px" style="grid-area:6/20"></i><i class="px" style="grid-area:7/26"></i><i class="px" style="grid-area:12/18"></i><i class="px" style="grid-area:12/17"></i><i class="px" style="grid-area:15/17"></i><i class="px" style="grid-area:4/26"></i><i class="px" style="grid-area:9/22"></i>
+    <i class="px" style="grid-area:11/18"></i><i class="px" style="grid-area:14/20"></i><i class="px" style="grid-area:14/16"></i><i class="px" style="grid-area:5/25"></i><i class="px" style="grid-area:15/18"></i><i class="px" style="grid-area:13/14"></i><i class="px" style="grid-area:7/20"></i>
+    <i class="px" style="grid-area:14/15"></i><i class="px" style="grid-area:5/28"></i><i class="px" style="grid-area:1/28"></i><i class="px" style="grid-area:10/19"></i><i class="px" style="grid-area:12/23"></i><i class="px" style="grid-area:10/21"></i><i class="px" style="grid-area:11/24"></i>
+    <i class="px" style="grid-area:13/16"></i><i class="px" style="grid-area:7/21"></i><i class="px" style="grid-area:14/18"></i><i class="px" style="grid-area:5/24"></i><i class="px" style="grid-area:15/14"></i><i class="px" style="grid-area:15/19"></i><i class="px" style="grid-area:11/19"></i>
+    <i class="px" style="grid-area:9/20"></i><i class="px" style="grid-area:9/23"></i><i class="px" style="grid-area:15/16"></i><i class="px" style="grid-area:12/25"></i><i class="px" style="grid-area:3/28"></i><i class="px" style="grid-area:6/27"></i><i class="px" style="grid-area:15/21"></i>
+    <i class="px" style="grid-area:9/25"></i><i class="px" style="grid-area:4/28"></i><i class="px" style="grid-area:10/24"></i><i class="px" style="grid-area:15/15"></i><i class="px" style="grid-area:13/22"></i><i class="px" style="grid-area:13/21"></i><i class="px" style="grid-area:12/24"></i>
+    <i class="px" style="grid-area:16/17"></i><i class="px" style="grid-area:6/26"></i><i class="px" style="grid-area:10/22"></i><i class="px" style="grid-area:13/18"></i><i class="px" style="grid-area:8/23"></i><i class="px" style="grid-area:16/18"></i><i class="px" style="grid-area:11/20"></i>
+    <i class="px" style="grid-area:8/24"></i><i class="px" style="grid-area:4/27"></i><i class="px" style="grid-area:15/20"></i><i class="px" style="grid-area:7/27"></i><i class="px" style="grid-area:11/22"></i><i class="px" style="grid-area:11/23"></i><i class="px" style="grid-area:11/27"></i>
+    <i class="px" style="grid-area:14/22"></i><i class="px" style="grid-area:12/21"></i><i class="px" style="grid-area:13/26"></i><i class="px" style="grid-area:9/27"></i><i class="px" style="grid-area:10/25"></i><i class="px" style="grid-area:10/26"></i><i class="px" style="grid-area:13/25"></i>
+    <i class="px" style="grid-area:15/23"></i><i class="px" style="grid-area:6/28"></i><i class="px" style="grid-area:13/20"></i><i class="px" style="grid-area:12/20"></i><i class="px" style="grid-area:9/24"></i><i class="px" style="grid-area:13/23"></i><i class="px" style="grid-area:10/23"></i>
+    <i class="px" style="grid-area:15/22"></i><i class="px" style="grid-area:12/28"></i><i class="px" style="grid-area:8/26"></i><i class="px" style="grid-area:12/27"></i><i class="px" style="grid-area:10/27"></i><i class="px" style="grid-area:14/19"></i><i class="px" style="grid-area:14/23"></i>
+    <i class="px" style="grid-area:9/28"></i><i class="px" style="grid-area:8/28"></i><i class="px" style="grid-area:16/19"></i><i class="px" style="grid-area:16/20"></i><i class="px" style="grid-area:14/21"></i><i class="px" style="grid-area:14/25"></i><i class="px" style="grid-area:16/23"></i>
+    <i class="px" style="grid-area:12/22"></i><i class="px" style="grid-area:7/28"></i><i class="px" style="grid-area:9/26"></i><i class="px" style="grid-area:16/24"></i><i class="px" style="grid-area:13/28"></i><i class="px" style="grid-area:16/26"></i><i class="px" style="grid-area:8/27"></i>
+    <i class="px" style="grid-area:16/21"></i><i class="px" style="grid-area:11/25"></i><i class="px" style="grid-area:10/28"></i><i class="px" style="grid-area:15/27"></i><i class="px" style="grid-area:14/26"></i><i class="px" style="grid-area:13/27"></i><i class="px" style="grid-area:12/26"></i>
+    <i class="px" style="grid-area:13/24"></i><i class="px" style="grid-area:14/24"></i><i class="px" style="grid-area:11/26"></i><i class="px" style="grid-area:15/26"></i><i class="px" style="grid-area:16/22"></i><i class="px" style="grid-area:14/27"></i><i class="px" style="grid-area:11/28"></i>
+    <i class="px" style="grid-area:15/24"></i><i class="px" style="grid-area:15/25"></i><i class="px" style="grid-area:16/27"></i><i class="px" style="grid-area:16/28"></i><i class="px" style="grid-area:16/25"></i><i class="px" style="grid-area:14/28"></i><i class="px" style="grid-area:15/28"></i>
+  </div>
+
+</div>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
+/* CRITICAL — one effectId per effect, and one keyframe name per effect, never
+   shared. The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`, so two effects pointing at
+   the same registry entry collapse into one id: only the first survives, while
+   generate() has already emitted the initial rules for both. Here there is a
+   single effect and a single reference to it, played once per tile by the
+   sequence below. */
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: {
+    /* ── one pixel going out ──
+       A switch, not a shrink. The tile holds at full opacity for three quarters of
+       its 160ms and then drops in the last 40ms, which at this size reads as an
+       instant blink off — no growing gap, no half-scaled square lingering in the
+       middle of the grid.
+
+       The plateau is built from repeated keyframes rather than a `steps()` easing
+       on purpose: keyframes are spaced evenly and interpolated linearly, which is
+       behaviour I can count on, whereas a step function is a string the library
+       would have to pass through untouched. If it did not, the tiles would be the
+       thing that breaks — and they are what covers the page. */
+    'px-out': {
+      duration: 160,
+      easing: 'linear',
+      fill: 'backwards',         /* holds the tile lit until its turn */
+      triggerType: 'once',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'px-out-kf',
+        keyframes: [
+          { opacity: 1 },
+          { opacity: 1 },
+          { opacity: 1 },
+          { opacity: 0 },
+        ],
+      },
+    },
+  },
+
+  interactions: [
+    /* The dissolve. One sequence over all 448 tiles: `selector: '.px'` collects
+       them and `offset` is the gap between consecutive ones in DOM order, which
+       the markup has already shuffled into a jittered diagonal. 448 × 3.2ms is
+       about 1.4s of spread, and each tile blinks off in 40ms of that. */
+    {
+      key: 'pixels',
+      trigger: 'viewEnter',
+      params: { threshold: 0 },
+      sequences: [{
+        delay: 0,
+        /* Integer milliseconds. The runtime tolerates a fractional offset, but
+           the config schema rejects it, so the file failed validation as
+           authored. 3 vs 3.2 is 0.2ms per step — no visible change. */
+        offset: 3,
+        offsetEasing: 'linear',
+        effects: [{ effectId: 'px-out', selector: '.px' }],
+      }],
+    },
+
+    /* The button warms up on interest — `interest` rather than `hover` so
+       keyboard focus counts too. A StateEffect, not keyframes: a transform on a
+       hover source would shift its own hit area and cause re-entry jitter. */
+    {
+      key: 'send',
+      trigger: 'interest',
+      effects: [{
+        stateAction: 'toggle',
+        transition: {
+          duration: 220,
+          easing: EASE,
+          styleProperties: [{ name: 'background-color', value: '#e6e6e6' }],
+        },
+      }],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  add(document.querySelector('.pixels'), 'pixels');
+  add(document.querySelector('.submit'), 'send');
+} catch (err) {
+  /* Nothing to un-hide: with no library there is no curtain, and the page is
+     simply visible. */
+  console.error('[pixel-dissolve] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

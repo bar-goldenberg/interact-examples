@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get in Touch — Plumb (card expands to fullscreen)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   PLUMB — CARD EXPANDS TO FULLSCREEN
+   No hero, no "Let's Talk", nothing before the form: the card is centred in the
+   first fold from the first frame, already legible, already usable. Scrolling
+   does one thing — the card's white surface grows until it is exactly 100vw ×
+   100vh, and its corner radius unwinds from 20px to 0 on the way, so the card
+   stops being a card and becomes the page.
+
+   The one structural idea worth knowing:
+
+   The card is split into a `.card-surface` and a `.card-body`. Only the surface
+   is animated — it holds the white fill, the border, the radius and the shadow,
+   and nothing else. The content sits above it, untouched, so the type never
+   stretches or shifts: growing the card does not grow the form inside it. A
+   `transform: scale()` on the card itself could not do this, since it would
+   distort every glyph with it.
+
+   The surface animates `width` / `height` / `border-radius` / `box-shadow`, not
+   transforms. That is deliberate — the end state must be exactly the viewport,
+   and only real lengths can say that. It is a handful of layout frames per
+   scroll, on a single absolutely positioned element with layout containment
+   around it, so it stays cheap.
+
+   Carried over from the earlier files, still true:
+   - `overflow` must be `clip`, never `hidden`, on every ancestor between the
+     timeline source and the scroll container, or ViewTimeline breaks silently.
+   - The sticky wrap is a poor timeline source; the tall `.stage` is the source
+     and the surface inside it is the target.
+   - The source starts at the top of the document, so its `entry` range is
+     already spent at scroll 0 — the scrubbed effects use `contain`, which for a
+     source taller than the viewport is the stuck phase, opening at scroll 0.
+   - Nothing is hidden in CSS. Every effect carries its own first keyframe and
+     `fill`, so a failed import costs the animation, never the content.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --ink:#1d1d1f;
+  --muted:#6e6e73;
+  --faint:#86868b;
+  --line:#d2d2d7;
+  --bg:#f2f2f5;
+  --silk:cubic-bezier(.16,1,.3,1);
+}
+
+html{ overflow-x: clip; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden — see note above */
+  -webkit-font-smoothing: antialiased;
+}
+/* The backdrop: the same photograph the iris layout uses, pinned to the viewport
+   and cropped to fill it. It never moves — the card's surface simply grows over
+   it until, at full expansion, the photo is completely covered.
+
+   No scrim: the photograph runs at full strength, with the flat colour beneath it
+   only as a fallback in case it fails to load. */
+body::before{
+  content:"";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-color: var(--bg);
+  background-image:
+    url('https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ── The stage ──
+   The whole page is this one section. Its height is the scroll distance the
+   expansion resolves over; since it starts at the top of the document and is
+   taller than the viewport, its `contain` range runs from scroll 0 to
+   (height − 100vh). */
+.stage{
+  position: relative;
+  min-height: 220vh;
+}
+.stage-wrap{
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 2rem;             /* symmetric on purpose: it keeps the card's
+                                    centre on the viewport's centre, which is what
+                                    makes a 100vw × 100vh surface land flush */
+}
+
+/* ── Card ── */
+/* The card is now only a positioning context and a padding box. It has no fill
+   of its own: the white belongs to .card-surface behind the content. */
+.card {
+  position: relative;
+  width: min(780px, calc(100vw - 40px));
+  padding: 3.75rem;
+  container-type: inline-size;   /* layout containment, not paint — the surface is
+                                    free to spill outside the card without being
+                                    clipped */
+}
+/* Everything that is animated lives here and nowhere else. Centred on the card
+   rather than pinned to its edges, so growing it stays symmetrical. */
+.card-surface{
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 100%; height: 100%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.045);
+  border-radius: 20px;           /* tighter corners — keep this and the first
+                                    keyframe below in sync */
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.03),
+    0 12px 32px rgba(0,0,0,0.04),
+    0 56px 140px rgba(0,0,0,0.10);
+  will-change: width, height, border-radius;
+}
+.card-body{ position: relative; z-index: 1; }
+
+.card-head{ margin-bottom: clamp(1.75rem, 4cqi, 2.4rem); }
+
+.card h2 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(1.9rem, 6.2cqi, 2.6rem);
+  font-weight: 400;              /* DM Serif Display ships one weight only */
+  letter-spacing: -0.022em;
+  line-height: 1.06;
+  margin-bottom: 0.65rem;
+}
+.card .subtitle {
+  color: var(--muted);
+  font-size: clamp(.95rem, 2.5cqi, 1.05rem);
+  line-height: 1.6;
+  letter-spacing: -0.006em;
+  max-width: 50ch;
+}
+
+/* ── Scroll cue ──
+   Absolutely positioned so it cannot pull the card off centre. It fades out as
+   soon as the expansion begins. */
+.scroll-cue{
+  position: absolute;
+  bottom: 4vh; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.78);   /* it sits on the darkened photo, not on white */
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── The form: labels above, hairline underlines ── */
+.form-rows{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.3rem, 3.4cqi, 1.9rem) clamp(1.5rem, 4cqi, 2.5rem);
+}
+.field{ position: relative; display: flex; flex-direction: column; min-width: 0; }
+.field--full{ grid-column: 1 / -1; }
+.field label{
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 1.4rem;
+}
+/* the underline is a real element so it can be drawn in */
+.rule{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--line);
+  transform-origin: left center;
+  will-change: transform;
+}
+.rule-ink{
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform .6s var(--silk);
+}
+.field:focus-within .rule-ink{ transform: scaleX(1); }
+
+.line-input{
+  appearance: none; border: 0; background: transparent; border-radius: 0;
+  font: inherit; font-size: .98rem; color: var(--ink);
+  padding: 0 0 .6rem; width: 100%;
+}
+.line-input::placeholder{ color: #b0b0b5; }
+.line-input:focus{ outline: none; }
+textarea.line-input{ resize: none; line-height: 1.55; min-height: 5rem; }
+.field--message label{ margin-bottom: .5rem; }
+
+/* ── Submit ── */
+.actions{ margin-top: clamp(1.6rem, 4cqi, 2.25rem); }
+.btn{
+  position: relative; overflow: clip;
+  display: inline-block;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 1px solid var(--ink);
+  background: var(--ink); color: #fff;
+  padding: .85rem 2.9rem; min-width: 210px;
+  border-radius: 0; text-align: center;
+}
+.btn .btn-label{ position: relative; z-index: 1; display: inline-block; color: inherit; }
+/* a single point opens into a circle and floods the block */
+.btn-fill{
+  position: absolute; left: 50%; top: 50%; width: 2px; height: 2px;
+  margin: -1px 0 0 -1px; border-radius: 50%; background: #fff;
+  transform: scale(0); will-change: transform;
+}
+
+/* ── Responsive ── */
+@container (max-width: 460px){
+  .form-rows{ grid-template-columns: 1fr; }
+  .field label{ margin-bottom: 1.1rem; }
+}
+@media (max-width: 750px){
+  .stage{ min-height: 200vh; }
+  .stage-wrap{ padding: 4vh 20px; }
+  .card{ padding: 2.25rem; }
+  .btn{ width: 100%; }
+}
+/* Short screens: keep the card centred — the surface expands from its centre, so
+   top-aligning it would make the fullscreen state land off-centre. Tighten the
+   card instead. */
+@media (max-height: 700px){
+  .stage-wrap{ padding: 2vh 2rem; }
+  .card{ padding: 2rem 2.5rem; }
+  .scroll-cue{ display: none; }
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes surface-expand-kf {
+0% {
+width: 100%;
+height: 100%;
+border-radius: 20px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.04), 0 56px 140px rgba(0,0,0,0.10);
+}
+100% {
+width: 100vw;
+height: 100vh;
+border-radius: 0px;
+box-shadow: 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0);
+}
+}
+@keyframes cue-out-kf {
+0% {
+opacity: 1;
+}
+100% {
+opacity: 0;
+}
+}
+@keyframes rule-draw-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes btn-flood {
+0% {
+transform: scale(0);
+}
+100% {
+transform: scale(260);
+}
+}
+[data-interact-key="stage"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .card-surface {
+--animation-0-aiyoxen2e3: surface-expand-kf auto cubic-bezier(0.55, 0.055, 0.675, 0.19) both 1 ;
+--animation-composition-0-aiyoxen2e3: replace;
+--animation-timeline-0-aiyoxen2e3: --trigger-0;
+--animation-range-0-aiyoxen2e3: contain 0% contain 60%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .scroll-cue {
+--animation-0-1h1htbxa2: cue-out-kf auto linear both 1 ;
+--animation-composition-0-1h1htbxa2: replace;
+--animation-timeline-0-1h1htbxa2: --trigger-0;
+--animation-range-0-1h1htbxa2: contain 0% contain 12%;
+}
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-0-14x7knz76q9: rule-draw-kf 950ms calc((220 + (1 - (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1))) * (1 - (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)))) * 105 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) backwards 1 paused;
+--animation-composition-1-0-14x7knz76q9: replace;
+--animation-timeline-1-0-14x7knz76q9: auto;
+--animation-range-1-0-14x7knz76q9: normal;
+}
+[data-interact-key="card"] .form-rows .rule {
+--animation-1-14x7knz76q9: var(--animation-1-0-14x7knz76q9, none);
+--animation-composition-1-14x7knz76q9: var(--animation-composition-1-0-14x7knz76q9, replace);
+--animation-timeline-1-14x7knz76q9: var(--animation-timeline-1-0-14x7knz76q9, auto);
+--animation-range-1-14x7knz76q9: var(--animation-range-1-0-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+--animation-2-mc50xd2iqh: btn-flood 820ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-mc50xd2iqh: replace;
+--animation-timeline-2-mc50xd2iqh: auto;
+--animation-range-2-mc50xd2iqh: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 320ms cubic-bezier(.16,1,.3,1) 190ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+color: #1d1d1f;
+}
+[data-interact-key="stage"] .card-surface {
+animation: var(--animation-0-aiyoxen2e3, none);
+animation-composition: var(--animation-composition-0-aiyoxen2e3, replace);
+animation-timeline: var(--animation-timeline-0-aiyoxen2e3, auto);
+animation-range: var(--animation-range-0-aiyoxen2e3, normal);
+}
+[data-interact-key="stage"] .scroll-cue {
+animation: var(--animation-0-1h1htbxa2, none);
+animation-composition: var(--animation-composition-0-1h1htbxa2, replace);
+animation-timeline: var(--animation-timeline-0-1h1htbxa2, auto);
+animation-range: var(--animation-range-0-1h1htbxa2, normal);
+}
+[data-interact-key="card"] .form-rows .rule {
+animation: var(--animation-1-14x7knz76q9, none);
+animation-composition: var(--animation-composition-1-14x7knz76q9, replace);
+animation-timeline: var(--animation-timeline-1-14x7knz76q9, auto);
+animation-range: var(--animation-range-1-14x7knz76q9, normal);
+}
+[data-interact-key="btn-submit"] .btn-fill {
+animation: var(--animation-2-mc50xd2iqh, none);
+animation-composition: var(--animation-composition-2-mc50xd2iqh, replace);
+animation-timeline: var(--animation-timeline-2-mc50xd2iqh, auto);
+animation-range: var(--animation-range-2-mc50xd2iqh, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
+</head>
+<body>
+
+<!-- ── One stage, one card, in the first fold ── -->
+<section class="stage" data-interact-key="stage">
+  <div class="stage-wrap">
+
+    <div class="card" data-interact-key="card">
+      <i class="card-surface" aria-hidden="true"></i>
+
+      <div class="card-body">
+        <div class="card-head">
+          <h2>Send us a message</h2>
+          <p class="subtitle">We usually reply within one business day.</p>
+        </div>
+
+        <form class="form-rows" novalidate>
+
+          <div class="field">
+            <label for="firstname">First name *</label>
+            <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field">
+            <label for="lastname">Last name</label>
+            <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field field--full">
+            <label for="email">Email *</label>
+            <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field field--full field--message">
+            <label for="message">Write a message</label>
+            <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+        </form>
+
+        <div class="actions">
+          <button class="btn" type="submit" data-interact-key="btn-submit">
+            <span class="btn-fill" aria-hidden="true"></span>
+            <span class="btn-label">Submit</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <span class="scroll-cue">Scroll</span>
+
+  </div>
+</section>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const SILK = 'cubic-bezier(.16,1,.3,1)';
+
+/* CRITICAL — one effectId per effect, never shared.
+   The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`. Several effects in the SAME
+   interaction that all reference the same registry entry collapse to one id, and
+   only the first survives — the rest are dropped as duplicates while generate()
+   has already emitted their initial rules. The result is invisible elements. */
+
+const scrub = (id, from, to, body) => [id, {
+  rangeStart: { name: 'contain', offset: { value: from, unit: 'percentage' } },
+  rangeEnd:   { name: 'contain', offset: { value: to,   unit: 'percentage' } },
+  easing: 'linear',
+  fill: 'both',                                            // required for scrubbed effects
+  ...body,
+}];
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: Object.fromEntries([
+    /* ── scroll-driven: the surface grows into the whole viewport ──
+       One effect, four properties, all resolving together:
+         width  100% → 100vw   (100% is the card's own width)
+         height 100% → 100vh   (100% is the card's content height)
+         radius 20px → 0       (the corners unwind as it reaches the edges)
+         shadow full → none    (a fullscreen sheet casts nothing)
+       Everything is a real length, so the end state is exactly the viewport —
+       no measuring, no JS, no approximation. Only .card-surface is targeted, so
+       the form inside keeps its size the whole way. */
+    scrub('surface-expand', 0, 60, {
+      selector: '.card-surface',
+      conditions: ['full-motion'],
+      /* Not linear, unlike the other scrubs: `cubicIn` holds the card near its
+         resting size through the first part of the scroll and then lets it run,
+         so the growth creeps and then snaps outward. The range is also shorter
+         than before (60% instead of 80%), so the whole move is quicker. */
+      easing: 'cubicIn',
+      keyframeEffect: {
+        name: 'surface-expand-kf',
+        keyframes: [
+          {
+            width: '100%', height: '100%',
+            borderRadius: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.04), 0 56px 140px rgba(0,0,0,0.10)',
+          },
+          {
+            width: '100vw', height: '100vh',
+            borderRadius: '0px',
+            boxShadow: '0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0), 0 0 0 rgba(0,0,0,0)',
+          },
+        ],
+      },
+    }),
+
+    /* ── scroll-driven: the cue steps out of the way early ── */
+    scrub('cue-out', 0, 12, {
+      selector: '.scroll-cue',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'cue-out-kf',
+        keyframes: [
+          { opacity: 1 },
+          { opacity: 0 },
+        ],
+      },
+    }),
+
+    /* ── the one entrance: each field's underline draws in ── */
+    ['rule-draw', {
+      duration: 950,
+      easing: SILK,
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'rule-draw-kf',
+        keyframes: [
+          { transform: 'scaleX(0)' },
+          { transform: 'scaleX(1)' },
+        ],
+      },
+    }],
+  ]),
+
+  interactions: [
+    /* scroll: the surface expands, the cue leaves */
+    {
+      key: 'stage',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId: 'surface-expand' },
+        { effectId: 'cue-out'        },
+      ],
+    },
+
+    /* The underlines draw in, staggered, as the card comes into view — which is
+       immediately, since it is in the first fold. That is the only entrance on
+       the page; nothing else animates on load. */
+    {
+      key: 'card',
+      trigger: 'viewEnter',
+      params: { threshold: 0.15 },
+      sequences: [{
+        delay: 220,
+        offset: 105,
+        offsetEasing: 'quadOut',
+        effects: [{ effectId: 'rule-draw', listContainer: '.form-rows', selector: '.rule' }],
+      }],
+    },
+
+    /* Submit: a point opens into a circle and floods the block, then the label
+       inverts behind it. `interest` rather than `hover` so keyboard focus counts
+       too, and the keyframe effect targets the child dot — a scale on the source
+       element itself would shift the hit area. */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.btn-fill',
+          triggerType: 'alternate',
+          duration: 820,
+          easing: SILK,
+          fill: 'both',
+          keyframeEffect: {
+            name: 'btn-flood',
+            keyframes: [
+              { transform: 'scale(0)'   },
+              { transform: 'scale(260)' },
+            ],
+          },
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 320,
+            delay: 190,
+            easing: SILK,
+            styleProperties: [{ name: 'color', value: '#1d1d1f' }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  add(document.querySelector('.stage'),        'stage');
+  add(document.querySelector('.card'),         'card');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+} catch (err) {
+  /* Nothing to un-hide: the card is fully visible and usable without this. */
+  console.error('[plumb-expand] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

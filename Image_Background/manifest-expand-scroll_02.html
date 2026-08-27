@@ -172,7 +172,6 @@
         {
           key: 'title',
           trigger: 'viewEnter',
-          params: { type: 'once' },
           effects: [
             {
               keyframeEffect: {
@@ -182,6 +181,7 @@
                   { opacity: '1', transform: 'translateY(0)', offset: 1 },
                 ],
               },
+              triggerType: 'once',
               duration: 1000,
               easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
               fill: 'both',
@@ -191,7 +191,6 @@
         {
           key: 'text-cols',
           trigger: 'viewEnter',
-          params: { type: 'once' },
           effects: [
             {
               keyframeEffect: {
@@ -201,6 +200,7 @@
                   { opacity: '1', transform: 'translateY(0)', offset: 1 },
                 ],
               },
+              triggerType: 'once',
               duration: 900,
               delay: 250,
               easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -211,7 +211,6 @@
         {
           key: 'image-box',
           trigger: 'viewEnter',
-          params: { type: 'once' },
           effects: [
             {
               keyframeEffect: {
@@ -221,6 +220,7 @@
                   { opacity: '1', transform: 'translateY(0)', offset: 1 },
                 ],
               },
+              triggerType: 'once',
               duration: 1100,
               delay: 450,
               easing: 'cubic-bezier(0.16, 1, 0.3, 1)',

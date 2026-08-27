@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Let's Build Together — Contact</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;
+  --ink:#000000;
+  --body:#3d3d3d;
+  --hint:#9a9a9a;
+  --line:#c9c9c9;
+  --font:"Wix Madefor Text","Wix Madefor Display","Figtree",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  --img-w-start:70vw;   /* image column width — its largest state */
+  --img-gap:3vw;        /* breathing room between the form and the image */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--body);-webkit-font-smoothing:antialiased}
+
+/* ---------- layout ----------
+   The image column is a fixed 70vw — its widest state — so the form column is
+   always the remaining 30vw and can never end up underneath the image.
+   NOTE: overflow must be `clip`, never `hidden` — `hidden` creates a scroll
+   context and breaks the ViewTimeline that drives the scroll effects. */
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) var(--img-w-start);overflow:clip}
+.panel{
+  background:var(--bg);display:flex;align-items:center;
+  container-type:inline-size;
+  position:sticky;top:0;align-self:start;
+  height:100vh;height:100svh;
+  padding:clamp(28px,4vw,72px) var(--img-gap) clamp(28px,4vw,72px) clamp(24px,4.4vw,80px);
+}
+.form-shell{width:100%;max-width:520px;will-change:transform}
+
+/* Sticky-container pattern: .media-track is the tall wrapper whose height sets the
+   scroll distance AND is the ViewTimeline source; .media is the sticky 100vh child
+   that stays pinned while the wrapper scrolls past. The source must be the tall
+   one — a stuck element barely moves relative to the viewport, and for an element
+   exactly one viewport tall the `contain` range collapses to a single instant, so
+   the timeline would never advance. */
+.media-track{position:relative;height:240vh;overflow:clip}
+.media{
+  position:sticky;top:0;
+  height:100vh;height:100svh;
+  overflow:clip;background:#fff;
+}
+/* .media-frame carries the shrink (centre origin, aspect ratio preserved), the
+   corner rounding, the tilt and the lifting shadow.
+   .media-img is oversized inside it so it can drift independently. */
+.media-frame{
+  position:absolute;inset:0;overflow:clip;
+  transform:scale(1);transform-origin:center center;
+  border-radius:0;
+  will-change:transform,border-radius,box-shadow;
+}
+.media-img{
+  position:absolute;inset:-10%;
+  width:120%;height:120%;
+  object-fit:cover;object-position:center;
+  display:block;
+  will-change:transform;
+}
+/* thin inset hairline that draws itself around the image as it lifts */
+.media-outline{
+  position:absolute;inset:clamp(14px,2.4vw,34px);
+  border:1px solid rgba(255,255,255,.65);
+  pointer-events:none;
+  clip-path:inset(0 100% 0 0);
+  will-change:clip-path;
+}
+
+/* ---------- type ---------- */
+h1{
+  font-family:"Wix Madefor Display","Figtree",var(--font);
+  font-weight:500;letter-spacing:-.028em;line-height:1.02;
+  font-size:clamp(32px,11cqi,62px);color:var(--ink);margin:0 0 clamp(18px,3cqi,28px)
+}
+/* per-character 3D reveal. .w keeps each word unbreakable so lines still wrap
+   normally; .c is the individual character that animates. */
+.words{display:inline}
+.w{display:inline-block;white-space:nowrap}
+/* NOTE: the hidden start state lives on .pre-motion (see below), never on .c
+   itself — that way the headline is always visible if the effect fails to bind. */
+.c{
+  display:inline-block;transform-origin:50% 100%;
+  will-change:transform,opacity,filter;
+}
+.lede{font-size:15px;line-height:1.62;font-weight:400;margin:0 0 clamp(26px,7cqi,48px);max-width:44ch}
+
+/* ---------- fields ---------- */
+.form-rows{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,7cqi,38px) clamp(20px,6cqi,40px)}
+.field{position:relative;display:flex;flex-direction:column;min-width:0}
+.field--full{grid-column:1 / -1}
+label{font-size:15px;font-weight:400;color:var(--ink);letter-spacing:.004em;margin-bottom:26px}
+
+/* two stacked underlines: the grey base draws in on entrance, the black ink line
+   wipes across on focus */
+.rule{
+  position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--line);
+  transform-origin:left center;
+  will-change:transform;
+}
+.rule-ink{
+  position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--ink);
+  transform:scaleX(0);transform-origin:left center;
+  transition:transform .55s cubic-bezier(.16,1,.3,1);
+}
+.field:focus-within .rule-ink{transform:scaleX(1)}
+
+.line-input{
+  appearance:none;border:0;background:transparent;
+  font:inherit;font-size:15px;color:var(--ink);padding:0 0 10px;width:100%;border-radius:0;
+}
+.line-input::placeholder{color:var(--hint)}
+.line-input:focus{outline:none}
+textarea.line-input{resize:none;line-height:1.55;min-height:96px}
+.field--message label{margin-bottom:8px}
+
+/* ---------- action ---------- */
+.actions{margin-top:clamp(16px,5cqi,30px)}
+.btn{
+  position:relative;overflow:clip;
+  display:inline-flex;align-items:center;gap:10px;
+  font:inherit;font-size:15px;cursor:pointer;
+  border:1px solid var(--ink);background:var(--ink);color:#fff;
+  padding:15px 42px;min-width:184px;border-radius:0;justify-content:center;
+}
+.sweep{
+  position:absolute;inset:0;background:#fff;
+  transform:scaleX(0);transform-origin:left center;
+  will-change:transform;
+}
+.btn .label{position:relative;z-index:1;color:inherit}
+.btn .arrow{
+  position:relative;z-index:1;display:grid;place-items:center;color:inherit;
+  opacity:0;transform:translateX(-8px);will-change:transform,opacity;
+}
+
+/* ---------- motion pre-state (FOUC guard) ----------
+   Applied only while <body class="pre-motion">, which is removed on the frame after
+   Interact.create(). If any effect fails to bind, everything is simply visible. */
+.pre-motion .lede,
+.pre-motion .form-rows > *,
+.pre-motion .actions{opacity:0}
+.pre-motion .c{opacity:0;transform:translateY(65%) rotateX(-72deg);filter:blur(7px)}
+.pre-motion .rule{transform:scaleX(0)}
+
+@media (prefers-reduced-motion:reduce){
+  .pre-motion .lede,.pre-motion .form-rows > *,.pre-motion .actions{opacity:1}
+  .pre-motion .c{opacity:1;transform:none;filter:none}
+  .pre-motion .rule{transform:scaleX(1)}
+  .media-outline{clip-path:none}
+}
+
+/* the form column is only 30vw, so stack the name pair once it gets tight */
+@container (max-width:430px){
+  .form-rows{grid-template-columns:1fr}
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:1000px){
+  /* single column: image on top at full width, form below */
+  :root{--img-w-start:100vw}
+  .wrap{grid-template-columns:1fr}
+  .panel{position:relative;top:auto;height:auto;min-height:auto;padding:clamp(28px,7vw,56px)}
+  /* Mobile drops the sticky-pin pattern entirely: the image is a plain 60vh block
+     at the top and the form starts immediately underneath it — no tall track, so
+     no empty gap between the two. Track and pane are the same height on purpose.
+     Because nothing is pinned here, the scroll effects switch from the `contain`
+     range to `exit` (see the 'narrow' condition in the config below): `contain`
+     only advances while an element is stuck/oversized, and would sit at 100% from
+     the first paint for a 60vh block at the top of the page. */
+  .media-track{order:-1;height:60vh;height:60svh}
+  .media{position:relative;height:60vh;height:60svh}
+  .form-rows{grid-template-columns:1fr}
+  .btn{width:100%}
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes row-rise-lede {
+0% {
+opacity: 0;
+transform: translateY(26px);
+filter: blur(8px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+filter: blur(0px);
+}
+}
+@keyframes row-rise-actions {
+0% {
+opacity: 0;
+transform: translateY(26px);
+filter: blur(8px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+filter: blur(0px);
+}
+}
+@keyframes char-rise {
+0% {
+opacity: 0;
+transform: perspective(700px) translateY(65%) rotateX(-72deg);
+filter: blur(7px);
+}
+100% {
+opacity: 1;
+transform: perspective(700px) translateY(0%) rotateX(0deg);
+filter: blur(0px);
+}
+}
+@keyframes row-rise {
+0% {
+opacity: 0;
+transform: translateY(26px);
+filter: blur(8px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+filter: blur(0px);
+}
+}
+@keyframes rule-draw-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes media-shrink-kf {
+0% {
+transform: scale(1) rotate(0deg);
+border-radius: 0px;
+box-shadow: 0 0px 0px rgba(0,0,0,0);
+}
+100% {
+transform: scale(0.8) rotate(-1.6deg);
+border-radius: 28px;
+box-shadow: 0 46px 90px rgba(0,0,0,.28);
+}
+}
+@keyframes media-drift-kf {
+0% {
+transform: translateY(-5%) scale(1.06);
+}
+100% {
+transform: translateY(5%)  scale(1);
+}
+}
+@keyframes outline-wipe-kf {
+0% {
+clip-path: inset(0 100% 0 0);
+}
+100% {
+clip-path: inset(0 0% 0 0);
+}
+}
+@keyframes form-drift-kf {
+0% {
+transform: translateY(22px);
+}
+100% {
+transform: translateY(-22px);
+}
+}
+@keyframes media-shrink-m-kf {
+0% {
+transform: scale(1) rotate(0deg);
+border-radius: 0px;
+box-shadow: 0 0px 0px rgba(0,0,0,0);
+}
+100% {
+transform: scale(0.8) rotate(-1.6deg);
+border-radius: 28px;
+box-shadow: 0 46px 90px rgba(0,0,0,.28);
+}
+}
+@keyframes media-drift-m-kf {
+0% {
+transform: translateY(-5%) scale(1.06);
+}
+100% {
+transform: translateY(5%)  scale(1);
+}
+}
+@keyframes outline-wipe-m-kf {
+0% {
+clip-path: inset(0 100% 0 0);
+}
+100% {
+clip-path: inset(0 0% 0 0);
+}
+}
+@keyframes sweep-in {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes arrow-slide {
+0% {
+opacity: 0;
+transform: translateX(-8px);
+}
+100% {
+opacity: 1;
+transform: translateX(0px);
+}
+}
+[data-interact-key="panel"] .lede {
+--animation-0-81u714zkok: row-rise-lede 950ms 380ms cubic-bezier(0.19, 1, 0.22, 1) backwards 1 paused;
+--animation-composition-0-81u714zkok: replace;
+--animation-timeline-0-81u714zkok: auto;
+--animation-range-0-81u714zkok: normal;
+}
+[data-interact-key="panel"] .actions {
+--animation-0-nehvtf30zm: row-rise-actions 950ms 1080ms cubic-bezier(0.19, 1, 0.22, 1) backwards 1 paused;
+--animation-composition-0-nehvtf30zm: replace;
+--animation-timeline-0-nehvtf30zm: auto;
+--animation-range-0-nehvtf30zm: normal;
+}
+[data-interact-key="panel"] .words > .c {
+--animation-0-0-aklwxq7jyj: char-rise 1000ms calc((0 + (1 - (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1))) * (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)))) * 34 * var(--motion-seq-0-0-last, 1)) * 1ms) cubic-bezier(0.19, 1, 0.22, 1) both 1 paused;
+--animation-composition-0-0-aklwxq7jyj: replace;
+--animation-timeline-0-0-aklwxq7jyj: auto;
+--animation-range-0-0-aklwxq7jyj: normal;
+}
+[data-interact-key="panel"] .words > .c {
+--animation-0-aklwxq7jyj: var(--animation-0-0-aklwxq7jyj, none);
+--animation-composition-0-aklwxq7jyj: var(--animation-composition-0-0-aklwxq7jyj, replace);
+--animation-timeline-0-aklwxq7jyj: var(--animation-timeline-0-0-aklwxq7jyj, auto);
+--animation-range-0-aklwxq7jyj: var(--animation-range-0-0-aklwxq7jyj, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-0-8l32eaa0es: row-rise 950ms calc((520 + (1 - (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1))) * (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1)))) * 120 * var(--motion-seq-0-1-last, 1)) * 1ms) cubic-bezier(0.19, 1, 0.22, 1) backwards 1 paused;
+--animation-composition-0-0-8l32eaa0es: replace;
+--animation-timeline-0-0-8l32eaa0es: auto;
+--animation-range-0-0-8l32eaa0es: normal;
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-8l32eaa0es: var(--animation-0-0-8l32eaa0es, none);
+--animation-composition-0-8l32eaa0es: var(--animation-composition-0-0-8l32eaa0es, replace);
+--animation-timeline-0-8l32eaa0es: var(--animation-timeline-0-0-8l32eaa0es, auto);
+--animation-range-0-8l32eaa0es: var(--animation-range-0-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-0-s71p044fnv: rule-draw-kf 800ms calc((640 + (1 - (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1))) * (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1)))) * 120 * var(--motion-seq-0-2-last, 1)) * 1ms) cubic-bezier(0.165, 0.84, 0.44, 1) both 1 paused;
+--animation-composition-0-0-s71p044fnv: replace;
+--animation-timeline-0-0-s71p044fnv: auto;
+--animation-range-0-0-s71p044fnv: normal;
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-s71p044fnv: var(--animation-0-0-s71p044fnv, none);
+--animation-composition-0-s71p044fnv: var(--animation-composition-0-0-s71p044fnv, replace);
+--animation-timeline-0-s71p044fnv: var(--animation-timeline-0-0-s71p044fnv, auto);
+--animation-range-0-s71p044fnv: var(--animation-range-0-0-s71p044fnv, normal);
+}
+[data-interact-key="media-track"] {
+view-timeline: --trigger-1;
+}
+@media ((min-width:1001px)) {
+[data-interact-key="media-track"] .media-frame {
+--animation-1-o5l160f2aa: media-shrink-kf auto linear both 1 ;
+--animation-composition-1-o5l160f2aa: replace;
+--animation-timeline-1-o5l160f2aa: --trigger-1;
+--animation-range-1-o5l160f2aa: contain 0% contain 100%;
+}
+}
+@media ((min-width:1001px)) {
+[data-interact-key="media-track"] .media-img {
+--animation-1-9hg40m9106: media-drift-kf auto linear both 1 ;
+--animation-composition-1-9hg40m9106: replace;
+--animation-timeline-1-9hg40m9106: --trigger-1;
+--animation-range-1-9hg40m9106: contain 0% contain 100%;
+}
+}
+@media ((min-width:1001px)) {
+[data-interact-key="media-track"] .media-outline {
+--animation-1-fvj2elcsrl: outline-wipe-kf auto cubic-bezier(0.165, 0.84, 0.44, 1) both 1 ;
+--animation-composition-1-fvj2elcsrl: replace;
+--animation-timeline-1-fvj2elcsrl: --trigger-1;
+--animation-range-1-fvj2elcsrl: contain 35% contain 95%;
+}
+}
+@media ((min-width:1001px)) {
+[data-interact-key="panel"] .form-shell {
+--animation-1-mfxzw5y207: form-drift-kf auto linear both 1 ;
+--animation-composition-1-mfxzw5y207: replace;
+--animation-timeline-1-mfxzw5y207: --trigger-1;
+--animation-range-1-mfxzw5y207: contain 0% contain 100%;
+}
+}
+@media ((max-width:1000px)) {
+[data-interact-key="media-track"] .media-frame {
+--animation-1-o5l160f2aa: media-shrink-m-kf auto linear both 1 ;
+--animation-composition-1-o5l160f2aa: replace;
+--animation-timeline-1-o5l160f2aa: --trigger-1;
+--animation-range-1-o5l160f2aa: exit 0% exit 100%;
+}
+}
+@media ((max-width:1000px)) {
+[data-interact-key="media-track"] .media-img {
+--animation-1-9hg40m9106: media-drift-m-kf auto linear both 1 ;
+--animation-composition-1-9hg40m9106: replace;
+--animation-timeline-1-9hg40m9106: --trigger-1;
+--animation-range-1-9hg40m9106: exit 0% exit 100%;
+}
+}
+@media ((max-width:1000px)) {
+[data-interact-key="media-track"] .media-outline {
+--animation-1-fvj2elcsrl: outline-wipe-m-kf auto cubic-bezier(0.165, 0.84, 0.44, 1) both 1 ;
+--animation-composition-1-fvj2elcsrl: replace;
+--animation-timeline-1-fvj2elcsrl: --trigger-1;
+--animation-range-1-fvj2elcsrl: exit 10% exit 70%;
+}
+}
+[data-interact-key="btn-submit"] .sweep {
+--animation-2-gxx389zqay: sweep-in 520ms 0ms cubic-bezier(0.19, 1, 0.22, 1) both 1 paused;
+--animation-composition-2-gxx389zqay: replace;
+--animation-timeline-2-gxx389zqay: auto;
+--animation-range-2-gxx389zqay: normal;
+}
+[data-interact-key="btn-submit"] .arrow {
+--animation-2-grou0i8w1e: arrow-slide 460ms 120ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both 1 paused;
+--animation-composition-2-grou0i8w1e: replace;
+--animation-timeline-2-grou0i8w1e: auto;
+--animation-range-2-grou0i8w1e: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: color 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 150ms;
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-2), :--eff-2-2, [data-interact-effect~="eff-2-2"]) {
+color: #000000;
+}
+[data-interact-key="panel"] .lede {
+animation: var(--animation-0-81u714zkok, none);
+animation-composition: var(--animation-composition-0-81u714zkok, replace);
+animation-timeline: var(--animation-timeline-0-81u714zkok, auto);
+animation-range: var(--animation-range-0-81u714zkok, normal);
+}
+[data-interact-key="panel"] .actions {
+animation: var(--animation-0-nehvtf30zm, none);
+animation-composition: var(--animation-composition-0-nehvtf30zm, replace);
+animation-timeline: var(--animation-timeline-0-nehvtf30zm, auto);
+animation-range: var(--animation-range-0-nehvtf30zm, normal);
+}
+[data-interact-key="panel"] .words > .c {
+animation: var(--animation-0-aklwxq7jyj, none);
+animation-composition: var(--animation-composition-0-aklwxq7jyj, replace);
+animation-timeline: var(--animation-timeline-0-aklwxq7jyj, auto);
+animation-range: var(--animation-range-0-aklwxq7jyj, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+animation: var(--animation-0-8l32eaa0es, none);
+animation-composition: var(--animation-composition-0-8l32eaa0es, replace);
+animation-timeline: var(--animation-timeline-0-8l32eaa0es, auto);
+animation-range: var(--animation-range-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+animation: var(--animation-0-s71p044fnv, none);
+animation-composition: var(--animation-composition-0-s71p044fnv, replace);
+animation-timeline: var(--animation-timeline-0-s71p044fnv, auto);
+animation-range: var(--animation-range-0-s71p044fnv, normal);
+}
+[data-interact-key="media-track"] .media-frame {
+animation: var(--animation-1-o5l160f2aa, none);
+animation-composition: var(--animation-composition-1-o5l160f2aa, replace);
+animation-timeline: var(--animation-timeline-1-o5l160f2aa, auto);
+animation-range: var(--animation-range-1-o5l160f2aa, normal);
+}
+[data-interact-key="media-track"] .media-img {
+animation: var(--animation-1-9hg40m9106, none);
+animation-composition: var(--animation-composition-1-9hg40m9106, replace);
+animation-timeline: var(--animation-timeline-1-9hg40m9106, auto);
+animation-range: var(--animation-range-1-9hg40m9106, normal);
+}
+[data-interact-key="media-track"] .media-outline {
+animation: var(--animation-1-fvj2elcsrl, none);
+animation-composition: var(--animation-composition-1-fvj2elcsrl, replace);
+animation-timeline: var(--animation-timeline-1-fvj2elcsrl, auto);
+animation-range: var(--animation-range-1-fvj2elcsrl, normal);
+}
+[data-interact-key="panel"] .form-shell {
+animation: var(--animation-1-mfxzw5y207, none);
+animation-composition: var(--animation-composition-1-mfxzw5y207, replace);
+animation-timeline: var(--animation-timeline-1-mfxzw5y207, auto);
+animation-range: var(--animation-range-1-mfxzw5y207, normal);
+}
+[data-interact-key="btn-submit"] .sweep {
+animation: var(--animation-2-gxx389zqay, none);
+animation-composition: var(--animation-composition-2-gxx389zqay, replace);
+animation-timeline: var(--animation-timeline-2-gxx389zqay, auto);
+animation-range: var(--animation-range-2-gxx389zqay, normal);
+}
+[data-interact-key="btn-submit"] .arrow {
+animation: var(--animation-2-grou0i8w1e, none);
+animation-composition: var(--animation-composition-2-grou0i8w1e, replace);
+animation-timeline: var(--animation-timeline-2-grou0i8w1e, auto);
+animation-range: var(--animation-range-2-grou0i8w1e, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
+</head>
+<body class="pre-motion">
+
+<script>
+/* The hidden start state lives on <body class="pre-motion">, so something has to
+   take it off. That something must NOT be the module below: if the CDN import
+   fails, the module never runs and the page would stay hidden for good. This is a
+   classic script, so it runs regardless — the module only ever removes the class
+   earlier, never later. */
+window.__reveal = (function () {
+  var done = false;
+  return function () {
+    if (done) return;
+    done = true;
+    document.body.classList.remove('pre-motion');
+  };
+})();
+document.addEventListener('animationstart', window.__reveal, { once: true, capture: true });
+setTimeout(window.__reveal, 700);
+</script>
+
+<div class="wrap">
+
+    <section class="panel" data-interact-key="panel">
+      <div class="form-shell">
+
+        <h1 data-split>Let&rsquo;s Build Together.</h1>
+
+        <p class="lede">Have questions or want to talk through your idea?<br>Reach out &mdash; we&rsquo;re here to help.</p>
+
+        <form class="form-rows" novalidate>
+
+          <div class="field">
+            <label for="firstname">First name *</label>
+            <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field">
+            <label for="lastname">Last name</label>
+            <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field field--full">
+            <label for="email">Email *</label>
+            <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+          <div class="field field--full field--message">
+            <label for="message">Write a message</label>
+            <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+            <i class="rule"></i><i class="rule-ink"></i>
+          </div>
+
+        </form>
+
+        <div class="actions">
+            <button class="btn" type="submit" data-interact-key="btn-submit">
+              <span class="sweep" aria-hidden="true"></span>
+              <span class="label">Submit</span>
+              <span class="arrow" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3.4 10.6 10.6 3.4M10.6 3.4H4.9M10.6 3.4v5.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </button>
+        </div>
+
+      </div>
+  </section>
+
+  <div class="media-track" data-interact-key="media-track">
+    <aside class="media">
+      <div class="media-frame">
+        <img class="media-img" alt=""
+             src="https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg">
+        <div class="media-outline"></div>
+      </div>
+    </aside>
+  </div>
+
+</div>
+
+<script type="module">
+/* Every animation here is an explicit keyframeEffect, so @wix/motion-presets is not
+   needed and registerEffects() is not required. */
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate` — and the import would
+   throw before anything ran. 2.5.8 is the version the rules file documents.
+
+   Vanilla integration: no <interact-element> wrappers anywhere on the page. Keys
+   are bound to the real layout elements with add(), and generate() is called with
+   useFirstChild = false. */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+/* ---- split the headline into words -> characters before any config runs.
+   Words stay wrapped in .w so line breaking still works; .c are the animated bits. ---- */
+for (const el of document.querySelectorAll('[data-split]')) {
+  const words = el.textContent.trim().split(/\s+/);
+  el.textContent = '';
+  const holder = document.createElement('span');
+  holder.className = 'words';
+  words.forEach((word, wi) => {
+    const w = document.createElement('span');
+    w.className = 'w';
+    for (const ch of [...word]) {
+      const c = document.createElement('span');
+      c.className = 'c';
+      c.textContent = ch;
+      w.appendChild(c);
+    }
+    holder.appendChild(w);
+    if (wi < words.length - 1) holder.appendChild(document.createTextNode(' '));
+  });
+  el.appendChild(holder);
+}
+
+/* every effect whose CSS base state IS the hidden state uses fill: 'both',
+   so the final keyframe persists instead of snapping back. */
+const config = {
+  /* the mobile breakpoint has to exist here too, not just in CSS: at <=1000px the
+     image is an unpinned 60vh block, so its scroll effects need the `exit` range
+     instead of the sticky-phase `contain` range. */
+  conditions: {
+    wide:   { type: 'media', predicate: '(min-width:1001px)' },
+    narrow: { type: 'media', predicate: '(max-width:1000px)' },
+  },
+
+  effects: {
+    /* headline: each character tips up out of 3D space and un-blurs */
+    'char-in': {
+      duration: 1000,
+      easing: 'expoOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'char-rise',
+        keyframes: [
+          { opacity: '0', transform: 'perspective(700px) translateY(65%) rotateX(-72deg)', filter: 'blur(7px)' },
+          { opacity: '1', transform: 'perspective(700px) translateY(0%) rotateX(0deg)',    filter: 'blur(0px)' },
+        ],
+      },
+    },
+
+    /* fields rise and sharpen into focus */
+    /* THREE identical entries on purpose, one per target.
+
+       An interaction's internal id is derived from
+       `sourceKey::targetKey::effectId::interactionIndex`. All three of these run
+       off the same source ('panel'), resolve to the same target root, and sit in
+       the same interaction — so if they all referenced one registry entry they
+       would collapse to a single id: only the first would survive, while
+       generate() had already emitted the hidden first keyframe for all three. The
+       copy and the button would stay at `opacity: 0` and blurred for good.
+
+       Same duration, same easing, same keyframes: the animation is unchanged. */
+    'row-in': {
+      duration: 950,
+      easing: 'expoOut',
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'row-rise',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(26px)', filter: 'blur(8px)' },
+          { opacity: '1', transform: 'translateY(0px)',  filter: 'blur(0px)' },
+        ],
+      },
+    },
+    'row-in-lede': {
+      duration: 950,
+      easing: 'expoOut',
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'row-rise-lede',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(26px)', filter: 'blur(8px)' },
+          { opacity: '1', transform: 'translateY(0px)',  filter: 'blur(0px)' },
+        ],
+      },
+    },
+    'row-in-actions': {
+      duration: 950,
+      easing: 'expoOut',
+      fill: 'backwards',
+      keyframeEffect: {
+        name: 'row-rise-actions',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(26px)', filter: 'blur(8px)' },
+          { opacity: '1', transform: 'translateY(0px)',  filter: 'blur(0px)' },
+        ],
+      },
+    },
+
+    /* each field's underline draws itself in from the left */
+    'rule-draw': {
+      duration: 800,
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'rule-draw-kf',
+        keyframes: [
+          { transform: 'scaleX(0)' },
+          { transform: 'scaleX(1)' },
+        ],
+      },
+    },
+
+    /* ---- scroll-driven, all sharing the sticky phase of .media-track ---- */
+
+    /* the frame shrinks to 80% from its centre, rounds its corners, tips slightly
+       and lifts off the page on a growing shadow */
+    'media-shrink': {
+      selector: '.media-frame',
+      rangeStart: { name: 'contain', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-shrink-kf',
+        keyframes: [
+          { transform: 'scale(1) rotate(0deg)',        borderRadius: '0px',  boxShadow: '0 0px 0px rgba(0,0,0,0)'    },
+          { transform: 'scale(0.8) rotate(-1.6deg)',   borderRadius: '28px', boxShadow: '0 46px 90px rgba(0,0,0,.28)' },
+        ],
+      },
+    },
+
+    /* the photo drifts and eases its own zoom inside the frame — parallax depth */
+    'media-drift': {
+      selector: '.media-img',
+      rangeStart: { name: 'contain', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-drift-kf',
+        keyframes: [
+          { transform: 'translateY(-5%) scale(1.06)' },
+          { transform: 'translateY(5%)  scale(1)'    },
+        ],
+      },
+    },
+
+    /* hairline frame wipes open around the image in the second half of the scroll */
+    'outline-wipe': {
+      selector: '.media-outline',
+      rangeStart: { name: 'contain', offset: { value: 35,  unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 95,  unit: 'percentage' } },
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'outline-wipe-kf',
+        keyframes: [
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)'   },
+        ],
+      },
+    },
+
+    /* ---- mobile twins of the three image effects, on the `exit` range ----
+       Same keyframes, different range: the 60vh block animates while it scrolls
+       up out of the viewport. Separate registry entries (not just overridden
+       refs) because each needs its own interaction id. */
+    'media-shrink-m': {
+      selector: '.media-frame',
+      rangeStart: { name: 'exit', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-shrink-m-kf',
+        keyframes: [
+          { transform: 'scale(1) rotate(0deg)',        borderRadius: '0px',  boxShadow: '0 0px 0px rgba(0,0,0,0)'    },
+          { transform: 'scale(0.8) rotate(-1.6deg)',   borderRadius: '28px', boxShadow: '0 46px 90px rgba(0,0,0,.28)' },
+        ],
+      },
+    },
+    'media-drift-m': {
+      selector: '.media-img',
+      rangeStart: { name: 'exit', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'media-drift-m-kf',
+        keyframes: [
+          { transform: 'translateY(-5%) scale(1.06)' },
+          { transform: 'translateY(5%)  scale(1)'    },
+        ],
+      },
+    },
+    'outline-wipe-m': {
+      selector: '.media-outline',
+      rangeStart: { name: 'exit', offset: { value: 10, unit: 'percentage' } },
+      rangeEnd:   { name: 'exit', offset: { value: 70, unit: 'percentage' } },
+      easing: 'quartOut',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'outline-wipe-m-kf',
+        keyframes: [
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)'   },
+        ],
+      },
+    },
+
+    /* the form drifts against the scroll, so the two columns feel like separate planes */
+    'form-drift': {
+      key: 'panel',
+      selector: '.form-shell',
+      rangeStart: { name: 'contain', offset: { value: 0,   unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 100, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      keyframeEffect: {
+        name: 'form-drift-kf',
+        keyframes: [
+          { transform: 'translateY(22px)'  },
+          { transform: 'translateY(-22px)' },
+        ],
+      },
+    },
+  },
+
+  interactions: [
+    /* a single viewEnter on the panel choreographs the whole entrance */
+    {
+      key: 'panel',
+      trigger: 'viewEnter',
+      params: { threshold: 0.05 },
+      sequences: [
+        {
+          offset: 34,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'char-in', listContainer: '.words', listItemSelector: '.c' }],
+        },
+        {
+          delay: 520,
+          offset: 120,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'row-in', listContainer: '.form-rows' }],
+        },
+        {
+          delay: 640,
+          offset: 120,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'rule-draw', listContainer: '.form-rows', selector: '.rule' }],
+        },
+      ],
+      effects: [
+        { effectId: 'row-in-lede',    selector: '.lede',    delay: 380 },
+        { effectId: 'row-in-actions', selector: '.actions', delay: 1080 },
+      ],
+    },
+
+    /* scroll: four layers moving at different rates off the same sticky timeline.
+       Source = the tall .media-track; the three image layers are its descendants,
+       which is what puts them inside the timeline's scope. */
+    {
+      key: 'media-track',
+      trigger: 'viewProgress',
+      effects: [
+        /* desktop: sticky pin, `contain` range */
+        { effectId: 'media-shrink',   conditions: ['wide'] },
+        { effectId: 'media-drift',    conditions: ['wide'] },
+        { effectId: 'outline-wipe',   conditions: ['wide'] },
+        { effectId: 'form-drift',     conditions: ['wide'] },
+        /* mobile: unpinned block, `exit` range */
+        { effectId: 'media-shrink-m', conditions: ['narrow'] },
+        { effectId: 'media-drift-m',  conditions: ['narrow'] },
+        { effectId: 'outline-wipe-m', conditions: ['narrow'] },
+      ],
+    },
+
+    /* Submit: white sweeps in from the left, the label flips to black behind it,
+       and the arrow slides out of the edge */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.sweep',
+          triggerType: 'alternate',
+          duration: 520,
+          easing: 'expoOut',
+          fill: 'both',
+          keyframeEffect: {
+            name: 'sweep-in',
+            keyframes: [
+              { transform: 'scaleX(0)' },
+              { transform: 'scaleX(1)' },
+            ],
+          },
+        },
+        {
+          selector: '.arrow',
+          triggerType: 'alternate',
+          duration: 460,
+          delay: 120,
+          easing: 'backOut',
+          fill: 'both',
+          keyframeEffect: {
+            name: 'arrow-slide',
+            keyframes: [
+              { opacity: '0', transform: 'translateX(-8px)' },
+              { opacity: '1', transform: 'translateX(0px)'  },
+            ],
+          },
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 220,
+            delay: 150,
+            easing: 'quadOut',
+            styleProperties: [{ name: 'color', value: '#000000' }],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  add(document.querySelector('.panel'),        'panel');
+  add(document.querySelector('.media-track'),  'media-track');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+
+  /* Bound and generated: the opening keyframes are in place, so it is safe to show
+     the page now rather than waiting out the fallback timer. */
+  window.__reveal();
+} catch (err) {
+  /* The reveal does not depend on this succeeding — see the classic script at the
+     top of the body, which un-hides the page on its own timer. */
+  console.error('[interact] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

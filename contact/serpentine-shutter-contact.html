@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — ZettaJoule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   SERPENTINE SHUTTER — CONTACT
+   A black page: the standing copy on the left, a dark form card on the right,
+   and a white curtain that breaks apart to reveal it.
+
+   The curtain was re-measured off the recording tile by tile, and it is not a
+   simple one-way wipe — that was the first version's mistake. What is actually
+   happening:
+
+   - The curtain is white, as is the submit button (the recording had both in the
+     brand blue #d3e6fd; keep that swap in one place, `--sheet`).
+   - It is cut into a 4 × 16 grid: 16 columns across the viewport, 4 rows down it.
+     (Measured pitch 105.7px across 1678px, and band edges at y≈0/220/440/650 of
+     866 — sixteenths and quarters of the viewport, exactly.)
+   - Each tile collapses horizontally to nothing. It does NOT fade and does not
+     move vertically.
+   - Direction ALTERNATES by row. The top row is uncovered from the right edge
+     leftward, the second row from the left edge rightward, the third from the
+     right again, the fourth from the left — a serpentine, not a curtain. Each
+     tile collapses toward the edge the sweep is coming from, so the gap always
+     opens on the leading side.
+   - All four rows run in sync, ~35ms between neighbouring tiles, ~420ms per
+     tile, which puts the whole reveal just under a second.
+   - Remaining tile width over time traces a symmetric S — an ease-in-out, hence
+     `sineInOut` rather than linear.
+
+   Implementation notes:
+   - Rows that sweep right-to-left use `flex-direction: row-reverse`, so their
+     DOM order matches their animation order and a plain stagger does the work.
+     They also flip `transform-origin` to `left`, mirroring the other rows.
+   - The one thing that matters for content safety: the tiles are `scaleX(0)` in
+     CSS — invisible. The covered state is the animation's FIRST keyframe, held by
+     `fill: 'backwards'` and painted by `generate()`. So if the library fails to
+     load, or the visitor prefers reduced motion, the curtain never exists and the
+     page is simply there. It cannot get stuck covering the content, which a
+     CSS-side `scaleX(1)` would risk.
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --black:#000000;
+  --card:#1a1a1a;
+  --field:#222222;
+  --field-line:#2e2e2e;
+  --white:#ffffff;
+  --dim:#9a9a9a;
+  --placeholder:#7c7c7c;
+  --sheet:#ffffff;               /* was the brand blue — the curtain and the
+                                    button are now plain white */
+  --sheet-hi:#e6e6e6;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;              /* NOT hidden */
+}
+
+/* ── The two columns ── */
+.main{
+  position: relative;
+  z-index: 1;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 5rem 2rem 7rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
+  gap: 5.5rem;
+  align-items: start;
+}
+.standfirst{
+  font-size: 1.28rem;
+  line-height: 1.52;
+  letter-spacing: -0.008em;
+  color: var(--white);
+  max-width: 27ch;
+}
+
+/* ── The form card ── */
+.card{
+  background: var(--card);
+  border-radius: 14px;
+  padding: 2.4rem 2.3rem 2.6rem;
+  container-type: inline-size;
+}
+.card h2{
+  font-size: 1.42rem;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  margin-bottom: .75rem;
+}
+.card .note{
+  font-size: .92rem;
+  color: var(--dim);
+  margin-bottom: 1.9rem;
+}
+
+.field{ margin-bottom: 1.35rem; }
+.field:last-of-type{ margin-bottom: 0; }
+.field label{
+  display: block;
+  font-size: .95rem;
+  margin-bottom: .62rem;
+}
+.control{
+  width: 100%;
+  height: 48px;
+  font: inherit; font-size: .95rem;
+  color: var(--white);
+  background: var(--field);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 1rem;
+  transition: border-color .22s var(--ease), background-color .22s var(--ease);
+}
+.control::placeholder{ color: var(--placeholder); }
+.control:hover{ border-color: var(--field-line); }
+.control:focus{ outline: none; border-color: #5a7fa8; background: #262626; }
+textarea.control{
+  height: auto; min-height: 118px;
+  padding: .85rem 1rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* the phone row: country code, then the number */
+.row-phone{
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: .75rem;
+}
+/* native selects, restyled — the chevron is drawn with gradients so it takes the
+   field's colours rather than the OS palette */
+select.control{
+  appearance: none;
+  padding-right: 2.4rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%),
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 21px,
+    calc(100% - 14px) 21px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+select.control option{ background: var(--card); color: var(--white); }
+
+.submit{
+  margin-top: 1.9rem;
+  font: inherit; font-size: .98rem; cursor: pointer;
+  border: 0; border-radius: 6px;
+  background: var(--sheet); color: #111;
+  padding: .92rem 2.2rem;
+}
+
+/* ── The curtain: 4 rows × 16 tiles ──
+   `scaleX(0)` on purpose: the covered state belongs to the animation, not to the
+   stylesheet — see the note at the top of the file. */
+.reveal{
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  pointer-events: none;          /* decorative, and never in the way */
+}
+.band{ display: flex; }
+.tile{
+  flex: 1 1 0;                   /* sixteen equal columns */
+  background: var(--sheet);
+  transform: scaleX(0);
+  transform-origin: right center;
+  will-change: transform;
+}
+/* Rows 1 and 3 are uncovered from the right edge leftward: reverse both the DOM
+   order (so the stagger runs right to left) and the collapse origin. */
+.band--rtl{ flex-direction: row-reverse; }
+.band--rtl .tile{ transform-origin: left center; }
+
+/* ── Responsive ── */
+@media (max-width: 1080px){
+  .main{
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.8rem;
+    padding: 3rem 1.25rem 4rem;
+  }
+  .standfirst{ font-size: 1.12rem; max-width: 46ch; }
+  .card{ padding: 1.7rem 1.4rem 2rem; }
+}
+@container (max-width: 420px){
+  .row-phone{ grid-template-columns: 88px minmax(0, 1fr); }
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes tile-close-1-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-2-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-3-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+@keyframes tile-close-4-kf {
+0% {
+transform: scaleX(1);
+}
+100% {
+transform: scaleX(0);
+}
+}
+[data-interact-key="band1"] .tile {
+--animation-0-0-kdxkyok4k: tile-close-1-kf 420ms calc((0 + (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)) * 35 * var(--motion-seq-0-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-0-0-kdxkyok4k: replace;
+--animation-timeline-0-0-kdxkyok4k: auto;
+--animation-range-0-0-kdxkyok4k: normal;
+}
+[data-interact-key="band1"] .tile {
+--animation-0-kdxkyok4k: var(--animation-0-0-kdxkyok4k, none);
+--animation-composition-0-kdxkyok4k: var(--animation-composition-0-0-kdxkyok4k, replace);
+--animation-timeline-0-kdxkyok4k: var(--animation-timeline-0-0-kdxkyok4k, auto);
+--animation-range-0-kdxkyok4k: var(--animation-range-0-0-kdxkyok4k, normal);
+}
+[data-interact-key="band2"] .tile {
+--animation-1-0-q8yvb5w451: tile-close-2-kf 420ms calc((0 + (var(--motion-seq-1-0-index, 0) / var(--motion-seq-1-0-last, 1)) * 35 * var(--motion-seq-1-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-1-0-q8yvb5w451: replace;
+--animation-timeline-1-0-q8yvb5w451: auto;
+--animation-range-1-0-q8yvb5w451: normal;
+}
+[data-interact-key="band2"] .tile {
+--animation-1-q8yvb5w451: var(--animation-1-0-q8yvb5w451, none);
+--animation-composition-1-q8yvb5w451: var(--animation-composition-1-0-q8yvb5w451, replace);
+--animation-timeline-1-q8yvb5w451: var(--animation-timeline-1-0-q8yvb5w451, auto);
+--animation-range-1-q8yvb5w451: var(--animation-range-1-0-q8yvb5w451, normal);
+}
+[data-interact-key="band3"] .tile {
+--animation-2-0-7l5nxj3t9h: tile-close-3-kf 420ms calc((0 + (var(--motion-seq-2-0-index, 0) / var(--motion-seq-2-0-last, 1)) * 35 * var(--motion-seq-2-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-2-0-7l5nxj3t9h: replace;
+--animation-timeline-2-0-7l5nxj3t9h: auto;
+--animation-range-2-0-7l5nxj3t9h: normal;
+}
+[data-interact-key="band3"] .tile {
+--animation-2-7l5nxj3t9h: var(--animation-2-0-7l5nxj3t9h, none);
+--animation-composition-2-7l5nxj3t9h: var(--animation-composition-2-0-7l5nxj3t9h, replace);
+--animation-timeline-2-7l5nxj3t9h: var(--animation-timeline-2-0-7l5nxj3t9h, auto);
+--animation-range-2-7l5nxj3t9h: var(--animation-range-2-0-7l5nxj3t9h, normal);
+}
+[data-interact-key="band4"] .tile {
+--animation-3-0-x9qlnqbd86: tile-close-4-kf 420ms calc((0 + (var(--motion-seq-3-0-index, 0) / var(--motion-seq-3-0-last, 1)) * 35 * var(--motion-seq-3-0-last, 1)) * 1ms) cubic-bezier(0.445, 0.05, 0.55, 0.95) backwards 1 paused;
+--animation-composition-3-0-x9qlnqbd86: replace;
+--animation-timeline-3-0-x9qlnqbd86: auto;
+--animation-range-3-0-x9qlnqbd86: normal;
+}
+[data-interact-key="band4"] .tile {
+--animation-3-x9qlnqbd86: var(--animation-3-0-x9qlnqbd86, none);
+--animation-composition-3-x9qlnqbd86: var(--animation-composition-3-0-x9qlnqbd86, replace);
+--animation-timeline-3-x9qlnqbd86: var(--animation-timeline-3-0-x9qlnqbd86, auto);
+--animation-range-3-x9qlnqbd86: var(--animation-range-3-0-x9qlnqbd86, normal);
+}
+[data-interact-key="send"] {
+--transition-4-kfvkw7fuj8: background-color 220ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="send"]:is(:state(eff-4-0), :--eff-4-0, [data-interact-effect~="eff-4-0"]) {
+background-color: #e6e6e6;
+}
+[data-interact-key="band1"] .tile {
+animation: var(--animation-0-kdxkyok4k, none);
+animation-composition: var(--animation-composition-0-kdxkyok4k, replace);
+animation-timeline: var(--animation-timeline-0-kdxkyok4k, auto);
+animation-range: var(--animation-range-0-kdxkyok4k, normal);
+}
+[data-interact-key="band2"] .tile {
+animation: var(--animation-1-q8yvb5w451, none);
+animation-composition: var(--animation-composition-1-q8yvb5w451, replace);
+animation-timeline: var(--animation-timeline-1-q8yvb5w451, auto);
+animation-range: var(--animation-range-1-q8yvb5w451, normal);
+}
+[data-interact-key="band3"] .tile {
+animation: var(--animation-2-7l5nxj3t9h, none);
+animation-composition: var(--animation-composition-2-7l5nxj3t9h, replace);
+animation-timeline: var(--animation-timeline-2-7l5nxj3t9h, auto);
+animation-range: var(--animation-range-2-7l5nxj3t9h, normal);
+}
+[data-interact-key="band4"] .tile {
+animation: var(--animation-3-x9qlnqbd86, none);
+animation-composition: var(--animation-composition-3-x9qlnqbd86, replace);
+animation-timeline: var(--animation-timeline-3-x9qlnqbd86, auto);
+animation-range: var(--animation-range-3-x9qlnqbd86, normal);
+}
+[data-interact-key="send"] {
+transition: var(--transition-4-kfvkw7fuj8, _);
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Copy + form ── -->
+  <main class="main">
+
+    <p class="standfirst">
+      Please complete the form to reach our team regarding career opportunities,
+      investor inquiries, or supplier partnerships. We will review your message
+      and respond as soon as possible.
+    </p>
+
+    <section class="card">
+      <h2>Send Us an Email</h2>
+      <p class="note">Please fill in the information below. Fields marked with * are required.</p>
+
+      <form novalidate>
+
+        <div class="field">
+          <label for="name">Name *</label>
+          <input class="control" id="name" name="name" type="text" placeholder="Enter your name" autocomplete="name" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="company">Company</label>
+          <input class="control" id="company" name="company" type="text" placeholder="Enter your company" autocomplete="organization">
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone *</label>
+          <div class="row-phone">
+            <select class="control" id="dial" name="dial" aria-label="Country code">
+              <option>+1</option>
+              <option>+44</option>
+              <option>+972</option>
+              <option>+49</option>
+            </select>
+            <input class="control" id="phone" name="phone" type="tel" placeholder="Enter your number" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inquiry">Inquiry Type *</label>
+          <select class="control" id="inquiry" name="inquiry" required>
+            <option value="" disabled selected>Select your inquiry type</option>
+            <option>Careers</option>
+            <option>Investors</option>
+            <option>Suppliers</option>
+            <option>Press</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea class="control" id="message" name="message" placeholder="Enter your message"></textarea>
+        </div>
+
+        <button class="submit" type="submit" data-interact-key="send">Send message</button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- ── The curtain. Row 1 and 3 are reversed in the DOM, so every row's first
+       child is the tile the sweep starts from. ── -->
+  <div class="reveal" aria-hidden="true">
+    <div class="band band--rtl" data-band="1">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band band--ltr" data-band="2">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band band--rtl" data-band="3">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+    <div class="band band--ltr" data-band="4">
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+      <i class="tile"></i><i class="tile"></i><i class="tile"></i><i class="tile"></i>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
+/* CRITICAL — one effectId per effect, and one keyframe name per effect, never
+   shared. The runtime derives an interaction's internal id from
+   `sourceKey::targetKey::effectId::interactionIndex`, so reusing a registry entry
+   across the four rows would collapse them into one id: only the first would
+   survive, while generate() had already emitted initial rules for all four. The
+   result is tiles that cover the page and never leave. Hence one entry per row,
+   built by this factory, each with its own keyframe name. */
+const tileClose = (n) => ['tile-close-' + n, {
+  duration: 420,                 /* measured: ~6 frames at 70ms */
+  easing: 'sineInOut',           /* measured: a symmetric S, not linear */
+  fill: 'backwards',             /* holds the tile at full width until its turn */
+  triggerType: 'once',
+  conditions: ['full-motion'],
+  keyframeEffect: {
+    name: 'tile-close-' + n + '-kf',
+    keyframes: [
+      { transform: 'scaleX(1)' },
+      { transform: 'scaleX(0)' },
+    ],
+  },
+}];
+
+/* One sequence per row. `selector: '.tile'` matches every tile inside the row and
+   the sequence's `offset` is the delay between them, applied in DOM order — which
+   is why the reversed rows are reversed in the markup rather than here. */
+const bandSweep = (n) => ({
+  key: 'band' + n,
+  trigger: 'viewEnter',
+  params: { threshold: 0 },
+  sequences: [{
+    delay: 0,
+    offset: 35,                  /* measured: ~half a frame per column */
+    offsetEasing: 'linear',      /* an even stagger; nothing bunches up */
+    effects: [{ effectId: 'tile-close-' + n, selector: '.tile' }],
+  }],
+});
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: Object.fromEntries([1, 2, 3, 4].map(tileClose)),
+
+  interactions: [
+    /* The reveal: four rows, same timing, alternating direction. */
+    ...[1, 2, 3, 4].map(bandSweep),
+
+    /* The button warms up on interest — `interest` rather than `hover` so
+       keyboard focus counts too. A StateEffect, not keyframes: a transform on a
+       hover source would shift its own hit area and cause re-entry jitter. */
+    {
+      key: 'send',
+      trigger: 'interest',
+      effects: [{
+        stateAction: 'toggle',
+        transition: {
+          duration: 220,
+          easing: EASE,
+          styleProperties: [{ name: 'background-color', value: '#e6e6e6' }],
+        },
+      }],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  document.querySelectorAll('.band').forEach((band, i) => add(band, 'band' + (i + 1)));
+  add(document.querySelector('.submit'), 'send');
+} catch (err) {
+  /* Nothing to un-hide: with no library there is no curtain, and the page is
+     simply visible. */
+  console.error('[zettajoule] @wix/interact failed to initialise — no animation:', err);
+}
+</script>
+</body>
+</html>

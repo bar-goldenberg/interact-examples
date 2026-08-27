@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — Our location (sides in, then centre)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   OUR LOCATION — SIDES IN, THEN TOP AND BOTTOM TO THE CENTRE
+   Same page as the other three, fourth way out. At the top of the scroll the
+   photograph fills the section edge to edge, and it leaves in two distinct moves:
+
+     1. the two side edges travel inward until only a band down the middle of the
+        screen is left, so the form is uncovered from the outside in;
+     2. then that band closes vertically from BOTH ends at once — its top edge
+        descends and its bottom edge rises until they meet on the horizon line and
+        the last of the picture is gone.
+
+   Both moves are one property on one element: `clip-path: inset()`, three
+   keyframes, evenly spaced, so the sides own the first half of the scroll and the
+   vertical wipe owns the second.
+
+     inset(0%   0%  0%  0%)     full bleed
+     inset(0%  35%  0% 35%)     sides closed to a 30%-wide band
+     inset(50% 35% 50% 35%)     band closed to its own centre line, nothing left
+
+   Why `inset()` and not two nested masks with transforms: the two stages are the
+   same rectangle being described twice, so one interpolated track keeps them
+   exactly continuous — there is no seam where one move hands over to the next,
+   and no second element to keep in sync.
+
+   Inside it, the photo pulls back from `scale(1.08)` to `1` over the same range —
+   a separate effect on a separate element, because the clip and the photo are two
+   different things moving.
+
+   The two things that are easy to get wrong here:
+
+   1. The photo is not a background on the section: it is an absolutely positioned
+      element inside the sticky wrap, so it covers exactly the pinned viewport and
+      `object-fit: cover` can crop it without distortion at any window shape.
+   2. The timeline source is the tall `.stage`, not the sticky `.stage-wrap`. A
+      stuck element barely moves relative to the viewport, which makes it a poor
+      ViewTimeline source; the tall parent is the one that travels. And because the
+      source starts at the very top of the document, its `entry` range is already
+      spent at scroll 0 — the effects use `contain`, which for a source taller
+      than the viewport is exactly the stuck phase and opens at scroll 0.
+
+   `overflow` must be `clip`, never `hidden`, on every ancestor between the source
+   and the scroll container, or ViewTimeline breaks silently.
+
+   Content safety: the photo is `opacity: 0` in CSS. Its visible state lives in the
+   animation's keyframes, held by `fill: 'both'`. So if the library fails to load,
+   or the visitor prefers reduced motion, the form is simply there and the photo
+   never covers it — the failure mode is "no picture", never "no form".
+   ============================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --ink:#0e0e0e;
+  --line:#c9c9c9;
+  --blue:#0b3fe4;
+  --blue-hi:#0932bb;
+}
+
+html{ overflow-x: clip; }
+body{
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+  background:#fff;
+  color: var(--ink);
+  overflow-x: clip;              /* NOT hidden */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── The stage: the scroll distance the fade resolves over ── */
+.stage{
+  position: relative;
+  min-height: 230vh;
+}
+.stage-wrap{
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;                /* clip, never hidden — see the note above */
+}
+
+/* ── The photograph ── */
+.cover{
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;                    /* the animation owns the visible state */
+  pointer-events: none;          /* never in the way of the form beneath it */
+  will-change: clip-path;
+}
+.cover img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  will-change: transform;
+}
+
+/* ── The contact layout ── */
+.contact{
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1266px;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 49fr) minmax(0, 47fr);
+  column-gap: 4%;
+  align-items: start;
+}
+
+/* left column: the two headings up top, the address far below them */
+.side{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 30rem;
+}
+.eyebrow{
+  font-size: .95rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+.side h2{
+  font-size: 1.62rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  margin-top: .55rem;
+}
+.address{
+  font-size: .88rem;
+  line-height: 1.42;
+  max-width: 15rem;
+}
+.address a{ color: inherit; text-decoration: none; }
+.address a:hover{ text-decoration: underline; }
+
+/* right column: underline fields */
+.form{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;
+  row-gap: 1.55rem;
+  container-type: inline-size;
+}
+.field{ display: flex; flex-direction: column; min-width: 0; }
+.field--wide{ grid-column: 1 / -1; }
+.field label{
+  font-size: .88rem;
+  margin-bottom: 1.6rem;
+}
+.control{
+  font: inherit; font-size: .95rem;
+  color: var(--ink);
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0 0 .5rem;
+  width: 100%;
+  transition: border-color .2s cubic-bezier(.4,0,.2,1);
+}
+.control:hover{ border-bottom-color: #9a9a9a; }
+.control:focus{ outline: none; border-bottom-color: var(--ink); }
+textarea.control{
+  min-height: 6.5rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.field--message label{ margin-bottom: .9rem; }
+
+.submit{
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 1.1rem;
+  font: inherit; font-size: .98rem;
+  color: #fff; background: var(--blue);
+  border: 0; border-radius: 0;
+  padding: .78rem 2.6rem;
+  min-width: 184px;
+  cursor: pointer;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px){
+  .stage{ min-height: 210vh; }
+  .stage-wrap{ align-items: flex-start; padding-top: 6vh; }
+  .contact{
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2.6rem;
+    padding: 2.5rem 1.25rem;
+  }
+  .side{ min-height: 0; gap: 2rem; }
+  .address{ max-width: 26rem; }
+}
+@container (max-width: 420px){
+  .form{ grid-template-columns: 1fr; }
+  .field label{ margin-bottom: 1.15rem; }
+  .submit{ width: 100%; }
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes panel-wipe-kf {
+0% {
+clip-path: inset(0% 0% 0% 0%);
+opacity: 1;
+}
+50% {
+clip-path: inset(0% 35% 0% 35%);
+opacity: 1;
+}
+100% {
+clip-path: inset(50% 35% 50% 35%);
+opacity: 1;
+}
+}
+@keyframes photo-settle-kf {
+0% {
+transform: scale(1.08);
+}
+100% {
+transform: scale(1);
+}
+}
+[data-interact-key="stage"] {
+view-timeline: --trigger-0;
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .cover {
+--animation-0-30u2zg5vlw: panel-wipe-kf auto linear both 1 ;
+--animation-composition-0-30u2zg5vlw: replace;
+--animation-timeline-0-30u2zg5vlw: --trigger-0;
+--animation-range-0-30u2zg5vlw: contain 0% contain 70%;
+}
+}
+@media ((prefers-reduced-motion: no-preference)) {
+[data-interact-key="stage"] .cover img {
+--animation-0-15uzi433rx7: photo-settle-kf auto linear both 1 ;
+--animation-composition-0-15uzi433rx7: replace;
+--animation-timeline-0-15uzi433rx7: --trigger-0;
+--animation-range-0-15uzi433rx7: contain 0% contain 70%;
+}
+}
+[data-interact-key="submit"] {
+--transition-1-3lk2bmo076: background-color 200ms cubic-bezier(.4,0,.2,1);
+}
+[data-interact-key="submit"]:is(:state(eff-1-0), :--eff-1-0, [data-interact-effect~="eff-1-0"]) {
+background-color: #0932bb;
+}
+[data-interact-key="stage"] .cover {
+animation: var(--animation-0-30u2zg5vlw, none);
+animation-composition: var(--animation-composition-0-30u2zg5vlw, replace);
+animation-timeline: var(--animation-timeline-0-30u2zg5vlw, auto);
+animation-range: var(--animation-range-0-30u2zg5vlw, normal);
+}
+[data-interact-key="stage"] .cover img {
+animation: var(--animation-0-15uzi433rx7, none);
+animation-composition: var(--animation-composition-0-15uzi433rx7, replace);
+animation-timeline: var(--animation-timeline-0-15uzi433rx7, auto);
+animation-range: var(--animation-range-0-15uzi433rx7, normal);
+}
+[data-interact-key="submit"] {
+transition: var(--transition-1-3lk2bmo076, _);
+}
+</style>
+</head>
+<body>
+
+<section class="stage" data-interact-key="stage">
+  <div class="stage-wrap">
+
+    <!-- the photograph that starts on top of everything -->
+    <div class="cover" aria-hidden="true">
+      <img src="https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg" alt="">
+    </div>
+
+    <div class="contact">
+
+      <div class="side">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>Our location</h2>
+        </div>
+
+        <address class="address">
+          This is the space to share your business&rsquo;s contact information.<br>
+          500 Terry Francine St.<br>
+          San Francisco, CA 94158<br>
+          <a href="tel:1234567890">123-456-7890</a><br>
+          <a href="mailto:info@mysite.com">info@mysite.com</a>
+        </address>
+      </div>
+
+      <form class="form" novalidate>
+
+        <div class="field">
+          <label for="firstname">First name *</label>
+          <input class="control" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+        </div>
+
+        <div class="field">
+          <label for="lastname">Last name</label>
+          <input class="control" id="lastname" name="lastname" type="text" autocomplete="family-name">
+        </div>
+
+        <div class="field field--wide">
+          <label for="email">Email *</label>
+          <input class="control" id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="field field--wide field--message">
+          <label for="message">Write a message</label>
+          <textarea class="control" id="message" name="message" rows="4"></textarea>
+        </div>
+
+        <button class="submit" type="submit" data-interact-key="submit">Submit</button>
+      </form>
+
+    </div>
+  </div>
+</section>
+
+<script type="module">
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose
+   exports are only Interact / add / remove — no `generate`, and no /web subpath.
+   The import would throw and nothing would run. 2.5.8 is the version the rules
+   file documents, and it exports Interact / add / generate / remove.
+
+   Vanilla integration: no <interact-element> wrappers, keys bound to the real
+   layout elements with add(), and generate(config, false). */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
+/* CRITICAL — one effectId per effect, never shared. An interaction's internal id
+   is derived from `sourceKey::targetKey::effectId::interactionIndex`, so two
+   effects in one interaction pointing at the same registry entry collapse into a
+   single id: only the first survives, while generate() has already emitted the
+   initial rules for both. Here there is one scrubbed effect and one reference. */
+
+const config = {
+  conditions: {
+    'full-motion': { type: 'media', predicate: '(prefers-reduced-motion: no-preference)' },
+  },
+
+  effects: {
+    /* ── the sides close, then the band shuts from top and bottom together ──
+       `linear`, so the wipe tracks the wheel one to one; the two-stage shaping is
+       in the keyframe spacing, not in an easing curve.
+
+       `fill: 'both'` is required for a scrubbed effect, and it is also what keeps
+       the photo visible before the range opens instead of starting it clipped. */
+    'panel-wipe': {
+      rangeStart: { name: 'contain', offset: { value: 0,  unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 70, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      selector: '.cover',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'panel-wipe-kf',
+        keyframes: [
+          { clipPath: 'inset(0% 0% 0% 0%)',    opacity: 1 },
+          { clipPath: 'inset(0% 35% 0% 35%)',  opacity: 1 },
+          { clipPath: 'inset(50% 35% 50% 35%)', opacity: 1 },
+        ],
+      },
+    },
+
+    /* ── the photo pulls back inside it ──
+       A slow release from 1.08 to 1 across the same range. It gives the wipe
+       something to travel *over*, so the shrinking frame reads as a window onto a
+       moving image rather than a hole cut in a flat one. Its own effectId and keyframe name, since
+       two effects sharing a registry entry in one interaction would collapse into
+       a single id and only the first would survive. */
+    'photo-settle': {
+      rangeStart: { name: 'contain', offset: { value: 0,  unit: 'percentage' } },
+      rangeEnd:   { name: 'contain', offset: { value: 70, unit: 'percentage' } },
+      easing: 'linear',
+      fill: 'both',
+      selector: '.cover img',
+      conditions: ['full-motion'],
+      keyframeEffect: {
+        name: 'photo-settle-kf',
+        keyframes: [
+          { transform: 'scale(1.08)' },
+          { transform: 'scale(1)'    },
+        ],
+      },
+    },
+  },
+
+  interactions: [
+    /* scroll: the source is the tall stage, the target is the photo inside it */
+    {
+      key: 'stage',
+      trigger: 'viewProgress',
+      effects: [
+        { effectId: 'panel-wipe' },
+        { effectId: 'photo-settle' },
+      ],
+    },
+
+    /* Submit deepens on interest — `interest` rather than `hover` so keyboard
+       focus counts too. A StateEffect, not keyframes: a transform on a hover
+       source would shift its own hit area and cause re-entry jitter. */
+    {
+      key: 'submit',
+      trigger: 'interest',
+      effects: [{
+        stateAction: 'toggle',
+        transition: {
+          duration: 200,
+          easing: EASE,
+          styleProperties: [{ name: 'background-color', value: '#0932bb' }],
+        },
+      }],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  add(document.querySelector('.stage'),  'stage');
+  add(document.querySelector('.submit'), 'submit');
+} catch (err) {
+  /* Nothing to un-hide: without the library the photo never appears and the form
+     is already there. */
+  console.error('[location-wipe] @wix/interact failed to initialise — no reveal:', err);
+}
+</script>
+</body>
+</html>

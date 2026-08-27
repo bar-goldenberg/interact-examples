@@ -22,12 +22,19 @@
       cursor: crosshair;
     }
 
-    interact-element {
+    /* Scoped to the direct children of the container: the keyed wrapper added
+       for the pointer/ticker interactions is an interact-element too, and must
+       stay a plain full-size block rather than an absolutely-placed item. */
+    .cloud-container > interact-element {
       position: absolute;
       display: block;
     }
 
-    interact-element:hover {
+    [data-interact-key="cloud"] {
+      display: block;
+    }
+
+    .cloud-container > interact-element:hover {
       z-index: 100 !important;
     }
 
@@ -126,6 +133,7 @@
   </style>
 </head>
 <body>
+  <interact-element data-interact-key="cloud">
   <div class="cloud-container">
 
     <interact-element data-interact-key="item-1" style="left: 29%; top: 26%;">
@@ -368,9 +376,20 @@
 
     <div class="footer-hint">Move pointer to explore · Hover to expand</div>
   </div>
+  </interact-element>
 
   <script type="module">
     import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+    import { CustomMouse } from 'https://esm.sh/@wix/motion-presets';
+
+    // pointerMove + customEffect is driven by the CustomMouse preset, which has
+    // to be registered before create() or the effect silently never runs.
+    Interact.registerEffects({ CustomMouse });
+
+    // The only module-scope state: where the pointer is. The pointerMove effect
+    // writes it, the ticking effect reads it. Null until the first move, so the
+    // cloud rests centred and dimmed on load exactly as it used to.
+    const pointer = { x: null, y: null };
 
     const itemKeys = [
       'item-1', 'item-2', 'item-3', 'item-4', 'item-5',
@@ -379,110 +398,150 @@
       'item-16', 'item-17'
     ];
 
-    const interactions = [];
+    // Per-item hover recolour — already declarative, unchanged.
+    const hoverInteractions = itemKeys.map((key) => ({
+      key,
+      trigger: 'hover',
+      effects: [{
+        transition: {
+          duration: 500,
+          easing: 'ease-out',
+          styleProperties: [
+            { name: 'background-color', value: '#1C1C1C' },
+            { name: 'color', value: '#E8E6DD' },
+            { name: 'box-shadow', value: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }
+          ]
+        }
+      }]
+    }));
 
-    itemKeys.forEach(key => {
-      interactions.push({
-        key,
-        trigger: 'hover',
-        effects: [{
-          transition: {
-            duration: 500,
-            easing: 'ease-out',
-            styleProperties: [
-              { name: 'background-color', value: '#1C1C1C' },
-              { name: 'color', value: '#E8E6DD' },
-              { name: 'box-shadow', value: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }
-            ]
-          }
-        }]
-      });
-    });
+    // Proximity scale/opacity + parallax. This stays a customEffect on purpose:
+    // each item's scale is a function of its 2D distance from the pointer, and a
+    // per-item distance field over 17 elements is not something keyframes or a
+    // named preset can express — keyframes interpolate along one timeline, not
+    // across a plane. The frame-rate lerp below is the other half: the cloud
+    // keeps easing toward its target after the pointer stops, which a
+    // pointerMove-only effect (it fires on movement) cannot do by itself.
+    const proximityTick = (() => {
+      const MIN_SCALE = 0.35;
+      const MAX_SCALE = 1.2;
+      const MIN_OPACITY = 0.45;
+      const MAX_OPACITY = 1;
+      const NEAR = 120;
+      const FAR = 500;
+      const LERP_SPEED = 0.08;
+      const PARALLAX_STRENGTH = 0.035;
+      const PARALLAX_LERP = 0.05;
 
-    Interact.create({ interactions });
+      let nodes = null;
 
-    // --- Proximity-based scale, opacity & parallax ---
-    const MIN_SCALE = 0.35;
-    const MAX_SCALE = 1.2;
-    const MIN_OPACITY = 0.45;
-    const MAX_OPACITY = 1;
-    const NEAR = 120;
-    const FAR = 500;
-    const LERP_SPEED = 0.08;
-    const PARALLAX_STRENGTH = 0.035;
-
-    const nodes = Array.from(document.querySelectorAll('interact-element')).map(el => {
-      const child = el.querySelector('.cloud-item');
-      return {
+      // Built on the first tick rather than at module scope: the effect only
+      // starts once the container is in view, by which point the items exist.
+      const build = () => Array.from(
+        document.querySelectorAll('.cloud-container > interact-element')
+      ).map((el) => ({
         el,
-        child,
+        child: el.querySelector('.cloud-item'),
+        // The cloud's layout lives in the markup as left/top percentages, so
+        // the distance test reads them back rather than measuring boxes — the
+        // items are being scaled every frame, which makes their measured rects
+        // a moving target.
         xPct: parseFloat(el.style.left) / 100,
         yPct: parseFloat(el.style.top) / 100,
-        targetScale: MIN_SCALE,
-        targetOpacity: MIN_OPACITY,
-        targetMoveX: 0,
-        targetMoveY: 0,
-        currentScale: MIN_SCALE,
-        currentOpacity: MIN_OPACITY,
-        currentMoveX: 0,
-        currentMoveY: 0,
-      };
-    });
+        scale: MIN_SCALE,
+        opacity: MIN_OPACITY,
+        moveX: 0,
+        moveY: 0
+      }));
 
-    let pointerX = window.innerWidth / 2;
-    let pointerY = window.innerHeight / 2;
+      return () => {
+        if (!nodes) nodes = build();
+        if (!nodes.length) return;
 
-    function onPointerMove(e) {
-      pointerX = e.clientX;
-      pointerY = e.clientY;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const px = pointer.x ?? vw / 2;
+        const py = pointer.y ?? vh / 2;
 
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const centerX = vw / 2;
-      const centerY = vh / 2;
+        // Same for every item, so it reads as the whole cloud drifting.
+        const targetMoveX = (px - vw / 2) * PARALLAX_STRENGTH;
+        const targetMoveY = (py - vh / 2) * PARALLAX_STRENGTH;
 
-      for (const node of nodes) {
-        const bx = node.xPct * vw;
-        const by = node.yPct * vh;
-        const dx = pointerX - bx;
-        const dy = pointerY - by;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        for (const node of nodes) {
+          const dx = px - node.xPct * vw;
+          const dy = py - node.yPct * vh;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (dist < NEAR) {
-          node.targetScale = MAX_SCALE;
-          node.targetOpacity = MAX_OPACITY;
-        } else if (dist < FAR) {
-          const ratio = 1 - Math.pow((dist - NEAR) / (FAR - NEAR), 1.5);
-          node.targetScale = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * ratio;
-          node.targetOpacity = MIN_OPACITY + (MAX_OPACITY - MIN_OPACITY) * ratio;
-        } else {
-          node.targetScale = MIN_SCALE;
-          node.targetOpacity = MIN_OPACITY;
+          let targetScale;
+          let targetOpacity;
+          if (dist < NEAR) {
+            targetScale = MAX_SCALE;
+            targetOpacity = MAX_OPACITY;
+          } else if (dist < FAR) {
+            // Exponent > 1 keeps the falloff tight around the pointer instead
+            // of lighting up half the cloud.
+            const ratio = 1 - Math.pow((dist - NEAR) / (FAR - NEAR), 1.5);
+            targetScale = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * ratio;
+            targetOpacity = MIN_OPACITY + (MAX_OPACITY - MIN_OPACITY) * ratio;
+          } else {
+            targetScale = MIN_SCALE;
+            targetOpacity = MIN_OPACITY;
+          }
+
+          node.scale += (targetScale - node.scale) * LERP_SPEED;
+          node.opacity += (targetOpacity - node.opacity) * LERP_SPEED;
+          node.moveX += (targetMoveX - node.moveX) * PARALLAX_LERP;
+          node.moveY += (targetMoveY - node.moveY) * PARALLAX_LERP;
+
+          // `scale` and `translate` are individual properties in the stylesheet,
+          // so writing transform here composes with the -50%/-50% centring
+          // instead of overwriting it.
+          node.child.style.scale = node.scale;
+          node.child.style.opacity = node.opacity;
+          node.child.style.transform = `translate(${node.moveX}px, ${node.moveY}px)`;
+          node.el.style.zIndex = node.scale > 0.85 ? 50 : 10;
         }
+      };
+    })();
 
-        node.targetMoveX = (pointerX - centerX) * PARALLAX_STRENGTH;
-        node.targetMoveY = (pointerY - centerY) * PARALLAX_STRENGTH;
-      }
-    }
-
-    function render() {
-      for (const node of nodes) {
-        node.currentScale += (node.targetScale - node.currentScale) * LERP_SPEED;
-        node.currentOpacity += (node.targetOpacity - node.currentOpacity) * LERP_SPEED;
-        node.currentMoveX += (node.targetMoveX - node.currentMoveX) * 0.05;
-        node.currentMoveY += (node.targetMoveY - node.currentMoveY) * 0.05;
-
-        node.child.style.scale = node.currentScale;
-        node.child.style.opacity = node.currentOpacity;
-        node.child.style.transform = `translate(${node.currentMoveX}px, ${node.currentMoveY}px)`;
-        node.el.style.zIndex = node.currentScale > 0.85 ? 50 : 10;
-      }
-      requestAnimationFrame(render);
-    }
-
-    document.addEventListener('mousemove', onPointerMove);
-    onPointerMove({ clientX: pointerX, clientY: pointerY });
-    requestAnimationFrame(render);
+    Interact.create({
+      interactions: [
+        ...hoverInteractions,
+        {
+          // The ticker. iterations: Infinity on a linear 1s effect gives a
+          // per-frame callback for the lerp, replacing requestAnimationFrame.
+          key: 'cloud',
+          trigger: 'viewEnter',
+          // The container fills the viewport, but threshold is pinned at 0 so
+          // the effect cannot fail to start on a short or scaled viewport.
+          params: { threshold: 0 },
+          effects: [{
+            triggerType: 'once',
+            duration: 1000,
+            iterations: Infinity,
+            easing: 'linear',
+            fill: 'both',
+            customEffect: proximityTick
+          }]
+        },
+        {
+          // Pointer input, replacing document.addEventListener('mousemove').
+          // hitArea 'root' tracks across the whole page, which is what the old
+          // document-level listener did.
+          key: 'cloud',
+          trigger: 'pointerMove',
+          params: { hitArea: 'root' },
+          effects: [{
+            fill: 'both',
+            customEffect: (element, progress) => {
+              if (progress.active === false) return;
+              pointer.x = progress.x * window.innerWidth;
+              pointer.y = progress.y * window.innerHeight;
+            }
+          }]
+        }
+      ]
+    });
   </script>
 </body>
 </html>

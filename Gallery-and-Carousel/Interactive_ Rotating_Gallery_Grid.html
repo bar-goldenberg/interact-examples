@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive 3D Gallery Grid with @wix/interact</title>
-    <script type="module" src="https://esm.sh/@wix/interact@1.79.0"></script>
+    <script type="module" src="https://esm.sh/@wix/interact@2.5.1/web"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -29,7 +29,7 @@
         }
 
         /* Use 'contents' to prevent wrappers from breaking the grid layout */
-        wix-interact-element {
+        interact-element {
             display: contents;
         }
 
@@ -54,7 +54,6 @@
             box-sizing: border-box;
             color: white;
             font-weight: 500;
-            transition: transform var(--pointer-latency) ease-out;
             transform-style: preserve-3d;
         }
 
@@ -70,7 +69,7 @@
         .card-content p {
             margin: 0;
         }
-        
+
         /* Responsive Grid Layout */
         @media(max-width: 1200px) {
             .grid-container {
@@ -93,59 +92,58 @@
 </head>
 
 <body>
-    
-    <wix-interact-element data-wix-path="grid-wrapper">
+
+    <interact-element data-interact-key="grid-wrapper">
         <div class="grid-container" id="grid-container">
             <!-- Cards will be dynamically inserted here by JavaScript -->
         </div>
-    </wix-interact-element>
+    </interact-element>
 
     <script type="module">
-        import { Interact } from 'https://esm.sh/@wix/interact@1.79.0';
+        import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
         const container = document.getElementById('grid-container');
         const numCards = 32;
         let columns = 8;
-        const rows = 4;
 
         // Create HTML for cards dynamically
         function createCards() {
             let cardsHtml = '';
             for (let i = 0; i < numCards; i++) {
                 cardsHtml += `
-                    <wix-interact-element data-wix-path="card-${i}">
+                    <interact-element data-interact-key="card-${i}">
                       <div class="card-component">
-                        <wix-interact-element data-wix-path="card-inner-${i}">
+                        <interact-element data-interact-key="card-inner-${i}">
                             <div class="card-inner" style="background-image: linear-gradient(180deg, #0003, #000c), url('https://picsum.photos/seed/card${i + 1}/600/400')">
-                                <wix-interact-element data-wix-path="card-content-${i}">
+                                <interact-element data-interact-key="card-content-${i}">
                                     <div class="card-content">
                                         <h3>Card ${i + 1}</h3>
                                         <p>Demo text</p>
                                     </div>
-                                </wix-interact-element>
+                                </interact-element>
                             </div>
-                        </wix-interact-element>
+                        </interact-element>
                       </div>
-                    </wix-interact-element>
+                    </interact-element>
                 `;
             }
             container.innerHTML = cardsHtml;
         }
 
-        // Dynamically update the number of columns based on window width
-        function updateGridColumns() {
-            if (window.innerWidth < 750) columns = 2;
-            else if (window.innerWidth < 900) columns = 3;
-            else if (window.innerWidth < 1200) columns = 4;
-            else columns = 8;
+        // Dynamically resolve the number of columns based on window width
+        function currentColumns() {
+            if (window.innerWidth < 750) return 2;
+            if (window.innerWidth < 900) return 3;
+            if (window.innerWidth < 1200) return 4;
+            return 8;
         }
 
         // Helper to calculate card's position factor relative to the grid center
-        function getPositionFactor(index, currentColumns) {
-            const numRows = Math.ceil(numCards / currentColumns);
-            const row = Math.floor(index / currentColumns);
-            const col = index % currentColumns;
-            const centerCol = (currentColumns - 1) / 2;
+        function getPositionFactor(index, cols) {
+            const numRows = Math.ceil(numCards / cols);
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+            const centerCol = (cols - 1) / 2;
             const centerRow = (numRows - 1) / 2;
 
             const offsetX = centerCol !== 0 ? (col - centerCol) / centerCol : 0;
@@ -154,67 +152,87 @@
             const factor = Math.min(1, Math.sqrt(offsetX * offsetX + offsetY * offsetY));
             return { factor, offsetX, offsetY };
         }
-        
-        // Initial setup on DOM content loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            createCards();
-            updateGridColumns();
-            window.addEventListener('resize', updateGridColumns);
 
+        // Build a length expression driven by the CSS custom properties, so the
+        // amplitude stays live-tunable exactly like the old computed-style read.
+        const moveExpr = (coef) =>
+            `calc(var(--max-move) * var(--pointer-direction) * ${coef.toFixed(4)} * 1px)`;
+        const rotateExpr = (coef) =>
+            `calc(var(--max-rotate-z) * var(--pointer-direction) * ${coef.toFixed(4)} * 1deg)`;
+
+        function buildConfig(cols) {
             const interactions = [];
-            const pointerMoveEffects = [];
+            const xEffects = [];
+            const yEffects = [];
 
-            // 1. Generate Hover interactions and Pointer Move effects
             for (let i = 0; i < numCards; i++) {
-                // Hover interaction for each card's content
+                // Hover reveal — play-mode now lives on the effect as `triggerType`
                 interactions.push({
                     key: `card-${i}`,
                     trigger: 'hover',
-                    params: { type: 'alternate' },
-                    effects: [{ 
+                    effects: [{
                         key: `card-content-${i}`,
-                        effectId: 'content-reveal' 
+                        effectId: 'content-reveal',
+                        triggerType: 'alternate'
                     }]
                 });
 
-                // Custom effect for pointer move on each card's inner element
-                pointerMoveEffects.push({
+                const { factor, offsetX, offsetY } = getPositionFactor(i, cols);
+
+                // Horizontal pointer travel -> translateX + rotateZ
+                const kx = factor * -offsetX;
+                const kz = factor * -Math.sign(offsetX || 1);
+
+                xEffects.push({
                     key: `card-inner-${i}`,
-                    customEffect: (element, progress) => {
-                        const style = getComputedStyle(document.documentElement);
-                        const rz = parseFloat(style.getPropertyValue('--max-rotate-z'));
-                        const mv = parseFloat(style.getPropertyValue('--max-move'));
-                        const dr = parseFloat(style.getPropertyValue('--pointer-direction'));
-                        const maxRotateZ = isNaN(rz) ? 15 : rz;
-                        const maxMove = isNaN(mv) ? 40 : mv;
-                        const direction = isNaN(dr) ? 1 : dr;
+                    keyframeEffect: {
+                        name: `card-pointer-x-${i}`,
+                        keyframes: [
+                            { transform: `translateX(${moveExpr(-kx)}) rotateZ(${rotateExpr(-kz)})` },
+                            { transform: `translateX(${moveExpr(kx)}) rotateZ(${rotateExpr(kz)})` }
+                        ]
+                    },
+                    fill: 'both',
+                    composite: 'add',
+                    transitionDuration: 50,
+                    transitionEasing: 'ease-out'
+                });
 
-                        const normalizedX = (progress.x - 0.5) * 2 * direction;
-                        const normalizedY = (progress.y - 0.5) * 2 * direction;
+                // Vertical pointer travel -> translateY
+                const ky = factor * -offsetY;
 
-                        const pos = getPositionFactor(i, columns);
-                        const factor = pos.factor;
-                        const offsetX = pos.offsetX;
-                        const offsetY = pos.offsetY;
-
-                        const rotateZ = (factor * maxRotateZ) * -Math.sign(offsetX || 1) * normalizedX;
-                        const moveX = (factor * maxMove) * -offsetX * normalizedX;
-                        const moveY = (factor * maxMove) * -offsetY * normalizedY;
-                        
-                        element.style.transform = `translate(${moveX}px, ${moveY}px) rotateZ(${rotateZ}deg)`;
-                    }
+                yEffects.push({
+                    key: `card-inner-${i}`,
+                    keyframeEffect: {
+                        name: `card-pointer-y-${i}`,
+                        keyframes: [
+                            { transform: `translateY(${moveExpr(-ky)})` },
+                            { transform: `translateY(${moveExpr(ky)})` }
+                        ]
+                    },
+                    fill: 'both',
+                    composite: 'add',
+                    transitionDuration: 50,
+                    transitionEasing: 'ease-out'
                 });
             }
 
-            // 2. Add the main Pointer Move interaction
+            // Two pointerMove interactions, one per axis, composited additively
             interactions.push({
                 key: 'grid-wrapper',
                 trigger: 'pointerMove',
-                effects: pointerMoveEffects
+                params: { hitArea: 'self', axis: 'x' },
+                effects: xEffects
             });
 
-            // 3. Define reusable effects and create the Interact instance
-            const config = {
+            interactions.push({
+                key: 'grid-wrapper',
+                trigger: 'pointerMove',
+                params: { hitArea: 'self', axis: 'y' },
+                effects: yEffects
+            });
+
+            return {
                 effects: {
                     'content-reveal': {
                         keyframeEffect: {
@@ -229,10 +247,24 @@
                         fill: 'both'
                     }
                 },
-                interactions: interactions
+                interactions
             };
+        }
 
-            Interact.create(config);
+        createCards();
+        columns = currentColumns();
+        Interact.create(buildConfig(columns));
+
+        // Column count changes the per-card geometry, so rebuild the whole config once settled
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const cols = currentColumns();
+                if (cols === columns) return;
+                columns = cols;
+                Interact.create(buildConfig(columns));
+            }, 200);
         });
     </script>
 </body>

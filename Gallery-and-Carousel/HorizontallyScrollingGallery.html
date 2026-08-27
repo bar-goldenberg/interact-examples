@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Image Gallery</title>
-    
+
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -24,18 +23,18 @@
             height: 100vh;
             width: 100vw;
             position: relative;
+            overflow: clip;
+            /* Pointer position along X scrubs the gallery track */
+            cursor: ew-resize;
         }
         .gallery-grid {
             display: flex;
-            overflow-x: auto;
             padding: 0 1.5vw;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            /* Allow GSAP to control scroll smoothly */
-            scroll-behavior: auto; 
+            width: max-content;
+            /* Interact drives translateX from the pointerMove trigger */
+            will-change: transform;
         }
-        .gallery-grid::-webkit-scrollbar { display: none; }
-        
+
         .gallery-item {
             cursor: pointer;
             position: relative;
@@ -44,14 +43,14 @@
             width: 30vw;
             margin: 0 1.5vw;
             background-color: #000;
-            overflow: hidden;
+            overflow: clip;
             border-radius: 1rem;
             display: flex;
             justify-content: center;
             align-items: center;
             /* Interact will handle transforms, but we set base styles here */
         }
-        
+
         .image-clipper {
             position: absolute;
             top: 0;
@@ -75,7 +74,7 @@
         }
 
         .gallery-item-text {
-            position: relative; 
+            position: relative;
             z-index: 5;
             color: white;
             text-align: center;
@@ -92,163 +91,189 @@
             text-transform: uppercase;
         }
 
-        /* NOTE: CSS :hover states have been removed. 
-           @wix/interact now handles the transition logic via JS.
+        /* NOTE: CSS :hover states have been removed.
+           @wix/interact now handles the transition logic via its config.
         */
     </style>
 </head>
 <body>
     <!-- Gallery Container -->
-    <div class="gallery-container">
-        <div class="gallery-grid">
-            
-            <!-- Item 1 -->
-            <interact-element data-interact-key="item-1">
-                <div class="gallery-item" data-title="Serene Lake">
-                    <interact-element data-interact-key="clip-1">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-1">
-                                <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop" 
-                                     alt="Serene Lake" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/A5B4FC/3730A3?text=Image+1';">
+    <interact-element data-interact-key="gallery-container">
+        <div class="gallery-container">
+            <interact-element data-interact-key="gallery-track">
+                <div class="gallery-grid">
+
+                    <!-- Item 1 -->
+                    <interact-element data-interact-key="item-1">
+                        <div class="gallery-item" data-title="Serene Lake">
+                            <interact-element data-interact-key="clip-1">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-1">
+                                        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"
+                                             alt="Serene Lake"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/A5B4FC/3730A3?text=Image+1';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-1">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">Serene Lake</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-1">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">Serene Lake</h3>
-                        </div>
-                    </interact-element>
-                </div>
-            </interact-element>
 
-            <!-- Item 2 -->
-            <interact-element data-interact-key="item-2">
-                <div class="gallery-item" data-title="Mountain Majesty">
-                    <interact-element data-interact-key="clip-2">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-2">
-                                <img src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=2070&auto=format&fit=crop" 
-                                     alt="Mountain Majesty" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/93C5FD/1E3A8A?text=Image+2';">
+                    <!-- Item 2 -->
+                    <interact-element data-interact-key="item-2">
+                        <div class="gallery-item" data-title="Mountain Majesty">
+                            <interact-element data-interact-key="clip-2">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-2">
+                                        <img src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?q=80&w=2070&auto=format&fit=crop"
+                                             alt="Mountain Majesty"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/93C5FD/1E3A8A?text=Image+2';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-2">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">Mountain Majesty</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-2">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">Mountain Majesty</h3>
-                        </div>
-                    </interact-element>
-                </div>
-            </interact-element>
 
-            <!-- Item 3 -->
-            <interact-element data-interact-key="item-3">
-                <div class="gallery-item" data-title="Coastal Drive">
-                    <interact-element data-interact-key="clip-3">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-3">
-                                <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1974&auto=format&fit=crop" 
-                                     alt="Coastal Drive" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/FCA5A5/7F1D1D?text=Image+3';">
+                    <!-- Item 3 -->
+                    <interact-element data-interact-key="item-3">
+                        <div class="gallery-item" data-title="Coastal Drive">
+                            <interact-element data-interact-key="clip-3">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-3">
+                                        <img src="https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1974&auto=format&fit=crop"
+                                             alt="Coastal Drive"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/FCA5A5/7F1D1D?text=Image+3';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-3">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">Coastal Drive</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-3">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">Coastal Drive</h3>
-                        </div>
-                    </interact-element>
-                </div>
-            </interact-element>
 
-            <!-- Item 4 -->
-            <interact-element data-interact-key="item-4">
-                <div class="gallery-item" data-title="Forest Path">
-                    <interact-element data-interact-key="clip-4">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-4">
-                                <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=1925&auto=format&fit=crop" 
-                                     alt="Forest Path" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/86EFAC/14532D?text=Image+4';">
+                    <!-- Item 4 -->
+                    <interact-element data-interact-key="item-4">
+                        <div class="gallery-item" data-title="Forest Path">
+                            <interact-element data-interact-key="clip-4">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-4">
+                                        <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?q=80&w=1925&auto=format&fit=crop"
+                                             alt="Forest Path"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/86EFAC/14532D?text=Image+4';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-4">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">Forest Path</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-4">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">Forest Path</h3>
-                        </div>
-                    </interact-element>
-                </div>
-            </interact-element>
 
-            <!-- Item 5 -->
-            <interact-element data-interact-key="item-5">
-                <div class="gallery-item" data-title="Desert Dunes">
-                    <interact-element data-interact-key="clip-5">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-5">
-                                <img src="https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=2070&auto=format&fit=crop" 
-                                     alt="Desert Dunes" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/FDE047/78350F?text=Image+5';">
+                    <!-- Item 5 -->
+                    <interact-element data-interact-key="item-5">
+                        <div class="gallery-item" data-title="Desert Dunes">
+                            <interact-element data-interact-key="clip-5">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-5">
+                                        <img src="https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=2070&auto=format&fit=crop"
+                                             alt="Desert Dunes"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/FDE047/78350F?text=Image+5';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-5">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">Desert Dunes</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-5">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">Desert Dunes</h3>
-                        </div>
-                    </interact-element>
-                </div>
-            </interact-element>
 
-            <!-- Item 6 -->
-            <interact-element data-interact-key="item-6">
-                <div class="gallery-item" data-title="City Lights">
-                    <interact-element data-interact-key="clip-6">
-                        <div class="image-clipper">
-                            <interact-element data-interact-key="img-6">
-                                <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop" 
-                                     alt="City Lights" 
-                                     onerror="this.onerror=null;this.src='https://placehold.co/600x800/C4B5FD/4C1D95?text=Image+6';">
+                    <!-- Item 6 -->
+                    <interact-element data-interact-key="item-6">
+                        <div class="gallery-item" data-title="City Lights">
+                            <interact-element data-interact-key="clip-6">
+                                <div class="image-clipper">
+                                    <interact-element data-interact-key="img-6">
+                                        <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?q=80&w=2070&auto=format&fit=crop"
+                                             alt="City Lights"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/600x800/C4B5FD/4C1D95?text=Image+6';">
+                                    </interact-element>
+                                </div>
+                            </interact-element>
+                            <interact-element data-interact-key="text-6">
+                                <div class="gallery-item-text">
+                                    <h3 class="gallery-item-title">City Lights</h3>
+                                </div>
                             </interact-element>
                         </div>
                     </interact-element>
-                    <interact-element data-interact-key="text-6">
-                        <div class="gallery-item-text">
-                            <h3 class="gallery-item-title">City Lights</h3>
-                        </div>
-                    </interact-element>
+
                 </div>
             </interact-element>
-
         </div>
-    </div>
+    </interact-element>
 
     <!-- Main Logic -->
     <script type="module">
         import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-        // --- PART 1: @wix/interact Configuration ---
-        // We generate the interaction config for all 6 items programmatically
-        // instead of writing the same config 6 times.
-        
-        const itemCount = 6;
-        const interactions = [];
+        // 6 items * (30vw width + 2 * 1.5vw margin) + 2 * 1.5vw track padding = 201vw
+        // Travel = track width - viewport width = 101vw
+        const TRACK_TRAVEL = '-101vw';
 
-        for (let i = 1; i <= itemCount; i++) {
+        const interactions = [
+            // Horizontal gallery scrubbing: pointer X position over the
+            // container maps linearly to the track's translateX.
+            // Replaces the old mousemove hot-zones + GSAP ticker loop.
+            {
+                key: 'gallery-container',
+                trigger: 'pointerMove',
+                params: { hitArea: 'self', axis: 'x' },
+                effects: [
+                    {
+                        key: 'gallery-track',
+                        fill: 'both',
+                        transitionDuration: 600,
+                        keyframeEffect: {
+                            name: 'gallery-track-scrub',
+                            keyframes: [
+                                { transform: 'translateX(0)' },
+                                { transform: `translateX(${TRACK_TRAVEL})` }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ];
+
+        // Per-item hover states, generated for all 6 items.
+        for (let i = 1; i <= 6; i++) {
             interactions.push({
                 key: `item-${i}`,       // Source: The container
                 trigger: 'hover',       // Trigger: Hover state
-                // Default method is 'toggle', which is what we want (add on enter, remove on leave)
                 effects: [
                     // 1. Clipper: Rotate and Ellipse Shrink
                     {
                         key: `clip-${i}`,
+                        stateAction: 'toggle', // add on enter, remove on leave
                         transition: {
                             duration: 600,
                             easing: 'cubic-bezier(0.77, 0, 0.175, 1)',
-                            // FIX: styleProperties must be an array of objects
                             styleProperties: [
                                 { name: 'transform', value: 'rotate(45deg)' },
                                 { name: 'clip-path', value: 'ellipse(35% 45% at 50% 50%)' }
@@ -258,6 +283,7 @@
                     // 2. Image: Counter-Rotate and Scale Up
                     {
                         key: `img-${i}`,
+                        stateAction: 'toggle',
                         transition: {
                             duration: 600,
                             easing: 'cubic-bezier(0.77, 0, 0.175, 1)',
@@ -269,6 +295,7 @@
                     // 3. Text: Fade In and Move Up
                     {
                         key: `text-${i}`,
+                        stateAction: 'toggle',
                         transition: {
                             duration: 500,
                             easing: 'ease-out',
@@ -282,61 +309,8 @@
             });
         }
 
-        // Initialize the Interact runtime
+        // Initialize the Interact runtime (single create call)
         Interact.create({ interactions });
-
-
-        // --- PART 2: GSAP Horizontal Scroll Logic ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.querySelector('.gallery-container');
-            const slider = document.querySelector('.gallery-grid');
-
-            let scrollSpeed = 0;
-            const SCROLL_AMOUNT = 5;
-
-            // Define cursor SVGs
-            const leftCursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'><polyline points=\'15 6 9 12 15 18\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>") 4 12, auto';
-            const rightCursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'><polyline points=\'9 6 15 12 9 18\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/></svg>") 20 12, auto';
-
-            container.addEventListener('mousemove', (e) => {
-                const containerRect = container.getBoundingClientRect();
-                const mouseX = e.clientX - containerRect.left;
-                const containerWidth = containerRect.width;
-                const hotZoneWidth = containerWidth * 0.15; // 15% active area
-
-                if (mouseX < hotZoneWidth) {
-                    // Left Zone
-                    scrollSpeed = -SCROLL_AMOUNT;
-                    container.style.cursor = leftCursor;
-                } 
-                else if (mouseX > containerWidth - hotZoneWidth) {
-                    // Right Zone
-                    scrollSpeed = SCROLL_AMOUNT;
-                    container.style.cursor = rightCursor;
-                } 
-                else {
-                    // Center Zone
-                    scrollSpeed = 0;
-                    container.style.cursor = 'default';
-                }
-            });
-
-            container.addEventListener('mouseleave', () => {
-                scrollSpeed = 0;
-                container.style.cursor = 'default';
-            });
-
-            // GSAP Ticker for smooth 60fps scrolling
-            gsap.ticker.add(() => {
-                if (scrollSpeed !== 0) {
-                    // Disable pointer events during scroll to prevent flickering hover states
-                    slider.style.pointerEvents = 'none'; 
-                    slider.scrollLeft += scrollSpeed;
-                } else {
-                    slider.style.pointerEvents = 'auto';
-                }
-            });
-        });
     </script>
 </body>
 </html>

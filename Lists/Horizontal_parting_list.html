@@ -9,10 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Doto:wght@900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --expand-scale: 2.4;
+      --desc-font-size: 8px;
+    }
     html {
       overflow-y: scroll;
       scrollbar-width: none;
-      scroll-snap-type: y mandatory;
     }
     html::-webkit-scrollbar { display: none; }
     body {
@@ -169,15 +172,6 @@
 
     main { position: relative; }
 
-    .snap-marker {
-      position: absolute;
-      left: 0;
-      width: 1px;
-      height: 1px;
-      scroll-snap-align: start;
-      pointer-events: none;
-    }
-
     .half-top,
     .half-bottom {
       font-family: 'Doto', sans-serif;
@@ -191,8 +185,6 @@
 
     /* ── End spacer ── */
     .end-spacer { height: 100vh; }
-
-    .read-more-btn { display: none; }
 
     /* ── Tablet (769–1240px) ── */
     @media (min-width: 769px) and (max-width: 1240px) {
@@ -237,84 +229,11 @@
         font-size: 10px;
         letter-spacing: 3px;
       }
-
-      html, body { cursor: auto !important; }
-      .custom-cursor { display: none !important; }
-
-      .read-more-btn {
-        display: block;
-        position: fixed;
-        top: calc(50% + 218px);
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 15;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease, transform 0.2s ease;
-        font-family: 'Space Mono', monospace;
-        font-size: 11px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: #111;
-        background: transparent;
-        border: 1px solid #aaa;
-        border-radius: 20px;
-        padding: 8px 20px;
-        white-space: nowrap;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .read-more-btn.visible {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .read-more-btn.visible:hover {
-        transform: translateX(-50%) scale(1.12);
-      }
-
-      .read-more-btn.visible:active {
-        transform: translateX(-50%) scale(0.97);
-      }
     }
-    /* ── Custom cursor ── */
-    html, body { cursor: none; }
-    .square-frame { pointer-events: auto; touch-action: pan-y; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* ── Pointer targets (default system cursor) ── */
+    .square-frame { pointer-events: auto; touch-action: pan-y; cursor: pointer; }
     .project-col { pointer-events: auto; }
-
-    .custom-cursor {
-      position: fixed;
-      left: 0; top: 0;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #fff;
-      border: 1.5px solid #222;
-      pointer-events: none;
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translate(-50%, -50%);
-      transition: width 0.3s ease, height 0.3s ease;
-      opacity: 0;
-    }
-
-    .custom-cursor svg { transition: transform 0.4s ease; }
-    .custom-cursor svg line { transition: opacity 0.3s ease; }
-
-    body.on-item:not(.expanded).cursor-hover .custom-cursor {
-      width: 72px;
-      height: 72px;
-    }
-
-    body.on-item:not(.expanded).cursor-hover .custom-cursor svg line {
-      opacity: 0.55;
-    }
-
-    body.expanded .custom-cursor svg {
-      transform: rotate(45deg);
-    }
 
     /* ── Expand / collapse ── */
     .expand-overlay {
@@ -322,22 +241,12 @@
       inset: 0;
       background: rgba(0, 0, 0, 0.55);
       opacity: 0;
-      transition: opacity 0.3s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 5;
       padding: 12%;
-    }
-
-    body.expanded .expand-overlay {
-      opacity: 1;
-      transition: opacity 0.5s ease;
-    }
-
-    body.expanded .square-frame {
-      transform: scale(var(--expand-scale, 2));
     }
 
     .expand-desc {
@@ -348,21 +257,6 @@
       text-align: center;
       opacity: 0;
       transform: translateY(10px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    body.expanded .expand-desc {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 0.4s ease 0.25s, transform 0.4s ease 0.25s;
-    }
-
-    .projects-row { transition: opacity 0.3s ease; }
-    body.expanded .projects-row { opacity: 0; }
-
-    html.scroll-locked {
-      overflow: hidden !important;
-      scroll-snap-type: none !important;
     }
   </style>
 </head>
@@ -418,7 +312,7 @@
         <img class="sq-img proj-img-9"   src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=800&fit=crop&q=80" alt="">
         <img class="sq-img proj-img-10"  src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=800&fit=crop&q=80" alt="">
         <img class="sq-img proj-img-11"  src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&h=800&fit=crop&q=80" alt="">
-        <div class="expand-overlay"><p class="expand-desc"></p></div>
+        <div class="expand-overlay"><p class="expand-desc">Selected work — cinematic editorial, branding and film, exploring light, stillness and motion. Click again to close.</p></div>
       </div>
     </interact-element>
   </div>
@@ -460,10 +354,8 @@
   <script type="module">
     import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-    const mqMobile = window.matchMedia('(max-width: 768px)');
-    const mqTablet = window.matchMedia('(max-width: 1240px)');
-    let mobile = mqMobile.matches;
-    const tablet = !mobile && mqTablet.matches;
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    const tablet = !mobile && window.matchMedia('(max-width: 1240px)').matches;
 
     const SPLIT = mobile ? 80 : tablet ? 100 : 150;
     const FINAL_SIZE = mobile ? '180px' : tablet ? '210px' : '280px';
@@ -669,171 +561,65 @@
     }
 
     Interact.create({
-      interactions: [{
-        key: 'scroll-zone',
-        trigger: 'viewProgress',
-        effects,
-      }],
-    });
+      interactions: [
+        // ── Scroll-driven master timeline ──
+        {
+          key: 'scroll-zone',
+          trigger: 'viewProgress',
+          effects,
+        },
 
-    const mainEl = document.querySelector('main');
-    const scrollZoneEl = document.querySelector('[data-interact-key="scroll-zone"]');
-    let rangeStart, rangeTotal;
-
-    function computePositions() {
-      const rect = scrollZoneEl.getBoundingClientRect();
-      const elTop = rect.top + window.scrollY;
-      const elHeight = rect.height;
-      const vh = window.innerHeight;
-      rangeStart = elTop - vh;
-      rangeTotal = elHeight + vh;
-    }
-
-    function createSnapMarkers() {
-      document.querySelectorAll('.snap-marker').forEach(m => m.remove());
-      const heroM = document.createElement('div');
-      heroM.className = 'snap-marker';
-      heroM.style.top = '0px';
-      mainEl.appendChild(heroM);
-      for (let i = 0; i < ITEM_COUNT; i++) {
-        const scrollTarget = rangeStart + rangeTotal * (i + HERO_STEPS) / STEPS;
-        const m = document.createElement('div');
-        m.className = 'snap-marker';
-        m.style.top = scrollTarget + 'px';
-        mainEl.appendChild(m);
-      }
-      const endM = document.createElement('div');
-      endM.className = 'snap-marker';
-      endM.style.top = (rangeStart + rangeTotal) + 'px';
-      mainEl.appendChild(endM);
-    }
-
-    computePositions();
-    createSnapMarkers();
-
-    // ── Custom cursor + expand / collapse ──
-    const cursor = document.getElementById('cursor');
-    const descEl = document.querySelector('.expand-desc');
-    let isExpanded = false;
-
-    const DESCRIPTIONS = [
-      'A cinematic editorial exploring light and shadow through urban landscapes at golden hour.',
-      'Brand campaign for a luxury automotive line, blending motion and color in abstract compositions.',
-      'High fashion editorial shot at alpine lakes, capturing stillness and elegance in nature.',
-      'Complete visual identity for a boutique origami studio, from logo to packaging design.',
-      'Visual narrative for an indie artist exploring isolation through mirrored spaces and echo.',
-      'Architectural documentation of modernist homes emphasizing transparency, light and form.',
-      'A photographic series capturing the raw beauty of natural light in untamed landscapes.',
-      'Short film exploring the passage of time in a single continuous unbroken shot.',
-      'Environmental awareness campaign using underwater photography and mixed media elements.',
-      'Monochrome editorial for a contemporary art magazine, emphasizing texture and contrast.',
-      'A poetic short film documenting the first snowfall of the season in rural Japan.',
-      'Visual identity and campaign for an outdoor lifestyle brand rooted in minimalism.',
-    ];
-
-    const finalPx = parseInt(FINAL_SIZE);
-    function setExpandScale() {
-      const s = Math.min(window.innerWidth * 0.85, window.innerHeight * 0.8) / finalPx;
-      document.documentElement.style.setProperty('--expand-scale', s.toFixed(2));
-      document.documentElement.style.setProperty('--desc-font-size', (18 / s).toFixed(1) + 'px');
-    }
-    setExpandScale();
-
-    function getCurrentItem() {
-      const progress = (window.scrollY - rangeStart) / rangeTotal;
-      const s = 1 / STEPS;
-      for (let i = 0; i < ITEM_COUNT; i++) {
-        if (Math.abs(progress - (i + HERO_STEPS) * s) < s * 0.45) return i;
-      }
-      return -1;
-    }
-
-    document.addEventListener('pointermove', (e) => {
-      if (mobile) return;
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top = e.clientY + 'px';
-      cursor.style.opacity = '1';
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const hovering = el && (el.closest('.square-frame') || el.closest('.project-col'));
-      document.body.classList.toggle('cursor-hover', !!hovering);
-    });
-    document.addEventListener('pointerleave', () => { if (!mobile) cursor.style.opacity = '0'; });
-    document.addEventListener('pointerenter', () => { if (!mobile) cursor.style.opacity = '1'; });
-
-    const readMoreBtn = document.getElementById('readMoreBtn');
-
-    function updateReadMore() {
-      if (!mobile) { readMoreBtn.classList.remove('visible'); return; }
-      const idx = getCurrentItem();
-      readMoreBtn.classList.toggle('visible', idx >= 0 && !isExpanded);
-    }
-
-    function updateOnItem() {
-      document.body.classList.toggle('on-item', getCurrentItem() >= 0);
-    }
-    window.addEventListener('scroll', () => { updateOnItem(); updateReadMore(); });
-    updateOnItem();
-    updateReadMore();
-
-    function expand(idx) {
-      isExpanded = true;
-      descEl.textContent = DESCRIPTIONS[idx];
-      document.body.classList.add('expanded');
-      document.documentElement.classList.add('scroll-locked');
-      updateReadMore();
-    }
-
-    function collapse() {
-      isExpanded = false;
-      document.body.classList.remove('expanded');
-      document.documentElement.classList.remove('scroll-locked');
-      updateReadMore();
-    }
-
-    document.addEventListener('click', (e) => {
-      if (isExpanded) { collapse(); return; }
-      if (mobile) return;
-      const idx = getCurrentItem();
-      if (idx >= 0) expand(idx);
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (isExpanded) { collapse(); return; }
-        const idx = getCurrentItem();
-        if (idx >= 0) expand(idx);
-      }
-      if (e.key === 'Escape' && isExpanded) collapse();
-    });
-
-    readMoreBtn.addEventListener('click', (e) => {
-      if (!mobile) return;
-      e.stopPropagation();
-      if (!isExpanded) {
-        const idx = getCurrentItem();
-        if (idx >= 0) expand(idx);
-      }
-    });
-
-    mqMobile.addEventListener('change', () => location.reload());
-    mqTablet.addEventListener('change', () => location.reload());
-
-    window.addEventListener('resize', () => {
-      computePositions();
-      createSnapMarkers();
-      setExpandScale();
+        // ── Click the square to expand / collapse ──
+        {
+          key: 'square',
+          trigger: 'click',
+          effects: [
+            {
+              selector: '.square-frame',
+              stateAction: 'toggle',
+              transition: {
+                duration: 600,
+                easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                styleProperties: [{ name: 'transform', value: 'scale(var(--expand-scale))' }],
+              },
+            },
+            {
+              selector: '.expand-overlay',
+              stateAction: 'toggle',
+              transition: {
+                duration: 500,
+                easing: 'ease',
+                styleProperties: [{ name: 'opacity', value: '1' }],
+              },
+            },
+            {
+              selector: '.expand-desc',
+              stateAction: 'toggle',
+              transition: {
+                duration: 400,
+                delay: 250,
+                easing: 'ease',
+                styleProperties: [
+                  { name: 'opacity', value: '1' },
+                  { name: 'transform', value: 'translateY(0)' },
+                ],
+              },
+            },
+            {
+              key: 'scroll-zone',
+              selector: '.projects-row',
+              stateAction: 'toggle',
+              transition: {
+                duration: 300,
+                easing: 'ease',
+                styleProperties: [{ name: 'opacity', value: '0' }],
+              },
+            },
+          ],
+        },
+      ],
     });
   </script>
-
-  <button class="read-more-btn" id="readMoreBtn">Read more</button>
-
-  <div class="custom-cursor" id="cursor">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <line x1="8" y1="2" x2="8" y2="14" stroke="#111" stroke-width="2"/>
-      <line x1="2" y1="8" x2="14" y2="8" stroke="#111" stroke-width="2"/>
-    </svg>
-  </div>
 
 </body>
 </html>

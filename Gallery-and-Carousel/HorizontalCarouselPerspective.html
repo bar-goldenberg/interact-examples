@@ -24,11 +24,11 @@
             position: sticky;
             top: 0;
             height: 100vh;
-            overflow: hidden;
+            overflow: clip; /* clip preserves ViewTimeline behavior */
             /* Perspective is moved to the .animation-viewport */
         }
 
-        /* NEW: Flex container for desktop/mobile layouts */
+        /* Flex container for desktop/mobile layouts */
         .animation-layout-container {
             display: flex;
             width: 100%;
@@ -37,15 +37,15 @@
             flex-direction: column;
         }
 
-        /* NEW: Viewport for the 3D animation */
+        /* Viewport for the 3D animation */
         .animation-viewport {
             position: relative;
             width: 100%;
             flex-grow: 1; /* Takes up all space except text */
-            perspective: 2000px; /* 3D space for child elements */
+            perspective: 2000px; /* Shared 3D viewpoint for all card children */
         }
-        
-        /* NEW: Viewport for the text */
+
+        /* Viewport for the text */
         .text-viewport {
             position: relative;
             width: 100%;
@@ -66,12 +66,12 @@
             top: 50%;
             left: 50%;
             border-radius: 1.5rem;
-            overflow: hidden;
+            overflow: clip;
             background: #1f2937;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
             will-change: transform, opacity;
             /* Start all cards at the center */
-            transform: translate(-50%, -50%); 
+            transform: translate(-50%, -50%);
         }
 
         .card-image {
@@ -82,30 +82,30 @@
             top: 0;
             left: 0;
         }
-        
-        /* 4. Dynamic Title Container */
-        #dynamic-title-container {
-            /* Removed absolute positioning, now centered by parent .text-viewport */
+
+        /* 4. Title layers — one per card, each faded by its own keyframeEffect */
+        .title-layer {
+            position: absolute;
+            inset: 0;
             z-index: 10;
             padding: 0 2rem;
             box-sizing: border-box;
             color: #000000;
             text-align: center;
             pointer-events: none;
-        }
-        
-        #dynamic-title-text {
-            display: inline-block;
-            opacity: 0; /* Start hidden, JS will control opacity */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0; /* Hidden until its scroll range is active */
         }
 
-        /* Styling for the text content injected by JS */
-        #dynamic-title-text h2 {
+        .title-layer h2 {
             font-size: 2.25rem; /* 36px */
             line-height: 2.5rem; /* 40px */
             font-weight: 700;
         }
-        #dynamic-title-text p {
+        .title-layer p {
             font-size: 1.25rem; /* 20px */
             line-height: 1.75rem; /* 28px */
             color: #000000;
@@ -130,7 +130,7 @@
                 height: 100vh;
                 padding: 1rem;
                 align-items: center; /* Vertically center text */
-                justify-content: flex-start; /* NEW: Align content to the left */
+                justify-content: flex-start; /* Align content to the left */
             }
 
             .card {
@@ -140,21 +140,23 @@
                 max-width: 90vw;
             }
 
-            #dynamic-title-container {
+            .title-layer {
                 text-align: left; /* Left-align text on mobile */
+                align-items: flex-start;
+                padding: 1rem;
             }
 
-            #dynamic-title-text h2 {
+            .title-layer h2 {
                 font-size: 1.5rem;
                 line-height: 1.75rem;
             }
-            #dynamic-title-text p {
+            .title-layer p {
                 font-size: 1rem;
                 line-height: 1.25rem;
-                margin-top: 0.5rem; /* NEW: Adds gap */
+                margin-top: 0.5rem; /* Adds gap */
             }
         }
-        
+
     </style>
 </head>
 <body>
@@ -163,11 +165,11 @@
         <!-- The sticky wrapper is the trigger for the viewProgress animation -->
         <interact-element data-interact-key=".sticky-wrapper">
             <div class="sticky-wrapper">
-                
-                <!-- NEW: Layout container -->
+
+                <!-- Layout container -->
                 <div class="animation-layout-container">
 
-                    <!-- NEW: Viewport for cards -->
+                    <!-- Viewport for cards -->
                     <div class="animation-viewport">
                         <!-- Card 1 -->
                         <interact-element data-interact-key="#card-1">
@@ -182,7 +184,7 @@
                                 <img src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=2670" class="card-image" alt="Galaxy View">
                             </div>
                         </interact-element>
-                        
+
                         <!-- Card 3 -->
                         <interact-element data-interact-key="#card-3">
                             <div id="card-3" class="card">
@@ -219,14 +221,54 @@
                         </interact-element>
                     </div> <!-- End .animation-viewport -->
 
-                    <!-- NEW: Viewport for text -->
+                    <!-- Viewport for text: one static title layer per card -->
                     <div class="text-viewport">
-                        <!-- Dynamic Title Element -->
-                        <interact-element data-interact-key="#dynamic-title-container">
-                            <div id="dynamic-title-container">
-                                <span id="dynamic-title-text">
-                                    <!-- Content is set by JS -->
-                                </span>
+                        <interact-element data-interact-key="#title-1">
+                            <div id="title-1" class="title-layer">
+                                <h2>Stellar Nurseries</h2>
+                                <p>Where Stars Are Born</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-2">
+                            <div id="title-2" class="title-layer">
+                                <h2>Galactic Wonders</h2>
+                                <p>A Universe of Possibility</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-3">
+                            <div id="title-3" class="title-layer">
+                                <h2>Our Blue Planet</h2>
+                                <p>A fragile existence</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-4">
+                            <div id="title-4" class="title-layer">
+                                <h2>Cosmic Clouds</h2>
+                                <p>The Dust of Creation</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-5">
+                            <div id="title-5" class="title-layer">
+                                <h2>The Silent Moon</h2>
+                                <p>A Watcher in the Night</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-6">
+                            <div id="title-6" class="title-layer">
+                                <h2>Celestial Dance</h2>
+                                <p>The Northern Lights</p>
+                            </div>
+                        </interact-element>
+
+                        <interact-element data-interact-key="#title-7">
+                            <div id="title-7" class="title-layer">
+                                <h2>Final Frontier</h2>
+                                <p>The Journey Beyond</p>
                             </div>
                         </interact-element>
                     </div> <!-- End .text-viewport -->
@@ -237,16 +279,16 @@
         </interact-element>
     </div>
 
-        <script type="module">
+    <script type="module">
         import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
-        
-        // --- NEW: Check for mobile viewport ---
+
+        // --- Check for mobile viewport ---
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
         const cardCount = 7;
         const effects = [];
 
-        // --- NEW: Define animation path for DESKTOP (Horizontal) ---
+        // --- Animation path for DESKTOP (Horizontal) ---
         const desktopAnimationKeyframes = [
             { offset: 0,   transform: 'translate(-50%, -50%) translateX(150%) translateZ(-900px) rotateY(-60deg) rotateX(15deg)', opacity: 0 },
             { offset: 0.3, transform: 'translate(-50%, -50%) translateX(60%) translateZ(-300px) rotateY(-30deg) rotateX(5deg)', opacity: 1 },
@@ -255,7 +297,7 @@
             { offset: 1,   transform: 'translate(-50%, -50%) translateX(-150%) translateZ(-900px) rotateY(60deg) rotateX(-15deg)', opacity: 0 }
         ];
 
-        // --- NEW: Define animation path for MOBILE (Vertical) ---
+        // --- Animation path for MOBILE (Vertical) ---
         const mobileAnimationKeyframes = [
             { offset: 0,   transform: 'translate(-50%, -50%) translateY(150%) translateZ(-900px) rotateX(60deg)', opacity: 0 },
             { offset: 0.3, transform: 'translate(-50%, -50%) translateY(60%) translateZ(-300px) rotateX(30deg)', opacity: 1 },
@@ -264,27 +306,23 @@
             { offset: 1,   transform: 'translate(-50%, -50%) translateY(-150%) translateZ(-900px) rotateX(-60deg)', opacity: 0 }
         ];
 
-        // --- NEW: Select the correct keyframes based on viewport ---
+        // --- Select the correct keyframes based on viewport ---
         const animationKeyframes = isMobile ? mobileAnimationKeyframes : desktopAnimationKeyframes;
 
-        // Define the titles for each card
-        const titles = [
-            { title: "Stellar Nurseries", subtitle: "Where Stars Are Born" },
-            { title: "Galactic Wonders", subtitle: "A Universe of Possibility" },
-            { title: "Our Blue Planet", subtitle: "A fragile existence" },
-            { title: "Cosmic Clouds", subtitle: "The Dust of Creation" },
-            { title: "The Silent Moon", subtitle: "A Watcher in the Night" },
-            { title: "Celestial Dance", subtitle: "The Northern Lights" },
-            { title: "Final Frontier", subtitle: "The Journey Beyond" }
+        // Title cross-fade keyframes: hidden -> visible at card center -> hidden
+        const titleFadeKeyframes = [
+            { offset: 0,   opacity: 0 },
+            { offset: 0.5, opacity: 1 },
+            { offset: 1,   opacity: 0 }
         ];
-        
-        let currentTitleIndex = -1;
-        
-        // Create a staggered animation for each card
+
+        const progressPerCard = 1 / (cardCount + 1);
+
+        // Create a staggered scroll-driven animation for each card, plus its title
         for (let i = 1; i <= cardCount; i++) {
-            const progressPerCard = 1 / (cardCount + 1); 
             const start = (i - 1) * progressPerCard;
-            const end = start + progressPerCard * 2; // Make animations overlap
+            const duration = progressPerCard * 2; // Animations overlap
+            const end = start + duration;
 
             // Card movement effect
             effects.push({
@@ -292,94 +330,37 @@
                 keyframeEffect: {
                     name: `card-move-${i}`,
                     // Use the responsively-selected keyframes
-                    keyframes: animationKeyframes 
+                    keyframes: animationKeyframes
                 },
                 rangeStart: { name: 'cover', offset: { unit: 'percentage', value: start * 100 } },
                 rangeEnd: { name: 'cover', offset: { unit: 'percentage', value: end * 100 } },
                 easing: 'linear',
                 fill: 'both'
             });
+
+            // Matching title layer: tight fade window centered on the card's
+            // center position (0.5 of its own animation range).
+            const titleFadeStart = start + 0.4 * duration;
+            const titleFadeEnd = start + 0.6 * duration;
+
+            effects.push({
+                key: `#title-${i}`,
+                keyframeEffect: {
+                    name: `title-fade-${i}`,
+                    keyframes: titleFadeKeyframes
+                },
+                rangeStart: { name: 'cover', offset: { unit: 'percentage', value: titleFadeStart * 100 } },
+                rangeEnd: { name: 'cover', offset: { unit: 'percentage', value: titleFadeEnd * 100 } },
+                easing: 'linear',
+                fill: 'both'
+            });
         }
-
-        // Add a single customEffect to control the dynamic title
-        effects.push({
-            key: '#dynamic-title-container', // Target the container
-            customEffect: (el, progress) => {
-                const textEl = el.querySelector('#dynamic-title-text');
-                if (!textEl) return;
-
-                let newOpacity = 0;
-                let newTitleIndex = -1;
-                
-                // Loop through each card's potential range to find the active one
-                for (let i = 1; i <= cardCount; i++) {
-                    const progressPerCard = 1 / (cardCount + 1);
-                    const start = (i - 1) * progressPerCard;
-                    const animationDuration = progressPerCard * 2;
-                    
-                    // UPDATED: Tighter fade window centered at 0.5
-                    const fadeInStartPoint = start + 0.4 * animationDuration;
-                    const fadeInEndPoint = start + 0.5 * animationDuration;
-                    const fadeOutStartPoint = start + 0.5 * animationDuration; // Same as end point
-                    const fadeOutEndPoint = start + 0.6 * animationDuration;
-                    
-                    if (progress >= fadeInStartPoint && progress < fadeInEndPoint) {
-                        // Fading in
-                        const rangeDuration = fadeInEndPoint - fadeInStartPoint;
-                        if (rangeDuration > 0) {
-                            newOpacity = (progress - fadeInStartPoint) / rangeDuration;
-                        } else {
-                            newOpacity = 1;
-                        }
-                        newTitleIndex = i - 1; // Array index
-                        break;
-                    } else if (progress >= fadeInEndPoint && progress <= fadeOutStartPoint) {
-                        // Fully visible (at the exact center, 0.5)
-                        newOpacity = 1;
-                        newTitleIndex = i - 1;
-                        break;
-                    } else if (progress > fadeOutStartPoint && progress <= fadeOutEndPoint) {
-                        // Fading out
-                        const rangeDuration = fadeOutEndPoint - fadeOutStartPoint;
-                         if (rangeDuration > 0) {
-                            newOpacity = 1 - ((progress - fadeOutStartPoint) / rangeDuration);
-                         } else {
-                             newOpacity = 0;
-                         }
-                        newTitleIndex = i - 1; // Array index
-                        break;
-                    }
-                }
-
-                // Apply changes
-                if (newTitleIndex !== -1) {
-                    // We are in an active range
-                    if (newTitleIndex !== currentTitleIndex) {
-                        // Title needs to change
-                        const newTitle = titles[newTitleIndex];
-                        textEl.innerHTML = `<h2>${newTitle.title}</h2><p>${newTitle.subtitle}</p>`;
-                        currentTitleIndex = newTitleIndex;
-                    }
-                    // Apply the calculated opacity
-                    textEl.style.opacity = Math.max(0, Math.min(1, newOpacity));
-                } else {
-                    // Not in any range, ensure it's faded out
-                    textEl.style.opacity = 0;
-                    currentTitleIndex = -1; // Reset
-                }
-            },
-            // This effect runs for the entire scroll duration
-            rangeStart: { name: 'cover', offset: { unit: 'percentage', value: 0 } },
-            rangeEnd: { name: 'cover', offset: { unit: 'percentage', value: 100 } },
-            fill: 'both'
-       });
-
 
         const config = {
             interactions: [{
                 key: '.sticky-wrapper',
                 trigger: 'viewProgress',
-                effects: effects // Pass in the array of all card and title effects
+                effects: effects // All card and title effects
             }]
         };
 
@@ -388,6 +369,3 @@
 
 </body>
 </html>
-
-
-

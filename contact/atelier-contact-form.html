@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Let's Build Together — Contact (Atelier)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   ATELIER — entrance only, no scroll-driven motion.
+   Built on @wix/interact's vanilla integration: keys are bound with add(), so
+   there are no <interact-element> wrappers and the animated elements are the
+   real layout elements.
+
+   One long, unhurried gesture on a single shared curve, cubic-bezier(.16,1,.3,1):
+   the photograph opens from a narrow centred sliver — first top and bottom to
+   full height, then the sides to full width — while inside it the photograph
+   rises, releases its zoom and develops out of a wash of light. In the same
+   breath the headline rises word by word out of clipping windows, the copy and
+   fields follow in long overlapping strides, and each underline opens outward
+   from its centre.
+
+   Only transform, opacity, clip-path and filter animate — nothing that triggers
+   layout, so there is nothing that can jump.
+   ============================================================================ */
+:root{
+  --bg:#ffffff;
+  --ink:#000000;
+  --body:#3d3d3d;
+  --hint:#9a9a9a;
+  --line:#c9c9c9;
+  --font:"Wix Madefor Text","Wix Madefor Display","Figtree",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+
+  --img-w:60vw;    /* image column width on desktop */
+  --img-gap:3vw;   /* breathing room between the form and the image */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--body);-webkit-font-smoothing:antialiased}
+
+/* ---------- layout ----------
+   .panel and .media are the grid items themselves — nothing wraps them. */
+.wrap{
+  display:grid;grid-template-columns:minmax(0,1fr) var(--img-w);
+  min-height:100vh;min-height:100svh;
+  overflow:clip;
+}
+.panel{
+  background:var(--bg);display:flex;align-items:center;min-width:0;
+  container-type:inline-size;
+  padding:clamp(28px,4vw,72px) var(--img-gap) clamp(28px,4vw,72px) clamp(24px,4.4vw,80px);
+}
+.form-shell{width:100%;max-width:520px}
+
+/* ---------- the image, in layers ----------
+   Each layer owns one animated property, so the effects never compete for it.
+     .plate     — opens top and bottom, then the sides         (clip-path)
+     .slide     — the photograph rises as it opens             (transform)
+     .zoom      — it releases its zoom and develops            (transform+filter)
+     .scrim     — the wash of light over it clears             (opacity)        */
+.media{
+  position:relative;overflow:clip;background:#fff;min-width:0;
+  min-height:100vh;min-height:100svh;
+}
+.plate{position:absolute;inset:0;overflow:clip;will-change:clip-path}
+.slide{position:absolute;inset:0;will-change:transform}
+.zoom{position:absolute;inset:0;will-change:transform,filter}
+.media-img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  display:block;
+}
+.scrim{
+  position:absolute;inset:0;pointer-events:none;
+  background:#ffffff;opacity:0;will-change:opacity;
+}
+
+/* ---------- type ---------- */
+h1{
+  font-family:"Wix Madefor Display","Figtree",var(--font);
+  font-weight:500;letter-spacing:-.028em;line-height:1.05;
+  font-size:clamp(32px,11cqi,62px);color:var(--ink);
+  margin:0 0 clamp(20px,4cqi,32px);
+}
+/* Each word rises out of its own clipping window. Only `transform` animates, so
+   nothing reflows and the line breaks never move.
+   The padding / negative-margin pair gives descenders (the g in "Together")
+   room inside the clip without changing the line box. */
+.words{display:inline}
+.w{
+  display:inline-block;overflow:clip;vertical-align:bottom;
+  padding-bottom:.16em;margin-bottom:-.16em;
+}
+.wi{display:inline-block;white-space:nowrap;will-change:transform}
+.lede{font-size:15px;line-height:1.62;font-weight:400;margin:0 0 clamp(26px,7cqi,48px);max-width:44ch}
+
+/* ---------- fields ---------- */
+.form-rows{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,7cqi,38px) clamp(20px,6cqi,40px)}
+.field{position:relative;display:flex;flex-direction:column;min-width:0}
+.field--full{grid-column:1 / -1}
+label{font-size:15px;font-weight:400;color:var(--ink);letter-spacing:.004em;margin-bottom:26px}
+
+/* underlines open outward from their own centres */
+.rule{
+  position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--line);
+  transform-origin:center center;will-change:transform;
+}
+.rule-ink{
+  position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--ink);
+  transform:scaleX(0);transform-origin:center center;
+  transition:transform .7s cubic-bezier(.16,1,.3,1);
+}
+.field:focus-within .rule-ink{transform:scaleX(1)}
+
+.line-input{
+  appearance:none;border:0;background:transparent;
+  font:inherit;font-size:15px;color:var(--ink);padding:0 0 10px;width:100%;border-radius:0;
+}
+.line-input::placeholder{color:var(--hint)}
+.line-input:focus{outline:none}
+textarea.line-input{resize:none;line-height:1.55;min-height:96px}
+.field--message label{margin-bottom:8px}
+
+/* ---------- action ---------- */
+.actions{margin-top:clamp(16px,5cqi,30px)}
+.btn{
+  position:relative;
+  display:inline-block;font:inherit;font-size:15px;cursor:pointer;
+  border:1px solid var(--ink);background:var(--ink);color:#fff;
+  padding:15px 42px;min-width:200px;border-radius:0;text-align:center;
+}
+.btn .label{display:inline-block}
+/* a hairline opens from the centre under the label on hover — no reflow */
+.btn-rule{
+  position:absolute;left:42px;right:42px;bottom:12px;height:1px;
+  background:currentColor;
+  transform:scaleX(0);transform-origin:center center;will-change:transform;
+}
+
+/* ---------- motion pre-state (FOUC guard) ----------
+   The .pre-motion class is added to <html> by a tiny classic script in <head>
+   and removed by another classic script at the end of <body>. Neither depends on
+   the ES module or on the CDN, so a failed import can no longer leave the page
+   stuck in its hidden state — worst case you get the design with no animation.
+   With JS off entirely the class is never added and nothing is ever hidden. */
+.pre-motion .wi{transform:translateY(105%)}
+.pre-motion .rule{transform:scaleX(0)}
+.pre-motion .lede,
+.pre-motion .form-rows > *,
+.pre-motion .actions{opacity:0}
+.pre-motion .plate{clip-path:inset(50% 38% 50% 38%)}
+.pre-motion .slide{transform:translateY(7%)}
+.pre-motion .zoom{transform:scale(1.24);filter:brightness(1.35) saturate(.55)}
+.pre-motion .scrim{opacity:.7}
+
+@media (prefers-reduced-motion:reduce){
+  .pre-motion .wi{transform:none}
+  .pre-motion .rule{transform:scaleX(1)}
+  .pre-motion .lede,.pre-motion .form-rows > *,.pre-motion .actions{opacity:1}
+  .pre-motion .plate{clip-path:none}
+  .pre-motion .slide{transform:none}
+  .pre-motion .zoom{transform:none;filter:none}
+  .pre-motion .scrim{opacity:0}
+}
+
+/* ---------- responsive ----------
+   A container query, not a media query: the form column is ~40vw on desktop, so
+   what matters is the width of the column itself, not the width of the screen. */
+@container (max-width:430px){
+  .form-rows{grid-template-columns:1fr}
+  label{margin-bottom:18px}
+}
+
+/* tablet: give the form more of the screen */
+@media (max-width:1200px){
+  :root{--img-w:50vw}
+}
+
+/* stacked: image on top, form beneath, both at natural height */
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr;min-height:0}
+  .media{order:-1;min-height:52vh}
+  .panel{padding:clamp(32px,7vw,56px)}
+  .form-rows{grid-template-columns:1fr}
+  .btn{width:100%}
+}
+
+/* short screens in landscape: let the row be as tall as the form needs, no more */
+@media (max-height:620px) and (min-width:901px){
+  .wrap{min-height:0}
+  .media{min-height:0}
+}
+</style>
+
+<!-- Output of @wix/interact's generate(config, false), pasted verbatim.
+     Re-run generate() if the config at the bottom of this file changes.
+     It belongs in the <head>: these rules carry each effect's first
+     keyframe, so the start state is painted with the page instead of being
+     applied a module-load later, which is what the old runtime
+     generate()-into-a-<style> could not do. -->
+<style>
+@keyframes soft-rise-lede-kf {
+0% {
+opacity: 0;
+transform: translateY(14px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+}
+}
+@keyframes soft-rise-actions-kf {
+0% {
+opacity: 0;
+transform: translateY(14px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+}
+}
+@keyframes word-rise-kf {
+0% {
+transform: translateY(105%);
+}
+100% {
+transform: translateY(0%);
+}
+}
+@keyframes soft-rise-fields-kf {
+0% {
+opacity: 0;
+transform: translateY(14px);
+}
+100% {
+opacity: 1;
+transform: translateY(0px);
+}
+}
+@keyframes rule-open-kf {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+@keyframes plate-reveal-kf {
+0% {
+clip-path: inset(50% 38% 50% 38%);
+animation-timing-function: cubic-bezier(.16,1,.3,1);
+}
+50% {
+clip-path: inset(0% 38% 0% 38%);
+animation-timing-function: cubic-bezier(.16,1,.3,1);
+}
+100% {
+clip-path: inset(0% 0% 0% 0%);
+}
+}
+@keyframes photo-rise-kf {
+0% {
+transform: translateY(7%);
+}
+100% {
+transform: translateY(0%);
+}
+}
+@keyframes zoom-develop-kf {
+0% {
+transform: scale(1.24);
+filter: brightness(1.35) saturate(0.55);
+}
+100% {
+transform: scale(1);
+filter: brightness(1) saturate(1);
+}
+}
+@keyframes haze-clear-kf {
+0% {
+opacity: 0.7;
+}
+100% {
+opacity: 0;
+}
+}
+@keyframes btn-rule-open {
+0% {
+transform: scaleX(0);
+}
+100% {
+transform: scaleX(1);
+}
+}
+[data-interact-key="panel"] .lede {
+--animation-0-81u714zkok: soft-rise-lede-kf 1400ms 400ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-81u714zkok: replace;
+--animation-timeline-0-81u714zkok: auto;
+--animation-range-0-81u714zkok: normal;
+}
+[data-interact-key="panel"] .actions {
+--animation-0-nehvtf30zm: soft-rise-actions-kf 1400ms 1340ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-nehvtf30zm: replace;
+--animation-timeline-0-nehvtf30zm: auto;
+--animation-range-0-nehvtf30zm: normal;
+}
+[data-interact-key="panel"] .words .wi {
+--animation-0-0-hblegal6sx: word-rise-kf 1500ms calc((0 + (1 - (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1))) * (1 - (var(--motion-seq-0-0-index, 0) / var(--motion-seq-0-0-last, 1)))) * 130 * var(--motion-seq-0-0-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-hblegal6sx: replace;
+--animation-timeline-0-0-hblegal6sx: auto;
+--animation-range-0-0-hblegal6sx: normal;
+}
+[data-interact-key="panel"] .words .wi {
+--animation-0-hblegal6sx: var(--animation-0-0-hblegal6sx, none);
+--animation-composition-0-hblegal6sx: var(--animation-composition-0-0-hblegal6sx, replace);
+--animation-timeline-0-hblegal6sx: var(--animation-timeline-0-0-hblegal6sx, auto);
+--animation-range-0-hblegal6sx: var(--animation-range-0-0-hblegal6sx, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-0-8l32eaa0es: soft-rise-fields-kf 1400ms calc((620 + (1 - (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1))) * (1 - (var(--motion-seq-0-1-index, 0) / var(--motion-seq-0-1-last, 1)))) * 150 * var(--motion-seq-0-1-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-8l32eaa0es: replace;
+--animation-timeline-0-0-8l32eaa0es: auto;
+--animation-range-0-0-8l32eaa0es: normal;
+}
+[data-interact-key="panel"] .form-rows > * {
+--animation-0-8l32eaa0es: var(--animation-0-0-8l32eaa0es, none);
+--animation-composition-0-8l32eaa0es: var(--animation-composition-0-0-8l32eaa0es, replace);
+--animation-timeline-0-8l32eaa0es: var(--animation-timeline-0-0-8l32eaa0es, auto);
+--animation-range-0-8l32eaa0es: var(--animation-range-0-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-0-s71p044fnv: rule-open-kf 1300ms calc((800 + (1 - (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1))) * (1 - (var(--motion-seq-0-2-index, 0) / var(--motion-seq-0-2-last, 1)))) * 150 * var(--motion-seq-0-2-last, 1)) * 1ms) cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-0-0-s71p044fnv: replace;
+--animation-timeline-0-0-s71p044fnv: auto;
+--animation-range-0-0-s71p044fnv: normal;
+}
+[data-interact-key="panel"] .form-rows .rule {
+--animation-0-s71p044fnv: var(--animation-0-0-s71p044fnv, none);
+--animation-composition-0-s71p044fnv: var(--animation-composition-0-0-s71p044fnv, replace);
+--animation-timeline-0-s71p044fnv: var(--animation-timeline-0-0-s71p044fnv, auto);
+--animation-range-0-s71p044fnv: var(--animation-range-0-0-s71p044fnv, normal);
+}
+[data-interact-key="media"] .plate {
+--animation-1-akfs8u7v3p: plate-reveal-kf 2400ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-akfs8u7v3p: replace;
+--animation-timeline-1-akfs8u7v3p: auto;
+--animation-range-1-akfs8u7v3p: normal;
+}
+[data-interact-key="media"] .slide {
+--animation-1-algybczpkp: photo-rise-kf 2600ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-algybczpkp: replace;
+--animation-timeline-1-algybczpkp: auto;
+--animation-range-1-algybczpkp: normal;
+}
+[data-interact-key="media"] .zoom {
+--animation-1-62dbyjc9cc: zoom-develop-kf 3000ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-62dbyjc9cc: replace;
+--animation-timeline-1-62dbyjc9cc: auto;
+--animation-range-1-62dbyjc9cc: normal;
+}
+[data-interact-key="media"] .scrim {
+--animation-1-aldhekwu3g: haze-clear-kf 2600ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-1-aldhekwu3g: replace;
+--animation-timeline-1-aldhekwu3g: auto;
+--animation-range-1-aldhekwu3g: normal;
+}
+[data-interact-key="btn-submit"] .btn-rule {
+--animation-2-mc9yookie1: btn-rule-open 750ms 0ms cubic-bezier(.16,1,.3,1) both 1 paused;
+--animation-composition-2-mc9yookie1: replace;
+--animation-timeline-2-mc9yookie1: auto;
+--animation-range-2-mc9yookie1: normal;
+}
+[data-interact-key="btn-submit"] {
+--transition-2-z3g4ynngbg: background-color 700ms cubic-bezier(.16,1,.3,1), color 700ms cubic-bezier(.16,1,.3,1);
+}
+[data-interact-key="btn-submit"]:is(:state(eff-2-1), :--eff-2-1, [data-interact-effect~="eff-2-1"]) {
+background-color: #ffffff;
+color: #000000;
+}
+[data-interact-key="panel"] .lede {
+animation: var(--animation-0-81u714zkok, none);
+animation-composition: var(--animation-composition-0-81u714zkok, replace);
+animation-timeline: var(--animation-timeline-0-81u714zkok, auto);
+animation-range: var(--animation-range-0-81u714zkok, normal);
+}
+[data-interact-key="panel"] .actions {
+animation: var(--animation-0-nehvtf30zm, none);
+animation-composition: var(--animation-composition-0-nehvtf30zm, replace);
+animation-timeline: var(--animation-timeline-0-nehvtf30zm, auto);
+animation-range: var(--animation-range-0-nehvtf30zm, normal);
+}
+[data-interact-key="panel"] .words .wi {
+animation: var(--animation-0-hblegal6sx, none);
+animation-composition: var(--animation-composition-0-hblegal6sx, replace);
+animation-timeline: var(--animation-timeline-0-hblegal6sx, auto);
+animation-range: var(--animation-range-0-hblegal6sx, normal);
+}
+[data-interact-key="panel"] .form-rows > * {
+animation: var(--animation-0-8l32eaa0es, none);
+animation-composition: var(--animation-composition-0-8l32eaa0es, replace);
+animation-timeline: var(--animation-timeline-0-8l32eaa0es, auto);
+animation-range: var(--animation-range-0-8l32eaa0es, normal);
+}
+[data-interact-key="panel"] .form-rows .rule {
+animation: var(--animation-0-s71p044fnv, none);
+animation-composition: var(--animation-composition-0-s71p044fnv, replace);
+animation-timeline: var(--animation-timeline-0-s71p044fnv, auto);
+animation-range: var(--animation-range-0-s71p044fnv, normal);
+}
+[data-interact-key="media"] .plate {
+animation: var(--animation-1-akfs8u7v3p, none);
+animation-composition: var(--animation-composition-1-akfs8u7v3p, replace);
+animation-timeline: var(--animation-timeline-1-akfs8u7v3p, auto);
+animation-range: var(--animation-range-1-akfs8u7v3p, normal);
+}
+[data-interact-key="media"] .slide {
+animation: var(--animation-1-algybczpkp, none);
+animation-composition: var(--animation-composition-1-algybczpkp, replace);
+animation-timeline: var(--animation-timeline-1-algybczpkp, auto);
+animation-range: var(--animation-range-1-algybczpkp, normal);
+}
+[data-interact-key="media"] .zoom {
+animation: var(--animation-1-62dbyjc9cc, none);
+animation-composition: var(--animation-composition-1-62dbyjc9cc, replace);
+animation-timeline: var(--animation-timeline-1-62dbyjc9cc, auto);
+animation-range: var(--animation-range-1-62dbyjc9cc, normal);
+}
+[data-interact-key="media"] .scrim {
+animation: var(--animation-1-aldhekwu3g, none);
+animation-composition: var(--animation-composition-1-aldhekwu3g, replace);
+animation-timeline: var(--animation-timeline-1-aldhekwu3g, auto);
+animation-range: var(--animation-range-1-aldhekwu3g, normal);
+}
+[data-interact-key="btn-submit"] .btn-rule {
+animation: var(--animation-2-mc9yookie1, none);
+animation-composition: var(--animation-composition-2-mc9yookie1, replace);
+animation-timeline: var(--animation-timeline-2-mc9yookie1, auto);
+animation-range: var(--animation-range-2-mc9yookie1, normal);
+}
+[data-interact-key="btn-submit"] {
+transition: var(--transition-2-z3g4ynngbg, _);
+}
+</style>
+<script>
+  /* Classic, blocking, no imports: hide the animated elements before first paint.
+     If this is the only script that ever runs, the reveal script at the end of
+     <body> still un-hides everything. */
+  document.documentElement.classList.add('pre-motion');
+</script>
+</head>
+<body>
+
+<div class="wrap">
+
+  <section class="panel" data-interact-key="panel">
+    <div class="form-shell">
+
+      <h1 data-split>Let&rsquo;s Build Together.</h1>
+
+      <p class="lede">Have questions or want to talk through your idea?<br>Reach out &mdash; we&rsquo;re here to help.</p>
+
+      <form class="form-rows" novalidate>
+
+        <div class="field">
+          <label for="firstname">First name *</label>
+          <input class="line-input" id="firstname" name="firstname" type="text" autocomplete="given-name" required>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field">
+          <label for="lastname">Last name</label>
+          <input class="line-input" id="lastname" name="lastname" type="text" autocomplete="family-name">
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field field--full">
+          <label for="email">Email *</label>
+          <input class="line-input" id="email" name="email" type="email" autocomplete="email" required>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+        <div class="field field--full field--message">
+          <label for="message">Write a message</label>
+          <textarea class="line-input" id="message" name="message" rows="4"></textarea>
+          <i class="rule"></i><i class="rule-ink"></i>
+        </div>
+
+      </form>
+
+      <div class="actions">
+        <button class="btn" type="submit" data-interact-key="btn-submit">
+          <span class="label">Submit</span>
+          <i class="btn-rule" aria-hidden="true"></i>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <aside class="media" data-interact-key="media">
+    <div class="plate">
+      <div class="slide">
+        <div class="zoom">
+          <img class="media-img" alt=""
+               src="https://static.wixstatic.com/media/cec2b6_5708a38f6740473dae933636af3a196c~mv2.jpg">
+        </div>
+      </div>
+      <div class="scrim"></div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+/* ===========================================================================
+   Classic script — no imports, no module, cannot be blocked by the CDN.
+   It owns the two things the DESIGN depends on:
+     1. splitting the headline into .w / .wi word spans
+     2. removing .pre-motion so nothing stays hidden
+   The animation module below is a pure enhancement on top of this. If it fails
+   to load or throws, the page still renders correctly, just without motion.
+   =========================================================================== */
+(function () {
+  for (var i = 0, els = document.querySelectorAll('[data-split]'); i < els.length; i++) {
+    var el = els[i];
+    var words = el.textContent.trim().split(/\s+/);
+    el.textContent = '';
+    var holder = document.createElement('span');
+    holder.className = 'words';
+    for (var j = 0; j < words.length; j++) {
+      var outer = document.createElement('span');
+      outer.className = 'w';
+      var inner = document.createElement('span');
+      inner.className = 'wi';
+      inner.textContent = words[j];
+      outer.appendChild(inner);
+      holder.appendChild(outer);
+      if (j < words.length - 1) holder.appendChild(document.createTextNode(' '));
+    }
+    el.appendChild(holder);
+  }
+
+  /* Reveal on the first animationstart — by then the effects have applied their
+     opening keyframes, so there is no flash. The timeout is the safety net for
+     the case where the module never runs at all. */
+  var revealed = false;
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    document.documentElement.classList.remove('pre-motion');
+  }
+  document.addEventListener('animationstart', reveal, { once: true, capture: true });
+  setTimeout(reveal, 1500);
+})();
+</script>
+
+<script type="module">
+/* Vanilla integration — no custom elements. Keys are bound to the real layout
+   elements with add(), and generate() is called with useFirstChild = false.
+   Every animation is an explicit keyframeEffect, so @wix/motion-presets and
+   registerEffects() are not needed.
+
+   Everything here is wrapped so that any failure — a CDN hiccup, a bad export,
+   an invalid config — degrades to the static design instead of a blank page. */
+/* PIN THE VERSION. Unpinned, esm.sh resolves @wix/interact to 1.114.0, whose only
+   exports are Interact / add / remove — there is no `generate`, so the named
+   import below throws and the entire module never runs. 2.5.8 is the version the
+   rules file documents, and it exports Interact / add / generate / remove. */
+import { Interact, add } from 'https://esm.sh/@wix/interact@2.5.8';
+
+/* One shared curve for the entire composition. */
+const SILK = 'cubic-bezier(.16,1,.3,1)';
+
+/* Every effect's CSS base state IS its hidden state, so all of them use
+   fill: 'both' — the final keyframe has to persist rather than snap back. */
+const config = {
+  effects: {
+    /* the headline, word by word out of its clipping windows */
+    'word-rise': {
+      duration: 1500,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'word-rise-kf',
+        keyframes: [
+          { transform: 'translateY(105%)' },
+          { transform: 'translateY(0%)'   },
+        ],
+      },
+    },
+
+    /* The restrained rise used for the copy, the fields and the button. THREE
+       identical entries on purpose, one per target.
+
+       An interaction's internal id is derived from
+       `sourceKey::targetKey::effectId::interactionIndex`. All three of these run
+       off the same source ('panel'), resolve to the same target root, and sit in
+       the same interaction — so if they all referenced one registry entry they
+       would collapse to a single id: only the first would survive, while
+       generate() had already emitted the hidden first keyframe for all three. The
+       copy and the button would stay at `opacity: 0` for good.
+
+       Same duration, same easing, same keyframes: the animation is unchanged. */
+    'soft-rise-fields': {
+      duration: 1400,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'soft-rise-fields-kf',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(14px)' },
+          { opacity: '1', transform: 'translateY(0px)'  },
+        ],
+      },
+    },
+    'soft-rise-lede': {
+      duration: 1400,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'soft-rise-lede-kf',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(14px)' },
+          { opacity: '1', transform: 'translateY(0px)'  },
+        ],
+      },
+    },
+    'soft-rise-actions': {
+      duration: 1400,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'soft-rise-actions-kf',
+        keyframes: [
+          { opacity: '0', transform: 'translateY(14px)' },
+          { opacity: '1', transform: 'translateY(0px)'  },
+        ],
+      },
+    },
+
+    /* underlines open outward from their centres */
+    'rule-open': {
+      duration: 1300,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'rule-open-kf',
+        keyframes: [
+          { transform: 'scaleX(0)' },
+          { transform: 'scaleX(1)' },
+        ],
+      },
+    },
+
+    /* Act 1 — two-stage reveal on one clip-path. It starts as a narrow centred
+       sliver: first the top and bottom edges travel out to full height, then the
+       left and right edges travel out to full width. Per-keyframe easing keeps
+       the two stages legible instead of blending into one move. */
+    'plate-reveal': {
+      selector: '.plate',
+      duration: 2400,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'plate-reveal-kf',
+        keyframes: [
+          { clipPath: 'inset(50% 38% 50% 38%)', easing: SILK             },
+          { clipPath: 'inset(0% 38% 0% 38%)',   easing: SILK, offset: .5 },
+          { clipPath: 'inset(0% 0% 0% 0%)'                              },
+        ],
+      },
+    },
+
+    /* Act 2 — inside the opening frame the photograph rises at its own slower rate */
+    'photo-rise': {
+      selector: '.slide',
+      duration: 2600,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'photo-rise-kf',
+        keyframes: [
+          { transform: 'translateY(7%)' },
+          { transform: 'translateY(0%)' },
+        ],
+      },
+    },
+
+    /* Act 3 — and develops: the zoom releases while the wash of light recedes */
+    'zoom-develop': {
+      selector: '.zoom',
+      duration: 3000,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'zoom-develop-kf',
+        keyframes: [
+          { transform: 'scale(1.24)', filter: 'brightness(1.35) saturate(0.55)' },
+          { transform: 'scale(1)',    filter: 'brightness(1) saturate(1)'       },
+        ],
+      },
+    },
+
+    /* Act 4 — the wash of light over it clears */
+    'haze-clear': {
+      selector: '.scrim',
+      duration: 2600,
+      easing: SILK,
+      fill: 'both',
+      keyframeEffect: {
+        name: 'haze-clear-kf',
+        keyframes: [
+          { opacity: '0.7' },
+          { opacity: '0'   },
+        ],
+      },
+    },
+  },
+
+  interactions: [
+    /* the left column: headline, then the copy, the fields and their underlines
+       cascading in long overlapping strides */
+    {
+      key: 'panel',
+      trigger: 'viewEnter',
+      params: { threshold: 0.05 },
+      sequences: [
+        {
+          offset: 130,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'word-rise', listContainer: '.words', selector: '.wi' }],
+        },
+        {
+          delay: 620,
+          offset: 150,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'soft-rise-fields', listContainer: '.form-rows' }],
+        },
+        {
+          delay: 800,
+          offset: 150,
+          offsetEasing: 'quadOut',
+          effects: [{ effectId: 'rule-open', listContainer: '.form-rows', selector: '.rule' }],
+        },
+      ],
+      effects: [
+        { effectId: 'soft-rise-lede',    selector: '.lede',    delay: 400  },
+        { effectId: 'soft-rise-actions', selector: '.actions', delay: 1340 },
+      ],
+    },
+
+    /* the image: four overlapping acts off a single trigger */
+    {
+      key: 'media',
+      trigger: 'viewEnter',
+      params: { threshold: 0.05 },
+      effects: [
+        { effectId: 'plate-reveal' },
+        { effectId: 'photo-rise'   },
+        { effectId: 'zoom-develop' },
+        { effectId: 'haze-clear'   },
+      ],
+    },
+
+    /* Submit: the block inverts and a hairline opens from the centre beneath the
+       label. `interest` rather than `hover` so keyboard focus counts too, and the
+       keyframe effect targets the child hairline — a scale on the source element
+       itself would shift the hit area. */
+    {
+      key: 'btn-submit',
+      trigger: 'interest',
+      effects: [
+        {
+          selector: '.btn-rule',
+          triggerType: 'alternate',
+          duration: 750,
+          easing: SILK,
+          fill: 'both',
+          keyframeEffect: {
+            name: 'btn-rule-open',
+            keyframes: [
+              { transform: 'scaleX(0)' },
+              { transform: 'scaleX(1)' },
+            ],
+          },
+        },
+        {
+          stateAction: 'toggle',
+          transition: {
+            duration: 700,
+            easing: SILK,
+            styleProperties: [
+              { name: 'background-color', value: '#ffffff' },
+              { name: 'color',            value: '#000000' },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+
+try {
+  /* The generated CSS is already in the <head>; this only wires the
+     triggers and binds the keys. */
+  Interact.create(config);
+
+  /* Bind each key to its element. In the vanilla integration the keyed element is
+     itself the source and the default target — no wrapper, no first-child hop. */
+  add(document.querySelector('.panel'),        'panel');
+  add(document.querySelector('.media'),        'media');
+  add(document.querySelector('.actions .btn'), 'btn-submit');
+} catch (err) {
+  /* Any failure here must not leave the page hidden. The classic script's
+     timeout would clear .pre-motion anyway; this just does it immediately. */
+  console.error('[atelier] @wix/interact failed to initialise — showing the static design:', err);
+  document.documentElement.classList.remove('pre-motion');
+}
+</script>
+</body>
+</html>
