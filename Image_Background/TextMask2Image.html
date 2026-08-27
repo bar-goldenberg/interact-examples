@@ -105,100 +105,56 @@
   </interact-element>
 
   <script type="module">
-    let Interact;
-    try {
-      const mod = await import('https://esm.sh/@wix/interact@2.5.1/web-rc.4/web');
-      Interact = mod.Interact;
-    } catch (e) {
-      console.warn('Wix Interact (web) failed to load:', e);
-    }
+    import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-    if (Interact) {
-      Interact.create({
-        interactions: [
-          {
-            key: 'scroll-section',
-            trigger: 'viewProgress',
-            effects: [
-              /* ── Scale the text until strokes fill the viewport (finishes at 70%) ── */
-              {
-                key: 'text-layer',
-                keyframeEffect: {
-                  name: 'text-zoom',
-                  keyframes: [
-                    { '--text-scale': '1',    offset: 0 },
-                    { '--text-scale': '2.5',  offset: 0.1 },
-                    { '--text-scale': '7',    offset: 0.2 },
-                    { '--text-scale': '20',   offset: 0.3 },
-                    { '--text-scale': '55',   offset: 0.4 },
-                    { '--text-scale': '150',  offset: 0.5 },
-                    { '--text-scale': '400',  offset: 0.6 },
-                    { '--text-scale': '800',  offset: 0.7 },
-                    { '--text-scale': '800',  offset: 1 },
-                  ],
-                },
-                rangeStart: { name: 'entry', offset: { value: 0, unit: 'percentage' } },
-                rangeEnd:   { name: 'exit',  offset: { value: 0, unit: 'percentage' } },
-                fill: 'both',
+    Interact.create({
+      interactions: [
+        {
+          key: 'scroll-section',
+          trigger: 'viewProgress',
+          effects: [
+            /* ── Scale the text until strokes fill the viewport (finishes at 70%) ── */
+            {
+              key: 'text-layer',
+              keyframeEffect: {
+                name: 'text-zoom',
+                keyframes: [
+                  { '--text-scale': '1',    offset: 0 },
+                  { '--text-scale': '2.5',  offset: 0.1 },
+                  { '--text-scale': '7',    offset: 0.2 },
+                  { '--text-scale': '20',   offset: 0.3 },
+                  { '--text-scale': '55',   offset: 0.4 },
+                  { '--text-scale': '150',  offset: 0.5 },
+                  { '--text-scale': '400',  offset: 0.6 },
+                  { '--text-scale': '800',  offset: 0.7 },
+                  { '--text-scale': '800',  offset: 1 },
+                ],
               },
-              /* ── Subtitle slides from below viewport to center screen ── */
-              {
-                key: 'subtitle',
-                keyframeEffect: {
-                  name: 'subtitle-slide',
-                  keyframes: [
-                    { transform: 'translateY(50vh)',  opacity: 0,   offset: 0 },
-                    { transform: 'translateY(50vh)',  opacity: 0,   offset: 0.7 },
-                    { transform: 'translateY(15vh)',  opacity: 1,   offset: 0.8 },
-                    { transform: 'translateY(0)',     opacity: 1,   offset: 0.9 },
-                    { transform: 'translateY(0)',     opacity: 1,   offset: 1 },
-                  ],
-                },
-                rangeStart: { name: 'entry', offset: { value: 0, unit: 'percentage' } },
-                rangeEnd:   { name: 'exit',  offset: { value: 0, unit: 'percentage' } },
-                fill: 'both',
+              rangeStart: { name: 'entry', offset: { value: 0, unit: 'percentage' } },
+              rangeEnd:   { name: 'exit',  offset: { value: 0, unit: 'percentage' } },
+              fill: 'both',
+            },
+            /* ── Subtitle slides from below viewport to center screen ── */
+            {
+              key: 'subtitle',
+              keyframeEffect: {
+                name: 'subtitle-slide',
+                keyframes: [
+                  { transform: 'translateY(50vh)',  opacity: 0,   offset: 0 },
+                  { transform: 'translateY(50vh)',  opacity: 0,   offset: 0.7 },
+                  { transform: 'translateY(15vh)',  opacity: 1,   offset: 0.8 },
+                  { transform: 'translateY(0)',     opacity: 1,   offset: 0.9 },
+                  { transform: 'translateY(0)',     opacity: 1,   offset: 1 },
+                ],
               },
-            ],
-          },
-        ],
-      });
-    } else {
-      /* ── Fallback: native scroll listener ── */
-      const textEl     = document.querySelector('.mask-text');
-      const subtitleEl = document.querySelector('.subtitle');
-      const section    = document.querySelector('.scroll-section');
-
-      function onScroll() {
-        if (!section || !textEl) return;
-        const rect       = section.getBoundingClientRect();
-        const scrollDist = section.offsetHeight - window.innerHeight;
-        const progress   = scrollDist <= 0
-          ? 0
-          : Math.max(0, Math.min(1, -rect.top / scrollDist));
-
-        const scale = progress <= 0.7
-          ? Math.pow(800, progress / 0.7)
-          : 800;
-        textEl.style.setProperty('--text-scale', String(scale));
-
-        if (subtitleEl) {
-          if (progress < 0.7) {
-            subtitleEl.style.transform = 'translateY(50vh)';
-            subtitleEl.style.opacity = '0';
-          } else if (progress < 0.9) {
-            const t = (progress - 0.7) / 0.2;
-            const startPx = window.innerHeight * 0.5;
-            subtitleEl.style.transform = `translateY(${startPx * (1 - t)}px)`;
-            subtitleEl.style.opacity = String(t);
-          } else {
-            subtitleEl.style.transform = 'translateY(0)';
-            subtitleEl.style.opacity = '1';
-          }
-        }
-      }
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-    }
+              rangeStart: { name: 'entry', offset: { value: 0, unit: 'percentage' } },
+              rangeEnd:   { name: 'exit',  offset: { value: 0, unit: 'percentage' } },
+              fill: 'both',
+            },
+          ],
+        },
+      ],
+    });
   </script>
 </body>
 </html>

@@ -10,7 +10,7 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     interact-element { display: block; }
-    html, body { height: 100%; overflow: hidden; }
+    html, body { height: 100%; overflow: clip; }
 
     body {
       background: #0c0c0c;
@@ -30,14 +30,19 @@
       inset: 0;
     }
 
-    .bg-wrap > div {
+    .bg-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .bg-img {
       position: absolute;
       inset: 0;
       background-size: cover;
       background-position: center;
     }
 
-    .bg-wrap > div::after {
+    .bg-img::after {
       content: '';
       position: absolute;
       inset: 0;
@@ -49,6 +54,9 @@
     .bg-3 { background-image: url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=1800'); }
     .bg-4 { background-image: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=1800'); }
     .bg-5 { background-image: url('https://images.unsplash.com/photo-1631679706909-1844bbd07221?auto=format&fit=crop&q=80&w=1800'); }
+
+    .bg-wrap interact-element:not(:first-child) > div,
+    .center-container interact-element:not(:first-child) > div { opacity: 0; }
 
     .center-container {
       position: relative;
@@ -112,9 +120,15 @@
 </head>
 <body>
 
-  <div class="bg-wrap"><div class="bg-1"></div></div>
+  <div class="bg-wrap">
+    <interact-element data-interact-key="bg-1" class="bg-layer"><div class="bg-img bg-1"></div></interact-element>
+    <interact-element data-interact-key="bg-2" class="bg-layer"><div class="bg-img bg-2"></div></interact-element>
+    <interact-element data-interact-key="bg-3" class="bg-layer"><div class="bg-img bg-3"></div></interact-element>
+    <interact-element data-interact-key="bg-4" class="bg-layer"><div class="bg-img bg-4"></div></interact-element>
+    <interact-element data-interact-key="bg-5" class="bg-layer"><div class="bg-img bg-5"></div></interact-element>
+  </div>
 
-  <interact-element data-interact-key="stage" class="stage">
+  <div class="stage">
     <div class="center-container">
 
       <interact-element data-interact-key="mask-1" class="shape-wrap">
@@ -140,46 +154,81 @@
       <div class="text-overlay">
         <div class="text-inner">
           <p class="label">Architecture Studio</p>
-          <h2 class="title">Shaping<br>Space & Light</h2>
+          <h2 class="title">Shaping<br>Space &amp; Light</h2>
           <p class="description">We design buildings that move people. Every project begins with listening — to the site, the purpose, and the people who will inhabit it. <a href="#">Start a project</a></p>
         </div>
       </div>
 
     </div>
-  </interact-element>
+  </div>
 
   <script type="module">
-    import { Interact } from 'https://esm.sh/@wix/interact/web';
+    import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
     const CYCLE = 7500;
+    const STEPS = 5;
+    const SHAPE_FADE = 0.035;
+    const BG_FADE = 0.06;
 
-    function autoSlice(key, start, end) {
-      const kf = [];
-      if (start > 0) kf.push({ opacity: 0, offset: 0 }, { opacity: 0, offset: start - 0.001 });
-      kf.push({ opacity: 1, offset: start }, { opacity: 1, offset: end });
-      if (end < 1) kf.push({ opacity: 0, offset: end + 0.001 }, { opacity: 0, offset: 1 });
-      return {
+    // Layers are stacked in DOM order and crossfade by opacity. A naive
+    // symmetric crossfade leaves BOTH layers translucent at the midpoint, so the
+    // photo behind bleeds through the white shape (the washed-out "tinted blob"
+    // artifact) and the text loses its solid backing. Instead the incoming layer
+    // fades in *on top of* the still-opaque outgoing one, and the outgoing layer
+    // only fades out once the incoming one is fully opaque — so the union of the
+    // two is opaque for the whole transition.
+    function layerKeyframes(index, fade) {
+      const start = index / STEPS;
+      const next = (index + 1) / STEPS;
+
+      if (index === STEPS - 1) {
+        // Top-most layer: its fade-out wraps around the loop boundary, above the
+        // first layer which has already faded back in underneath it.
+        return [
+          { opacity: 1, offset: 0 },
+          { opacity: 1, offset: fade },
+          { opacity: 0, offset: fade * 2 },
+          { opacity: 0, offset: start },
+          { opacity: 1, offset: start + fade },
+          { opacity: 1, offset: 1 },
+        ];
+      }
+
+      const kf = [{ opacity: 0, offset: 0 }];
+      if (start > 0) kf.push({ opacity: 0, offset: start });
+      kf.push({ opacity: 1, offset: start + fade });
+      kf.push({ opacity: 1, offset: next + fade });
+      kf.push({ opacity: 0, offset: next + fade * 2 });
+      kf.push({ opacity: 0, offset: 1 });
+      return kf;
+    }
+
+    function cycleInteraction(fade) {
+      return (key, index) => ({
         key,
-        keyframeEffect: { name: key, keyframes: kf },
-        duration: CYCLE,
-        iterations: Infinity,
-        fill: 'both'
-      };
+        trigger: 'viewEnter',
+        params: { threshold: 0 },
+        effects: [
+          {
+            keyframeEffect: {
+              name: `cycle-${key}`,
+              keyframes: layerKeyframes(index, fade),
+            },
+            duration: CYCLE,
+            iterations: Infinity,
+            easing: 'linear',
+            fill: 'both',
+            triggerType: 'once',
+          },
+        ],
+      });
     }
 
     Interact.create({
-      interactions: [{
-        key: 'stage',
-        trigger: 'pageVisible',
-        effects: [
-          autoSlice('mask-1', 0,   0.2),
-          autoSlice('mask-2', 0.2, 0.4),
-          autoSlice('mask-3', 0.4, 0.6),
-          autoSlice('mask-4', 0.6, 0.8),
-          autoSlice('mask-5', 0.8, 1),
-
-        ]
-      }]
+      interactions: [
+        ...['mask-1', 'mask-2', 'mask-3', 'mask-4', 'mask-5'].map(cycleInteraction(SHAPE_FADE)),
+        ...['bg-1', 'bg-2', 'bg-3', 'bg-4', 'bg-5'].map(cycleInteraction(BG_FADE)),
+      ],
     });
   </script>
 

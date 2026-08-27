@@ -12,7 +12,7 @@
 
     html, body {
       height: 100vh;
-      overflow: hidden;
+      overflow: clip;
     }
 
     body {
@@ -185,7 +185,6 @@
 
       .projects-section > interact-element {
         pointer-events: auto;
-        cursor: pointer;
         -webkit-tap-highlight-color: transparent;
       }
     }
@@ -267,50 +266,73 @@
   <script type="module">
     import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
 
-    const mqMobile = window.matchMedia('(max-width: 768px)');
-    const mobile = mqMobile.matches;
-    mqMobile.addEventListener('change', () => location.reload());
-
     const ITEM_COUNT = 12;
-    const SPLIT = mobile ? 45 : 80;
-    const IMG_SIZE = mobile ? 80 : 120;
-    const HALF = IMG_SIZE / 2;
-    const PAD = mobile ? 0.03 : 0.05;
+    const PAD = 0.05;
+    const step = (1 - 2 * PAD) / ITEM_COUNT;
     const C0 = { name: 'cover', offset: { value: 0, unit: 'percentage' } };
     const C1 = { name: 'cover', offset: { value: 100, unit: 'percentage' } };
-    const step = (1 - 2 * PAD) / ITEM_COUNT;
 
-    const squareFrame = document.querySelector('.square-frame');
-    const indicatorsEl = document.querySelector('.indicators');
-    const vh = window.innerHeight;
-    const padPx = vh * PAD;
+    const cl = (v) => Math.round(Math.max(0.001, Math.min(0.999, v)) * 10000) / 10000;
 
-    if (!mobile) {
-      /* ═══ Desktop: Interact pointerMove + manual image tracking ═══ */
-      function cl(v) { return Math.round(Math.max(0.001, Math.min(0.999, v)) * 10000) / 10000; }
+    /* Breakpoint variants — all geometry expressed in CSS units so nothing
+       needs to be measured at runtime. Gated by media `conditions`. */
+    const BREAKPOINTS = [
+      { cond: 'desktop', split: 80, half: 60, pad: 5 },
+      { cond: 'mobile',  split: 45, half: 40, pad: 3 },
+    ];
 
-      const effects = [];
+    const effects = [];
 
-      for (let i = 0; i < ITEM_COUNT; i++) {
-        const zs = PAD + i * step;
-        const zc = PAD + (i + 0.5) * step;
-        const ze = PAD + (i + 1) * step;
+    /* ── Square (and desktop indicators) follow the pointer's Y position ──
+       Flat keyframes at both ends reproduce the original clamp to the padded band. */
+    for (const bp of BREAKPOINTS) {
+      const f = bp.pad / 100;
+      const top = `translateY(calc(${bp.pad}vh - ${bp.half}px))`;
+      const bottom = `translateY(calc(${100 - bp.pad}vh - ${bp.half}px))`;
+      const followY = [
+        { offset: 0, transform: top },
+        { offset: cl(f), transform: top },
+        { offset: cl(1 - f), transform: bottom },
+        { offset: 1, transform: bottom },
+      ];
 
-        const rampIn = cl(zc - step * 1.8);
-        const plateauIn = cl(zc - step * 1.0);
-        const plateauOut = cl(zc + step * 1.0);
-        const rampOut = cl(zc + step * 1.8);
+      effects.push({
+        key: 'square', selector: '.square-frame', conditions: [bp.cond],
+        rangeStart: C0, rangeEnd: C1, fill: 'both',
+        keyframeEffect: { name: `sqY_${bp.cond}`, keyframes: followY },
+      });
 
+      if (bp.cond === 'desktop') {
         effects.push({
-          key: `p${i}`, selector: '.half-left',
+          key: 'ind', selector: '.indicators', conditions: [bp.cond],
+          rangeStart: C0, rangeEnd: C1, fill: 'both',
+          keyframeEffect: { name: 'indY', keyframes: followY.map(k => ({ ...k })) },
+        });
+      }
+    }
+
+    for (let i = 0; i < ITEM_COUNT; i++) {
+      const zs = PAD + i * step;
+      const zc = PAD + (i + 0.5) * step;
+      const ze = PAD + (i + 1) * step;
+
+      const rampIn = cl(zc - step * 1.8);
+      const plateauIn = cl(zc - step * 1.0);
+      const plateauOut = cl(zc + step * 1.0);
+      const rampOut = cl(zc + step * 1.8);
+
+      /* ── Parting halves, per breakpoint (split distance differs) ── */
+      for (const bp of BREAKPOINTS) {
+        effects.push({
+          key: `p${i}`, selector: '.half-left', conditions: [bp.cond],
           rangeStart: C0, rangeEnd: C1, fill: 'both',
           keyframeEffect: {
-            name: `sL${i}`,
+            name: `sL${i}_${bp.cond}`,
             keyframes: [
               { offset: 0, transform: 'translateX(0)' },
               { offset: rampIn, transform: 'translateX(0)' },
-              { offset: plateauIn, transform: `translateX(-${SPLIT}px)` },
-              { offset: plateauOut, transform: `translateX(-${SPLIT}px)` },
+              { offset: plateauIn, transform: `translateX(-${bp.split}px)` },
+              { offset: plateauOut, transform: `translateX(-${bp.split}px)` },
               { offset: rampOut, transform: 'translateX(0)' },
               { offset: 1, transform: 'translateX(0)' },
             ],
@@ -318,186 +340,94 @@
         });
 
         effects.push({
-          key: `p${i}`, selector: '.half-right',
+          key: `p${i}`, selector: '.half-right', conditions: [bp.cond],
           rangeStart: C0, rangeEnd: C1, fill: 'both',
           keyframeEffect: {
-            name: `sR${i}`,
+            name: `sR${i}_${bp.cond}`,
             keyframes: [
               { offset: 0, transform: 'translateX(0)' },
               { offset: rampIn, transform: 'translateX(0)' },
-              { offset: plateauIn, transform: `translateX(${SPLIT}px)` },
-              { offset: plateauOut, transform: `translateX(${SPLIT}px)` },
+              { offset: plateauIn, transform: `translateX(${bp.split}px)` },
+              { offset: plateauOut, transform: `translateX(${bp.split}px)` },
               { offset: rampOut, transform: 'translateX(0)' },
               { offset: 1, transform: 'translateX(0)' },
             ],
           },
-        });
-
-        const hlKf = [];
-        if (i === 0) {
-          hlKf.push({ offset: 0, color: '#000' });
-        } else {
-          hlKf.push({ offset: 0, color: '#e0e0e0' });
-          hlKf.push({ offset: cl(zs - 0.001), color: '#e0e0e0' });
-          hlKf.push({ offset: cl(zs), color: '#000' });
-        }
-        if (i === ITEM_COUNT - 1) {
-          hlKf.push({ offset: 1, color: '#000' });
-        } else {
-          hlKf.push({ offset: cl(ze), color: '#000' });
-          hlKf.push({ offset: cl(ze + 0.001), color: '#e0e0e0' });
-          hlKf.push({ offset: 1, color: '#e0e0e0' });
-        }
-        effects.push({
-          key: `p${i}`, selector: '.project-row',
-          rangeStart: C0, rangeEnd: C1, fill: 'both',
-          keyframeEffect: { name: `hl${i}`, keyframes: hlKf },
-        });
-
-        const imgKf = [];
-        if (i === 0) {
-          imgKf.push({ offset: 0, visibility: 'visible' });
-        } else {
-          imgKf.push({ offset: 0, visibility: 'hidden' });
-          imgKf.push({ offset: cl(zs - 0.001), visibility: 'hidden' });
-          imgKf.push({ offset: cl(zs), visibility: 'visible' });
-        }
-        if (i === ITEM_COUNT - 1) {
-          imgKf.push({ offset: 1, visibility: 'visible' });
-        } else {
-          imgKf.push({ offset: cl(ze - 0.001), visibility: 'visible' });
-          imgKf.push({ offset: cl(ze), visibility: 'hidden' });
-          imgKf.push({ offset: 1, visibility: 'hidden' });
-        }
-        effects.push({
-          key: 'square', selector: `.proj-img-${i}`,
-          rangeStart: C0, rangeEnd: C1, fill: 'both',
-          keyframeEffect: { name: `imgVis${i}`, keyframes: imgKf },
-        });
-
-        effects.push({
-          key: 'ind', selector: `.n${i}`,
-          rangeStart: C0, rangeEnd: C1, fill: 'both',
-          keyframeEffect: { name: `nVis${i}`, keyframes: imgKf.map(k => ({ ...k })) },
-        });
-
-        effects.push({
-          key: 'ind', selector: `.y${i}`,
-          rangeStart: C0, rangeEnd: C1, fill: 'both',
-          keyframeEffect: { name: `yVis${i}`, keyframes: imgKf.map(k => ({ ...k })) },
         });
       }
 
-      Interact.create({
-        interactions: [{
+      /* ── Active row highlight ── */
+      const hlKf = [];
+      if (i === 0) {
+        hlKf.push({ offset: 0, color: '#000' });
+      } else {
+        hlKf.push({ offset: 0, color: '#e0e0e0' });
+        hlKf.push({ offset: cl(zs - 0.001), color: '#e0e0e0' });
+        hlKf.push({ offset: cl(zs), color: '#000' });
+      }
+      if (i === ITEM_COUNT - 1) {
+        hlKf.push({ offset: 1, color: '#000' });
+      } else {
+        hlKf.push({ offset: cl(ze), color: '#000' });
+        hlKf.push({ offset: cl(ze + 0.001), color: '#e0e0e0' });
+        hlKf.push({ offset: 1, color: '#e0e0e0' });
+      }
+      effects.push({
+        key: `p${i}`, selector: '.project-row',
+        rangeStart: C0, rangeEnd: C1, fill: 'both',
+        keyframeEffect: { name: `hl${i}`, keyframes: hlKf },
+      });
+
+      /* ── Image + indicator swap (discrete visibility bands) ── */
+      const visKf = [];
+      if (i === 0) {
+        visKf.push({ offset: 0, visibility: 'visible' });
+      } else {
+        visKf.push({ offset: 0, visibility: 'hidden' });
+        visKf.push({ offset: cl(zs - 0.001), visibility: 'hidden' });
+        visKf.push({ offset: cl(zs), visibility: 'visible' });
+      }
+      if (i === ITEM_COUNT - 1) {
+        visKf.push({ offset: 1, visibility: 'visible' });
+      } else {
+        visKf.push({ offset: cl(ze - 0.001), visibility: 'visible' });
+        visKf.push({ offset: cl(ze), visibility: 'hidden' });
+        visKf.push({ offset: 1, visibility: 'hidden' });
+      }
+
+      effects.push({
+        key: 'square', selector: `.proj-img-${i}`,
+        rangeStart: C0, rangeEnd: C1, fill: 'both',
+        keyframeEffect: { name: `imgVis${i}`, keyframes: visKf.map(k => ({ ...k })) },
+      });
+
+      effects.push({
+        key: 'ind', selector: `.n${i}`,
+        rangeStart: C0, rangeEnd: C1, fill: 'both',
+        keyframeEffect: { name: `nVis${i}`, keyframes: visKf.map(k => ({ ...k })) },
+      });
+
+      effects.push({
+        key: 'ind', selector: `.y${i}`,
+        rangeStart: C0, rangeEnd: C1, fill: 'both',
+        keyframeEffect: { name: `yVis${i}`, keyframes: visKf.map(k => ({ ...k })) },
+      });
+    }
+
+    Interact.create({
+      conditions: {
+        desktop: { type: 'media', predicate: '(min-width: 769px)' },
+        mobile: { type: 'media', predicate: '(max-width: 768px)' },
+      },
+      interactions: [
+        {
           key: 'page',
           trigger: 'pointerMove',
           params: { hitArea: 'root', axis: 'y' },
           effects,
-        }],
-      });
-
-      function setImageY(y) {
-        const clamped = Math.max(padPx, Math.min(vh - padPx, y));
-        squareFrame.style.transform = `translateY(${clamped - HALF}px)`;
-        indicatorsEl.style.transform = `translateY(${clamped - HALF}px)`;
-      }
-
-      setImageY(padPx + step * vh * 0.5);
-
-      document.addEventListener('pointermove', (e) => {
-        setImageY(e.clientY);
-      });
-
-    } else {
-      /* ═══ Mobile: click-based item navigation ═══ */
-      const items = [...document.querySelectorAll('.projects-section > interact-element')];
-      let activeItem = 0;
-      let currentImgY = 0;
-      let animating = false;
-
-      const itemPositions = items.map(el => {
-        const rect = el.getBoundingClientRect();
-        return { y: rect.top + rect.height / 2, h: rect.height };
-      });
-
-      function getItemY(i) { return itemPositions[i].y; }
-
-      function updateVisuals(idx) {
-        for (let j = 0; j < ITEM_COUNT; j++) {
-          const vis = j === idx ? 'visible' : 'hidden';
-          document.querySelector(`.proj-img-${j}`).style.visibility = vis;
-          document.querySelector(`.n${j}`).style.visibility = vis;
-          document.querySelector(`.y${j}`).style.visibility = vis;
-        }
-        items.forEach((el, j) => {
-          el.querySelector('.project-row').style.color = j === idx ? '#000' : '#e0e0e0';
-        });
-      }
-
-      function updateSplits(imgY) {
-        items.forEach((el, i) => {
-          const { y: itemY, h: itemH } = itemPositions[i];
-          const dist = Math.abs(imgY - itemY);
-          const plateauRange = itemH * 1.0;
-          const splitRange = itemH * 1.8;
-          let f = 0;
-          if (dist < plateauRange) f = 1;
-          else if (dist < splitRange) f = 1 - (dist - plateauRange) / (splitRange - plateauRange);
-          const px = SPLIT * f;
-          el.querySelector('.half-left').style.transform = `translateX(-${px}px)`;
-          el.querySelector('.half-right').style.transform = `translateX(${px}px)`;
-        });
-      }
-
-      function animateToItem(idx) {
-        if (animating || idx === activeItem) return;
-        animating = true;
-        const startY = currentImgY;
-        const targetY = getItemY(idx);
-        const dist = Math.abs(targetY - startY);
-        const duration = Math.max(350, Math.min(700, dist * 1.5));
-        const startTime = performance.now();
-
-        function tick(now) {
-          const elapsed = now - startTime;
-          const t = Math.min(1, elapsed / duration);
-          const eased = 1 - Math.pow(1 - t, 3);
-          const y = startY + (targetY - startY) * eased;
-          currentImgY = y;
-          squareFrame.style.transform = `translateY(${y - HALF}px)`;
-          updateSplits(y);
-
-          let nearest = 0;
-          let minDist = Infinity;
-          for (let j = 0; j < ITEM_COUNT; j++) {
-            const d = Math.abs(y - itemPositions[j].y);
-            if (d < minDist) { minDist = d; nearest = j; }
-          }
-          updateVisuals(nearest);
-
-          if (t < 1) {
-            requestAnimationFrame(tick);
-          } else {
-            activeItem = idx;
-            animating = false;
-            updateVisuals(idx);
-            updateSplits(targetY);
-          }
-        }
-
-        requestAnimationFrame(tick);
-      }
-
-      currentImgY = getItemY(0);
-      squareFrame.style.transform = `translateY(${currentImgY - HALF}px)`;
-      updateVisuals(0);
-      updateSplits(currentImgY);
-
-      items.forEach((el, i) => {
-        el.addEventListener('click', () => animateToItem(i));
-      });
-    }
+        },
+      ],
+    });
   </script>
 
 </body>
