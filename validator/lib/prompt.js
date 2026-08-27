@@ -2,7 +2,7 @@ import { INTERACT_CDN, PRESETS_CDN, LATEST_VERSION } from './constants.js';
 
 export const FIX_OPTIONS = [
   { id: 'updateVersion', label: 'Update to latest version', default: true,
-    fragment: `Pin EVERY @wix/interact import to the exact version ${LATEST_VERSION}. Any unversioned import (e.g. "https://esm.sh/@wix/interact") or older-version import MUST become exactly "${INTERACT_CDN}" — never leave an import unpinned. Named presets must import from "${PRESETS_CDN}". The final file must literally contain the string "@wix/interact@${LATEST_VERSION}". Migrate any version-specific syntax the new version requires.` },
+    fragment: `Pin EVERY @wix/interact import to version ${LATEST_VERSION} or newer, on the /web subpath. Any unversioned import (e.g. "https://esm.sh/@wix/interact") or import older than ${LATEST_VERSION} MUST become exactly "${INTERACT_CDN}" — never leave an import unpinned. An import ALREADY pinned to ${LATEST_VERSION} or newer (e.g. @wix/interact@2.5.9) is correct: keep its version exactly as it is and never rewrite it downwards. Named presets must import from "${PRESETS_CDN}", matching the interact version. Migrate any version-specific syntax the new version requires.` },
   { id: 'migrateSyntax', label: 'Migrate old syntax', default: true,
     fragment: `Migrate outdated syntax to the current API: move play-mode off Interaction.params onto the effect and rename params.type -> triggerType (on TimeEffect) and params.method -> stateAction (on StateEffect); rename range-offset {value,type} -> {value,unit}; rename the custom element tag wix-interact-element -> interact-element; fix the useCutsomElement -> useCustomElement typo.` },
   { id: 'convertCustomEffect', label: 'Convert customEffect → preset/keyframe', default: false,

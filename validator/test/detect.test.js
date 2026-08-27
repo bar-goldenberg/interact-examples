@@ -31,6 +31,56 @@ test('a version newer than the pinned latest still counts as current', () => {
   assert.equal(d.category, 'Clean & current');
 });
 
+test('a pattern named only in a comment is not extra JS', () => {
+  // Regression: a file documenting what it deliberately avoids was flagged for
+  // doing it. The comment below is the exact shape that tripped the detector.
+  const d = detect('C.html', `
+<script type="module">
+  import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+  /* No scroll listeners, no requestAnimationFrame loop, no Element.animate() calls. */
+  // and no IntersectionObserver or setInterval either
+  Interact.create({ interactions: [] });
+</script>`);
+  assert.deepEqual(d.extraJsSignals, []);
+  assert.equal(d.usesExtraJs, false);
+  assert.equal(d.category, 'Clean & current');
+});
+
+test('real extra JS is still detected next to a comment that names it', () => {
+  const d = detect('D.html', `
+<script type="module">
+  import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+  // deliberately no requestAnimationFrame loop here
+  el.addEventListener('pointerdown', drag);
+</script>`);
+  assert.deepEqual(d.extraJsSignals, ['addEventListener(pointerdown)']);
+  assert.equal(d.usesExtraJs, true);
+});
+
+test('an apostrophe in HTML prose does not swallow the rest of the file', () => {
+  // The string-aware walk must stay inside <script>: treating "it's" as an
+  // opening quote hid the import and read the file as not using interact.
+  const d = detect('E.html', `
+<p>It's a gallery. Don't scroll too fast.</p>
+<script type="module">
+  import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+  el.addEventListener('scroll', onScroll);
+</script>`);
+  assert.equal(d.usesInteract, true);
+  assert.equal(d.version, '2.5.1');
+  assert.deepEqual(d.extraJsSignals, ['addEventListener(scroll)']);
+});
+
+test('a // inside an import URL is not treated as a line comment', () => {
+  const d = detect('F.html', `
+<script type="module">
+  import { Interact } from 'https://esm.sh/@wix/interact@2.5.1/web';
+  el.addEventListener('wheel', onWheel);
+</script>`);
+  assert.equal(d.version, '2.5.1');
+  assert.deepEqual(d.extraJsSignals, ['addEventListener(wheel)']);
+});
+
 test('outdated version', () => {
   const d = detect('Y.html', `import { Interact } from 'https://esm.sh/@wix/interact@1.79.0';`);
   assert.equal(d.usesInteract, true);

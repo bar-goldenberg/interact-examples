@@ -25,6 +25,20 @@ test('updateVersion normalizes a versioned import that lacks /web', () => {
   assert.doesNotMatch(output, /@2\.4\.0/);
 });
 
+test('updateVersion keeps a version newer than the pin instead of downgrading it', () => {
+  // Regression: pinInteract rewrote every version to LATEST, so running the
+  // fixer on a deliberately-upgraded file dragged it back down — while detect
+  // was already reading >= LATEST as current. The two now agree.
+  const { output, applied } = applyCodemods("from 'https://esm.sh/@wix/interact@2.5.9/web'", ['updateVersion']);
+  assert.match(output, /@wix\/interact@2\.5\.9\/web/);
+  assert.deepEqual(applied, []);
+});
+
+test('updateVersion adds /web to a newer version that lacks it, keeping the number', () => {
+  const { output } = applyCodemods("from 'https://esm.sh/@wix/interact@2.6.0'", ['updateVersion']);
+  assert.match(output, /@wix\/interact@2\.6\.0\/web/);
+});
+
 test('updateVersion leaves an already-correct import unchanged (no-op)', () => {
   const { output, applied } = applyCodemods("from 'https://esm.sh/@wix/interact@2.5.1/web'", ['updateVersion']);
   assert.match(output, /@wix\/interact@2\.5\.1\/web/);

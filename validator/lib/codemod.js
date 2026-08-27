@@ -1,18 +1,27 @@
 import { LATEST_VERSION } from './constants.js';
+import { isAtLeastVersion } from './version.js';
 
 // Constrained set of range-offset units — used so the type→unit rename never
 // touches an unrelated `type:` key (e.g. namedEffect: { type: 'FadeIn' }).
 const UNITS = 'percentage|px|em|rem|vh|vw|vmin|vmax';
 
-// Pin every @wix/interact import to the latest version AND the /web subpath.
-// Matches the specifier only when it follows a quote or slash (import URL /
-// bare specifier), so prose mentions of "@wix/interact" in comments are left
-// alone. Any existing @version and/or /subpath is normalized to @LATEST/web.
+// Pin every @wix/interact import to at least the latest version AND the /web
+// subpath. Matches the specifier only when it follows a quote or slash (import
+// URL / bare specifier), so prose mentions of "@wix/interact" in comments are
+// left alone. An unpinned or older @version is normalized to @LATEST/web.
+//
+// A version already at or above the pin keeps its own number — only the
+// /subpath is normalized. Rewriting it down to LATEST would undo a deliberate
+// upgrade, and `detect` reads >= LATEST as current, so a blind rewrite left the
+// fixer arguing with the dot it was supposed to turn green.
 const PIN_TARGET = `@wix/interact@${LATEST_VERSION}/web`;
 function pinInteract(src) {
   return src.replace(
-    /(?<=['"`/])@wix\/interact(?:@\d+\.\d+\.\d+)?(?:\/[\w.-]+)?/g,
-    PIN_TARGET,
+    /(?<=['"`/])@wix\/interact(?:@(\d+\.\d+\.\d+))?(?:\/[\w.-]+)?/g,
+    (_match, version) =>
+      isAtLeastVersion(version, LATEST_VERSION)
+        ? `@wix/interact@${version}/web`
+        : PIN_TARGET,
   );
 }
 
