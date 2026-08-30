@@ -1,0 +1,6768 @@
+{
+ "generated_from": "interact-examples-tags.csv",
+ "presets": 157,
+ "vocabulary_in_use": 81,
+ "clusters": [
+  {
+   "label": "bold",
+   "members": [
+    "artistic",
+    "attention-grabbing",
+    "bold",
+    "continuous",
+    "cool",
+    "creative",
+    "dynamic",
+    "edgy",
+    "endless",
+    "experimental",
+    "eye-catching",
+    "futuristic",
+    "graphic",
+    "impactful",
+    "techy",
+    "unconventional"
+   ],
+   "size": 16,
+   "cohesion": 0.45
+  },
+  {
+   "label": "soft",
+   "members": [
+    "calm",
+    "classic",
+    "clean",
+    "cloudy",
+    "elegant",
+    "gentle",
+    "graceful",
+    "high-end",
+    "modern",
+    "refined",
+    "smooth",
+    "soft",
+    "sophisticated",
+    "subtle",
+    "understated"
+   ],
+   "size": 15,
+   "cohesion": 0.56
+  },
+  {
+   "label": "playful",
+   "members": [
+    "3d effect",
+    "alive",
+    "charming",
+    "energetic",
+    "fun",
+    "horizontal",
+    "innovative",
+    "interactive",
+    "playful",
+    "poppy",
+    "surprising",
+    "unique",
+    "z axis",
+    "zoom"
+   ],
+   "size": 14,
+   "cohesion": 0.418
+  },
+  {
+   "label": "dimensional",
+   "members": [
+    "3d",
+    "depth",
+    "dimensional",
+    "immersive",
+    "layered",
+    "perspective",
+    "spatial"
+   ],
+   "size": 7,
+   "cohesion": 0.549
+  },
+  {
+   "label": "effortless",
+   "members": [
+    "effortless",
+    "flowing",
+    "horizontal scroll",
+    "polished",
+    "seamless",
+    "silky",
+    "simple"
+   ],
+   "size": 7,
+   "cohesion": 0.553
+  },
+  {
+   "label": "confident",
+   "members": [
+    "circular",
+    "confident",
+    "expressive",
+    "revealing",
+    "spiraling",
+    "vertical"
+   ],
+   "size": 6,
+   "cohesion": 0.498
+  },
+  {
+   "label": "gradual",
+   "members": [
+    "gradual",
+    "minimal",
+    "organic",
+    "shape",
+    "transformative"
+   ],
+   "size": 5,
+   "cohesion": 0.453
+  },
+  {
+   "label": "staggered",
+   "members": [
+    "cascading",
+    "organized",
+    "staggered",
+    "structured"
+   ],
+   "size": 4,
+   "cohesion": 0.401
+  },
+  {
+   "label": "flowless",
+   "members": [
+    "flowless",
+    "groovy",
+    "inspirational"
+   ],
+   "size": 3,
+   "cohesion": 0.446
+  },
+  {
+   "label": "eye catching",
+   "members": [
+    "eye catching",
+    "horizontal movement"
+   ],
+   "size": 2,
+   "cohesion": 0.395
+  },
+  {
+   "label": "fluid",
+   "members": [
+    "fluid"
+   ],
+   "size": 1,
+   "cohesion": 0.0
+  },
+  {
+   "label": "layering",
+   "members": [
+    "layering"
+   ],
+   "size": 1,
+   "cohesion": 0.0
+  }
+ ],
+ "suggestions": {
+  "1": [
+   {
+    "tag": "calm",
+    "score": 0.485
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3908
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3511
+   },
+   {
+    "tag": "silky",
+    "score": 0.3403
+   },
+   {
+    "tag": "simple",
+    "score": 0.2875
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.2875
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2751
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.2721
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2701
+   },
+   {
+    "tag": "shape",
+    "score": 0.2604
+   }
+  ],
+  "2": [
+   {
+    "tag": "graphic",
+    "score": 0.4038
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3515
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3446
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3425
+   },
+   {
+    "tag": "endless",
+    "score": 0.3406
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3399
+   },
+   {
+    "tag": "techy",
+    "score": 0.327
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3034
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3
+   },
+   {
+    "tag": "creative",
+    "score": 0.2988
+   }
+  ],
+  "3": [
+   {
+    "tag": "expressive",
+    "score": 0.3774
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3771
+   },
+   {
+    "tag": "bold",
+    "score": 0.3684
+   },
+   {
+    "tag": "interactive",
+    "score": 0.3625
+   },
+   {
+    "tag": "surprising",
+    "score": 0.358
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3569
+   },
+   {
+    "tag": "techy",
+    "score": 0.353
+   },
+   {
+    "tag": "innovative",
+    "score": 0.3233
+   },
+   {
+    "tag": "cool",
+    "score": 0.3188
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3139
+   }
+  ],
+  "4": [
+   {
+    "tag": "edgy",
+    "score": 0.4275
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.389
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3823
+   },
+   {
+    "tag": "fun",
+    "score": 0.3505
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3483
+   },
+   {
+    "tag": "cool",
+    "score": 0.3466
+   },
+   {
+    "tag": "techy",
+    "score": 0.3437
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3354
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3341
+   },
+   {
+    "tag": "endless",
+    "score": 0.3339
+   }
+  ],
+  "5": [
+   {
+    "tag": "elegant",
+    "score": 0.3297
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3091
+   },
+   {
+    "tag": "clean",
+    "score": 0.2866
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2739
+   },
+   {
+    "tag": "polished",
+    "score": 0.2729
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2679
+   },
+   {
+    "tag": "endless",
+    "score": 0.2631
+   },
+   {
+    "tag": "refined",
+    "score": 0.2385
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2357
+   },
+   {
+    "tag": "shape",
+    "score": 0.2349
+   }
+  ],
+  "6": [
+   {
+    "tag": "refined",
+    "score": 0.3558
+   },
+   {
+    "tag": "understated",
+    "score": 0.3425
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3397
+   },
+   {
+    "tag": "soft",
+    "score": 0.3266
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3223
+   },
+   {
+    "tag": "classic",
+    "score": 0.3117
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2955
+   },
+   {
+    "tag": "modern",
+    "score": 0.2605
+   },
+   {
+    "tag": "gradual",
+    "score": 0.239
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2295
+   }
+  ],
+  "7": [
+   {
+    "tag": "elegant",
+    "score": 0.3208
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3192
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3046
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3022
+   },
+   {
+    "tag": "organic",
+    "score": 0.3013
+   },
+   {
+    "tag": "fun",
+    "score": 0.3007
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2968
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2888
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2887
+   },
+   {
+    "tag": "clean",
+    "score": 0.2875
+   }
+  ],
+  "8": [
+   {
+    "tag": "edgy",
+    "score": 0.4918
+   },
+   {
+    "tag": "experimental",
+    "score": 0.4268
+   },
+   {
+    "tag": "cool",
+    "score": 0.3965
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3944
+   },
+   {
+    "tag": "alive",
+    "score": 0.3839
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.3788
+   },
+   {
+    "tag": "innovative",
+    "score": 0.3666
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3657
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3655
+   },
+   {
+    "tag": "circular",
+    "score": 0.3618
+   }
+  ],
+  "9": [
+   {
+    "tag": "expressive",
+    "score": 0.4297
+   },
+   {
+    "tag": "bold",
+    "score": 0.388
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3825
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3788
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3785
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3555
+   },
+   {
+    "tag": "alive",
+    "score": 0.3299
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3294
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3194
+   },
+   {
+    "tag": "circular",
+    "score": 0.3188
+   }
+  ],
+  "10": [
+   {
+    "tag": "edgy",
+    "score": 0.403
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.4016
+   },
+   {
+    "tag": "fun",
+    "score": 0.3853
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3851
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3804
+   },
+   {
+    "tag": "cool",
+    "score": 0.3321
+   },
+   {
+    "tag": "modern",
+    "score": 0.3265
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3231
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3153
+   },
+   {
+    "tag": "3d",
+    "score": 0.2996
+   }
+  ],
+  "11": [
+   {
+    "tag": "clean",
+    "score": 0.3316
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3123
+   },
+   {
+    "tag": "simple",
+    "score": 0.278
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.278
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2736
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2403
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2306
+   },
+   {
+    "tag": "modern",
+    "score": 0.2248
+   },
+   {
+    "tag": "expressive",
+    "score": 0.222
+   },
+   {
+    "tag": "endless",
+    "score": 0.2219
+   }
+  ],
+  "12": [
+   {
+    "tag": "playful",
+    "score": 0.4249
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3368
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3305
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3149
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3145
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3111
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3108
+   },
+   {
+    "tag": "bold",
+    "score": 0.2953
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.2936
+   },
+   {
+    "tag": "organic",
+    "score": 0.2902
+   }
+  ],
+  "13": [
+   {
+    "tag": "graphic",
+    "score": 0.3668
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3395
+   },
+   {
+    "tag": "cool",
+    "score": 0.3348
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3325
+   },
+   {
+    "tag": "techy",
+    "score": 0.3279
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3091
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.309
+   },
+   {
+    "tag": "endless",
+    "score": 0.2927
+   },
+   {
+    "tag": "surprising",
+    "score": 0.291
+   },
+   {
+    "tag": "experimental",
+    "score": 0.282
+   }
+  ],
+  "14": [
+   {
+    "tag": "understated",
+    "score": 0.5454
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.5136
+   },
+   {
+    "tag": "calm",
+    "score": 0.41
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3215
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3211
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2964
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2846
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.2818
+   },
+   {
+    "tag": "simple",
+    "score": 0.2818
+   },
+   {
+    "tag": "effortless",
+    "score": 0.277
+   }
+  ],
+  "15": [
+   {
+    "tag": "understated",
+    "score": 0.5454
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.5136
+   },
+   {
+    "tag": "calm",
+    "score": 0.41
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3215
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3211
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2964
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2846
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.2818
+   },
+   {
+    "tag": "simple",
+    "score": 0.2818
+   },
+   {
+    "tag": "effortless",
+    "score": 0.277
+   }
+  ],
+  "16": [
+   {
+    "tag": "poppy",
+    "score": 0.4147
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3893
+   },
+   {
+    "tag": "techy",
+    "score": 0.3872
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3843
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3733
+   },
+   {
+    "tag": "cool",
+    "score": 0.3684
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3554
+   },
+   {
+    "tag": "zoom",
+    "score": 0.344
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3383
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3363
+   }
+  ],
+  "17": [
+   {
+    "tag": "poppy",
+    "score": 0.3973
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3923
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3723
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3665
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3428
+   },
+   {
+    "tag": "alive",
+    "score": 0.3387
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3003
+   },
+   {
+    "tag": "cool",
+    "score": 0.2984
+   },
+   {
+    "tag": "charming",
+    "score": 0.2882
+   },
+   {
+    "tag": "flowless",
+    "score": 0.2819
+   }
+  ],
+  "18": [
+   {
+    "tag": "edgy",
+    "score": 0.4884
+   },
+   {
+    "tag": "surprising",
+    "score": 0.4563
+   },
+   {
+    "tag": "expressive",
+    "score": 0.452
+   },
+   {
+    "tag": "poppy",
+    "score": 0.4197
+   },
+   {
+    "tag": "bold",
+    "score": 0.4197
+   },
+   {
+    "tag": "graphic",
+    "score": 0.4117
+   },
+   {
+    "tag": "energetic",
+    "score": 0.39
+   },
+   {
+    "tag": "cool",
+    "score": 0.3598
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3457
+   },
+   {
+    "tag": "endless",
+    "score": 0.3429
+   }
+  ],
+  "19": [
+   {
+    "tag": "graceful",
+    "score": 0.6032
+   },
+   {
+    "tag": "silky",
+    "score": 0.5168
+   },
+   {
+    "tag": "effortless",
+    "score": 0.508
+   },
+   {
+    "tag": "refined",
+    "score": 0.4861
+   },
+   {
+    "tag": "subtle",
+    "score": 0.4854
+   },
+   {
+    "tag": "understated",
+    "score": 0.4805
+   },
+   {
+    "tag": "classic",
+    "score": 0.4662
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.4117
+   },
+   {
+    "tag": "simple",
+    "score": 0.4117
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4083
+   }
+  ],
+  "20": [
+   {
+    "tag": "graphic",
+    "score": 0.4459
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.4297
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3804
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3789
+   },
+   {
+    "tag": "endless",
+    "score": 0.3705
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3608
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3582
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3575
+   },
+   {
+    "tag": "cool",
+    "score": 0.3417
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3212
+   }
+  ],
+  "21": [
+   {
+    "tag": "graceful",
+    "score": 0.4728
+   },
+   {
+    "tag": "refined",
+    "score": 0.4433
+   },
+   {
+    "tag": "understated",
+    "score": 0.4348
+   },
+   {
+    "tag": "polished",
+    "score": 0.4301
+   },
+   {
+    "tag": "silky",
+    "score": 0.4131
+   },
+   {
+    "tag": "subtle",
+    "score": 0.4127
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4093
+   },
+   {
+    "tag": "classic",
+    "score": 0.3978
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3937
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3826
+   }
+  ],
+  "22": [
+   {
+    "tag": "poppy",
+    "score": 0.2985
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2963
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2936
+   },
+   {
+    "tag": "fun",
+    "score": 0.2898
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2888
+   },
+   {
+    "tag": "bold",
+    "score": 0.288
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2826
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2749
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2705
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2669
+   }
+  ],
+  "23": [
+   {
+    "tag": "clean",
+    "score": 0.3308
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2912
+   },
+   {
+    "tag": "refined",
+    "score": 0.2817
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2762
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2506
+   },
+   {
+    "tag": "silky",
+    "score": 0.2499
+   },
+   {
+    "tag": "understated",
+    "score": 0.2457
+   },
+   {
+    "tag": "organic",
+    "score": 0.2425
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2392
+   },
+   {
+    "tag": "modern",
+    "score": 0.2385
+   }
+  ],
+  "24": [
+   {
+    "tag": "seamless",
+    "score": 0.3953
+   },
+   {
+    "tag": "graceful",
+    "score": 0.393
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.319
+   },
+   {
+    "tag": "simple",
+    "score": 0.319
+   },
+   {
+    "tag": "understated",
+    "score": 0.303
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2972
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2863
+   },
+   {
+    "tag": "modern",
+    "score": 0.2842
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2798
+   },
+   {
+    "tag": "soft",
+    "score": 0.2779
+   }
+  ],
+  "25": [
+   {
+    "tag": "edgy",
+    "score": 0.4275
+   },
+   {
+    "tag": "cool",
+    "score": 0.4128
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3866
+   },
+   {
+    "tag": "confident",
+    "score": 0.3608
+   },
+   {
+    "tag": "creative",
+    "score": 0.3363
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3353
+   },
+   {
+    "tag": "endless",
+    "score": 0.3291
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3271
+   },
+   {
+    "tag": "artistic",
+    "score": 0.2956
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2943
+   }
+  ],
+  "26": [
+   {
+    "tag": "fun",
+    "score": 0.439
+   },
+   {
+    "tag": "expressive",
+    "score": 0.395
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3851
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3789
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3429
+   },
+   {
+    "tag": "cool",
+    "score": 0.3397
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.339
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.3352
+   },
+   {
+    "tag": "bold",
+    "score": 0.3331
+   },
+   {
+    "tag": "charming",
+    "score": 0.3321
+   }
+  ],
+  "27": [
+   {
+    "tag": "edgy",
+    "score": 0.3799
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3644
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3445
+   },
+   {
+    "tag": "playful",
+    "score": 0.3403
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3381
+   },
+   {
+    "tag": "cool",
+    "score": 0.3241
+   },
+   {
+    "tag": "creative",
+    "score": 0.3215
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3201
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3188
+   },
+   {
+    "tag": "fun",
+    "score": 0.3152
+   }
+  ],
+  "28": [
+   {
+    "tag": "horizontal",
+    "score": 0.3654
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3603
+   },
+   {
+    "tag": "charming",
+    "score": 0.3534
+   },
+   {
+    "tag": "vertical",
+    "score": 0.3329
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3328
+   },
+   {
+    "tag": "shape",
+    "score": 0.3266
+   },
+   {
+    "tag": "groovy",
+    "score": 0.3245
+   },
+   {
+    "tag": "modern",
+    "score": 0.3167
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3124
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.31
+   }
+  ],
+  "29": [
+   {
+    "tag": "fun",
+    "score": 0.2887
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2826
+   },
+   {
+    "tag": "interactive",
+    "score": 0.2731
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2728
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2697
+   },
+   {
+    "tag": "bold",
+    "score": 0.2662
+   },
+   {
+    "tag": "modern",
+    "score": 0.266
+   },
+   {
+    "tag": "layered",
+    "score": 0.2657
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2588
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2574
+   }
+  ],
+  "30": [
+   {
+    "tag": "expressive",
+    "score": 0.3959
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3661
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.3647
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3482
+   },
+   {
+    "tag": "shape",
+    "score": 0.3402
+   },
+   {
+    "tag": "charming",
+    "score": 0.3273
+   },
+   {
+    "tag": "modern",
+    "score": 0.3271
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3076
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3037
+   },
+   {
+    "tag": "innovative",
+    "score": 0.3034
+   }
+  ],
+  "31": [
+   {
+    "tag": "bold",
+    "score": 0.306
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2928
+   },
+   {
+    "tag": "organic",
+    "score": 0.2914
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2857
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2845
+   },
+   {
+    "tag": "graphic",
+    "score": 0.2788
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2757
+   },
+   {
+    "tag": "creative",
+    "score": 0.2707
+   },
+   {
+    "tag": "playful",
+    "score": 0.2696
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2691
+   }
+  ],
+  "32": [
+   {
+    "tag": "silky",
+    "score": 0.3239
+   },
+   {
+    "tag": "polished",
+    "score": 0.3155
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2793
+   },
+   {
+    "tag": "clean",
+    "score": 0.2747
+   },
+   {
+    "tag": "techy",
+    "score": 0.2714
+   },
+   {
+    "tag": "bold",
+    "score": 0.2612
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2559
+   },
+   {
+    "tag": "alive",
+    "score": 0.2551
+   },
+   {
+    "tag": "creative",
+    "score": 0.2511
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2457
+   }
+  ],
+  "33": [
+   {
+    "tag": "immersive",
+    "score": 0.3415
+   },
+   {
+    "tag": "smooth",
+    "score": 0.2938
+   },
+   {
+    "tag": "silky",
+    "score": 0.2713
+   },
+   {
+    "tag": "modern",
+    "score": 0.2581
+   },
+   {
+    "tag": "calm",
+    "score": 0.2579
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2543
+   },
+   {
+    "tag": "refined",
+    "score": 0.2541
+   },
+   {
+    "tag": "classic",
+    "score": 0.2539
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2525
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2499
+   }
+  ],
+  "34": [
+   {
+    "tag": "poppy",
+    "score": 0.2793
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2724
+   },
+   {
+    "tag": "3d",
+    "score": 0.2664
+   },
+   {
+    "tag": "immersive",
+    "score": 0.261
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2523
+   },
+   {
+    "tag": "fun",
+    "score": 0.2521
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2399
+   },
+   {
+    "tag": "bold",
+    "score": 0.2361
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2351
+   },
+   {
+    "tag": "circular",
+    "score": 0.2295
+   }
+  ],
+  "35": [
+   {
+    "tag": "bold",
+    "score": 0.3929
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3611
+   },
+   {
+    "tag": "layered",
+    "score": 0.3608
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3382
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3294
+   },
+   {
+    "tag": "perspective",
+    "score": 0.3236
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3172
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3132
+   },
+   {
+    "tag": "playful",
+    "score": 0.3078
+   },
+   {
+    "tag": "fun",
+    "score": 0.3076
+   }
+  ],
+  "36": [
+   {
+    "tag": "modern",
+    "score": 0.3347
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3295
+   },
+   {
+    "tag": "fun",
+    "score": 0.3288
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3161
+   },
+   {
+    "tag": "silky",
+    "score": 0.2992
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2923
+   },
+   {
+    "tag": "clean",
+    "score": 0.2759
+   },
+   {
+    "tag": "polished",
+    "score": 0.2723
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2708
+   },
+   {
+    "tag": "techy",
+    "score": 0.2704
+   }
+  ],
+  "37": [
+   {
+    "tag": "horizontal",
+    "score": 0.3329
+   },
+   {
+    "tag": "playful",
+    "score": 0.3189
+   },
+   {
+    "tag": "techy",
+    "score": 0.3082
+   },
+   {
+    "tag": "charming",
+    "score": 0.2998
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2871
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2823
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2801
+   },
+   {
+    "tag": "fun",
+    "score": 0.2746
+   },
+   {
+    "tag": "clean",
+    "score": 0.2666
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2605
+   }
+  ],
+  "38": [
+   {
+    "tag": "transformative",
+    "score": 0.3204
+   },
+   {
+    "tag": "silky",
+    "score": 0.3186
+   },
+   {
+    "tag": "elegant",
+    "score": 0.3181
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2884
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2839
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2789
+   },
+   {
+    "tag": "modern",
+    "score": 0.2756
+   },
+   {
+    "tag": "polished",
+    "score": 0.2653
+   },
+   {
+    "tag": "refined",
+    "score": 0.2631
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2631
+   }
+  ],
+  "39": [
+   {
+    "tag": "smooth",
+    "score": 0.4534
+   },
+   {
+    "tag": "subtle",
+    "score": 0.4141
+   },
+   {
+    "tag": "understated",
+    "score": 0.4059
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3981
+   },
+   {
+    "tag": "classic",
+    "score": 0.3977
+   },
+   {
+    "tag": "calm",
+    "score": 0.371
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3607
+   },
+   {
+    "tag": "high-end",
+    "score": 0.356
+   },
+   {
+    "tag": "silky",
+    "score": 0.3328
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3028
+   }
+  ],
+  "40": [
+   {
+    "tag": "immersive",
+    "score": 0.3476
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2978
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2622
+   },
+   {
+    "tag": "silky",
+    "score": 0.2621
+   },
+   {
+    "tag": "classic",
+    "score": 0.2571
+   },
+   {
+    "tag": "modern",
+    "score": 0.2564
+   },
+   {
+    "tag": "calm",
+    "score": 0.2527
+   },
+   {
+    "tag": "refined",
+    "score": 0.2468
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2394
+   },
+   {
+    "tag": "clean",
+    "score": 0.2237
+   }
+  ],
+  "41": [
+   {
+    "tag": "edgy",
+    "score": 0.3365
+   },
+   {
+    "tag": "bold",
+    "score": 0.3226
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3157
+   },
+   {
+    "tag": "fun",
+    "score": 0.3076
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3068
+   },
+   {
+    "tag": "endless",
+    "score": 0.3055
+   },
+   {
+    "tag": "modern",
+    "score": 0.2997
+   },
+   {
+    "tag": "cool",
+    "score": 0.2971
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2937
+   },
+   {
+    "tag": "interactive",
+    "score": 0.2903
+   }
+  ],
+  "42": [
+   {
+    "tag": "clean",
+    "score": 0.3112
+   },
+   {
+    "tag": "calm",
+    "score": 0.2956
+   },
+   {
+    "tag": "gradual",
+    "score": 0.287
+   },
+   {
+    "tag": "classic",
+    "score": 0.2838
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2814
+   },
+   {
+    "tag": "immersive",
+    "score": 0.275
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2717
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2696
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2679
+   },
+   {
+    "tag": "understated",
+    "score": 0.2623
+   }
+  ],
+  "43": [
+   {
+    "tag": "immersive",
+    "score": 0.361
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3563
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3551
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3375
+   },
+   {
+    "tag": "confident",
+    "score": 0.3038
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3013
+   },
+   {
+    "tag": "fun",
+    "score": 0.2906
+   },
+   {
+    "tag": "experimental",
+    "score": 0.2895
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.2881
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2879
+   }
+  ],
+  "44": [
+   {
+    "tag": "graphic",
+    "score": 0.3144
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3119
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2958
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.2909
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2833
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2807
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.2745
+   },
+   {
+    "tag": "endless",
+    "score": 0.271
+   },
+   {
+    "tag": "experimental",
+    "score": 0.2656
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2501
+   }
+  ],
+  "45": [
+   {
+    "tag": "calm",
+    "score": 0.3711
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3695
+   },
+   {
+    "tag": "soft",
+    "score": 0.3683
+   },
+   {
+    "tag": "understated",
+    "score": 0.3616
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3565
+   },
+   {
+    "tag": "smooth",
+    "score": 0.3335
+   },
+   {
+    "tag": "shape",
+    "score": 0.3263
+   },
+   {
+    "tag": "clean",
+    "score": 0.3239
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3155
+   },
+   {
+    "tag": "graceful",
+    "score": 0.313
+   }
+  ],
+  "46": [
+   {
+    "tag": "soft",
+    "score": 0.4703
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4664
+   },
+   {
+    "tag": "smooth",
+    "score": 0.4405
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4178
+   },
+   {
+    "tag": "calm",
+    "score": 0.4083
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4052
+   },
+   {
+    "tag": "high-end",
+    "score": 0.4039
+   },
+   {
+    "tag": "modern",
+    "score": 0.3578
+   },
+   {
+    "tag": "shape",
+    "score": 0.3129
+   },
+   {
+    "tag": "silky",
+    "score": 0.2911
+   }
+  ],
+  "47": [
+   {
+    "tag": "elegant",
+    "score": 0.3625
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3352
+   },
+   {
+    "tag": "organic",
+    "score": 0.3064
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3034
+   },
+   {
+    "tag": "fun",
+    "score": 0.2969
+   },
+   {
+    "tag": "modern",
+    "score": 0.2962
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2926
+   },
+   {
+    "tag": "surprising",
+    "score": 0.265
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2628
+   },
+   {
+    "tag": "shape",
+    "score": 0.262
+   }
+  ],
+  "48": [
+   {
+    "tag": "soft",
+    "score": 0.4479
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4422
+   },
+   {
+    "tag": "classic",
+    "score": 0.4394
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3975
+   },
+   {
+    "tag": "calm",
+    "score": 0.3931
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3622
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3504
+   },
+   {
+    "tag": "modern",
+    "score": 0.3189
+   },
+   {
+    "tag": "shape",
+    "score": 0.2902
+   },
+   {
+    "tag": "silky",
+    "score": 0.2682
+   }
+  ],
+  "49": [
+   {
+    "tag": "soft",
+    "score": 0.4522
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4514
+   },
+   {
+    "tag": "classic",
+    "score": 0.4388
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4303
+   },
+   {
+    "tag": "calm",
+    "score": 0.3931
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3735
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3441
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3349
+   },
+   {
+    "tag": "silky",
+    "score": 0.3343
+   },
+   {
+    "tag": "modern",
+    "score": 0.3334
+   }
+  ],
+  "50": [
+   {
+    "tag": "revealing",
+    "score": 0.3428
+   },
+   {
+    "tag": "creative",
+    "score": 0.2817
+   },
+   {
+    "tag": "endless",
+    "score": 0.2748
+   },
+   {
+    "tag": "elegant",
+    "score": 0.273
+   },
+   {
+    "tag": "refined",
+    "score": 0.2711
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.2657
+   },
+   {
+    "tag": "staggered",
+    "score": 0.2609
+   },
+   {
+    "tag": "techy",
+    "score": 0.2589
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2587
+   },
+   {
+    "tag": "organic",
+    "score": 0.256
+   }
+  ],
+  "51": [
+   {
+    "tag": "alive",
+    "score": 0.3187
+   },
+   {
+    "tag": "elegant",
+    "score": 0.3084
+   },
+   {
+    "tag": "interactive",
+    "score": 0.3079
+   },
+   {
+    "tag": "modern",
+    "score": 0.2999
+   },
+   {
+    "tag": "fun",
+    "score": 0.2997
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2974
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2821
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2791
+   },
+   {
+    "tag": "shape",
+    "score": 0.2779
+   },
+   {
+    "tag": "organic",
+    "score": 0.2652
+   }
+  ],
+  "52": [
+   {
+    "tag": "gentle",
+    "score": 0.4403
+   },
+   {
+    "tag": "soft",
+    "score": 0.4384
+   },
+   {
+    "tag": "classic",
+    "score": 0.4238
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4203
+   },
+   {
+    "tag": "calm",
+    "score": 0.3691
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3652
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3249
+   },
+   {
+    "tag": "silky",
+    "score": 0.3192
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3191
+   },
+   {
+    "tag": "modern",
+    "score": 0.2939
+   }
+  ],
+  "53": [
+   {
+    "tag": "graphic",
+    "score": 0.3406
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3342
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3307
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3226
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3211
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3103
+   },
+   {
+    "tag": "cool",
+    "score": 0.2997
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.2934
+   },
+   {
+    "tag": "perspective",
+    "score": 0.2736
+   },
+   {
+    "tag": "circular",
+    "score": 0.2719
+   }
+  ],
+  "54": [
+   {
+    "tag": "subtle",
+    "score": 0.4641
+   },
+   {
+    "tag": "classic",
+    "score": 0.4578
+   },
+   {
+    "tag": "understated",
+    "score": 0.4554
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4033
+   },
+   {
+    "tag": "clean",
+    "score": 0.389
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3849
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3766
+   },
+   {
+    "tag": "modern",
+    "score": 0.3494
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.316
+   },
+   {
+    "tag": "silky",
+    "score": 0.2641
+   }
+  ],
+  "55": [
+   {
+    "tag": "classic",
+    "score": 0.5237
+   },
+   {
+    "tag": "understated",
+    "score": 0.5164
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4642
+   },
+   {
+    "tag": "clean",
+    "score": 0.4447
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4314
+   },
+   {
+    "tag": "high-end",
+    "score": 0.427
+   },
+   {
+    "tag": "modern",
+    "score": 0.3749
+   },
+   {
+    "tag": "transformative",
+    "score": 0.3233
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.316
+   },
+   {
+    "tag": "silky",
+    "score": 0.2728
+   }
+  ],
+  "56": [
+   {
+    "tag": "graphic",
+    "score": 0.4073
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3738
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3718
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3579
+   },
+   {
+    "tag": "techy",
+    "score": 0.3507
+   },
+   {
+    "tag": "playful",
+    "score": 0.3439
+   },
+   {
+    "tag": "creative",
+    "score": 0.3307
+   },
+   {
+    "tag": "fun",
+    "score": 0.311
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3103
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.304
+   }
+  ],
+  "57": [
+   {
+    "tag": "classic",
+    "score": 0.3384
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3305
+   },
+   {
+    "tag": "clean",
+    "score": 0.3149
+   },
+   {
+    "tag": "soft",
+    "score": 0.3124
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3105
+   },
+   {
+    "tag": "understated",
+    "score": 0.3023
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2969
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2906
+   },
+   {
+    "tag": "modern",
+    "score": 0.2833
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.2763
+   }
+  ],
+  "58": [
+   {
+    "tag": "edgy",
+    "score": 0.3207
+   },
+   {
+    "tag": "endless",
+    "score": 0.3168
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2982
+   },
+   {
+    "tag": "cool",
+    "score": 0.2979
+   },
+   {
+    "tag": "refined",
+    "score": 0.2883
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2817
+   },
+   {
+    "tag": "modern",
+    "score": 0.2809
+   },
+   {
+    "tag": "organic",
+    "score": 0.2771
+   },
+   {
+    "tag": "minimal",
+    "score": 0.274
+   },
+   {
+    "tag": "creative",
+    "score": 0.2738
+   }
+  ],
+  "59": [
+   {
+    "tag": "classic",
+    "score": 0.4117
+   },
+   {
+    "tag": "subtle",
+    "score": 0.4105
+   },
+   {
+    "tag": "soft",
+    "score": 0.4094
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4046
+   },
+   {
+    "tag": "understated",
+    "score": 0.3991
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3951
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3734
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3613
+   },
+   {
+    "tag": "modern",
+    "score": 0.3424
+   },
+   {
+    "tag": "transformative",
+    "score": 0.3231
+   }
+  ],
+  "60": [
+   {
+    "tag": "calm",
+    "score": 0.3459
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3224
+   },
+   {
+    "tag": "understated",
+    "score": 0.3217
+   },
+   {
+    "tag": "classic",
+    "score": 0.3205
+   },
+   {
+    "tag": "shape",
+    "score": 0.3204
+   },
+   {
+    "tag": "soft",
+    "score": 0.3176
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3041
+   },
+   {
+    "tag": "clean",
+    "score": 0.2957
+   },
+   {
+    "tag": "organic",
+    "score": 0.2835
+   },
+   {
+    "tag": "modern",
+    "score": 0.2738
+   }
+  ],
+  "61": [
+   {
+    "tag": "dynamic",
+    "score": 0.4724
+   },
+   {
+    "tag": "experimental",
+    "score": 0.4618
+   },
+   {
+    "tag": "fun",
+    "score": 0.4161
+   },
+   {
+    "tag": "energetic",
+    "score": 0.4037
+   },
+   {
+    "tag": "techy",
+    "score": 0.3897
+   },
+   {
+    "tag": "cool",
+    "score": 0.3821
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3738
+   },
+   {
+    "tag": "creative",
+    "score": 0.3737
+   },
+   {
+    "tag": "interactive",
+    "score": 0.3712
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3629
+   }
+  ],
+  "62": [
+   {
+    "tag": "bold",
+    "score": 0.3
+   },
+   {
+    "tag": "graphic",
+    "score": 0.2654
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2628
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2622
+   },
+   {
+    "tag": "cool",
+    "score": 0.2559
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2548
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2541
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.2531
+   },
+   {
+    "tag": "alive",
+    "score": 0.2491
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2441
+   }
+  ],
+  "63": [
+   {
+    "tag": "subtle",
+    "score": 0.4208
+   },
+   {
+    "tag": "soft",
+    "score": 0.4055
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4055
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4025
+   },
+   {
+    "tag": "classic",
+    "score": 0.4018
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3492
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3224
+   },
+   {
+    "tag": "modern",
+    "score": 0.3091
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3022
+   },
+   {
+    "tag": "silky",
+    "score": 0.2965
+   }
+  ],
+  "64": [
+   {
+    "tag": "artistic",
+    "score": 0.3921
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.383
+   },
+   {
+    "tag": "techy",
+    "score": 0.3802
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3776
+   },
+   {
+    "tag": "cool",
+    "score": 0.377
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3559
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3522
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3385
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.3322
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3223
+   }
+  ],
+  "65": [
+   {
+    "tag": "subtle",
+    "score": 0.367
+   },
+   {
+    "tag": "soft",
+    "score": 0.366
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3528
+   },
+   {
+    "tag": "modern",
+    "score": 0.3397
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3303
+   },
+   {
+    "tag": "understated",
+    "score": 0.3254
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3149
+   },
+   {
+    "tag": "spatial",
+    "score": 0.3042
+   },
+   {
+    "tag": "layered",
+    "score": 0.3
+   },
+   {
+    "tag": "graceful",
+    "score": 0.288
+   }
+  ],
+  "66": [
+   {
+    "tag": "sophisticated",
+    "score": 0.3239
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3176
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3002
+   },
+   {
+    "tag": "endless",
+    "score": 0.2874
+   },
+   {
+    "tag": "organic",
+    "score": 0.2852
+   },
+   {
+    "tag": "creative",
+    "score": 0.2817
+   },
+   {
+    "tag": "calm",
+    "score": 0.2802
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2799
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2761
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2721
+   }
+  ],
+  "67": [
+   {
+    "tag": "sophisticated",
+    "score": 0.3239
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3176
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3002
+   },
+   {
+    "tag": "endless",
+    "score": 0.2874
+   },
+   {
+    "tag": "organic",
+    "score": 0.2852
+   },
+   {
+    "tag": "creative",
+    "score": 0.2817
+   },
+   {
+    "tag": "calm",
+    "score": 0.2802
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2799
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2761
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2721
+   }
+  ],
+  "68": [
+   {
+    "tag": "edgy",
+    "score": 0.4167
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3895
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3875
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3817
+   },
+   {
+    "tag": "cool",
+    "score": 0.3806
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.376
+   },
+   {
+    "tag": "confident",
+    "score": 0.3686
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3654
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3503
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3501
+   }
+  ],
+  "69": [
+   {
+    "tag": "calm",
+    "score": 0.3458
+   },
+   {
+    "tag": "classic",
+    "score": 0.3062
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3036
+   },
+   {
+    "tag": "soft",
+    "score": 0.2988
+   },
+   {
+    "tag": "understated",
+    "score": 0.2975
+   },
+   {
+    "tag": "organic",
+    "score": 0.2966
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2866
+   },
+   {
+    "tag": "modern",
+    "score": 0.2812
+   },
+   {
+    "tag": "smooth",
+    "score": 0.2729
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2622
+   }
+  ],
+  "70": [
+   {
+    "tag": "calm",
+    "score": 0.3458
+   },
+   {
+    "tag": "classic",
+    "score": 0.3062
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3036
+   },
+   {
+    "tag": "soft",
+    "score": 0.2988
+   },
+   {
+    "tag": "understated",
+    "score": 0.2975
+   },
+   {
+    "tag": "organic",
+    "score": 0.2966
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2866
+   },
+   {
+    "tag": "modern",
+    "score": 0.2812
+   },
+   {
+    "tag": "smooth",
+    "score": 0.2729
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2622
+   }
+  ],
+  "71": [
+   {
+    "tag": "smooth",
+    "score": 0.3335
+   },
+   {
+    "tag": "calm",
+    "score": 0.3325
+   },
+   {
+    "tag": "classic",
+    "score": 0.3158
+   },
+   {
+    "tag": "understated",
+    "score": 0.3143
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3114
+   },
+   {
+    "tag": "soft",
+    "score": 0.3078
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3055
+   },
+   {
+    "tag": "modern",
+    "score": 0.2978
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.2828
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2779
+   }
+  ],
+  "72": [
+   {
+    "tag": "calm",
+    "score": 0.4089
+   },
+   {
+    "tag": "understated",
+    "score": 0.398
+   },
+   {
+    "tag": "soft",
+    "score": 0.3897
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3892
+   },
+   {
+    "tag": "classic",
+    "score": 0.3891
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3818
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3516
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3429
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3293
+   },
+   {
+    "tag": "modern",
+    "score": 0.3173
+   }
+  ],
+  "73": [
+   {
+    "tag": "futuristic",
+    "score": 0.3378
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.318
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3134
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3098
+   },
+   {
+    "tag": "cool",
+    "score": 0.3055
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.2953
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2924
+   },
+   {
+    "tag": "circular",
+    "score": 0.2794
+   },
+   {
+    "tag": "unique",
+    "score": 0.2569
+   },
+   {
+    "tag": "endless",
+    "score": 0.2566
+   }
+  ],
+  "74": [
+   {
+    "tag": "subtle",
+    "score": 0.3785
+   },
+   {
+    "tag": "soft",
+    "score": 0.3754
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3629
+   },
+   {
+    "tag": "understated",
+    "score": 0.3492
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3342
+   },
+   {
+    "tag": "modern",
+    "score": 0.3144
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3119
+   },
+   {
+    "tag": "shape",
+    "score": 0.3022
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2888
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2818
+   }
+  ],
+  "75": [
+   {
+    "tag": "techy",
+    "score": 0.3063
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2594
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2589
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2536
+   },
+   {
+    "tag": "playful",
+    "score": 0.2513
+   },
+   {
+    "tag": "modern",
+    "score": 0.2452
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2446
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2407
+   },
+   {
+    "tag": "cool",
+    "score": 0.2389
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.2355
+   }
+  ],
+  "76": [
+   {
+    "tag": "elegant",
+    "score": 0.2892
+   },
+   {
+    "tag": "techy",
+    "score": 0.2816
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2548
+   },
+   {
+    "tag": "modern",
+    "score": 0.2501
+   },
+   {
+    "tag": "cascading",
+    "score": 0.2452
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2438
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2391
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2363
+   },
+   {
+    "tag": "playful",
+    "score": 0.2349
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2325
+   }
+  ],
+  "77": [
+   {
+    "tag": "bold",
+    "score": 0.3843
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3612
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3457
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3454
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3428
+   },
+   {
+    "tag": "endless",
+    "score": 0.3425
+   },
+   {
+    "tag": "playful",
+    "score": 0.3416
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3408
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3213
+   },
+   {
+    "tag": "fun",
+    "score": 0.317
+   }
+  ],
+  "78": [
+   {
+    "tag": "graceful",
+    "score": 0.3806
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3425
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3361
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3351
+   },
+   {
+    "tag": "gentle",
+    "score": 0.318
+   },
+   {
+    "tag": "soft",
+    "score": 0.3151
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3073
+   },
+   {
+    "tag": "classic",
+    "score": 0.301
+   },
+   {
+    "tag": "modern",
+    "score": 0.2937
+   },
+   {
+    "tag": "simple",
+    "score": 0.2933
+   }
+  ],
+  "79": [
+   {
+    "tag": "clean",
+    "score": 0.3556
+   },
+   {
+    "tag": "graceful",
+    "score": 0.312
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3119
+   },
+   {
+    "tag": "understated",
+    "score": 0.3081
+   },
+   {
+    "tag": "silky",
+    "score": 0.3031
+   },
+   {
+    "tag": "transformative",
+    "score": 0.2996
+   },
+   {
+    "tag": "calm",
+    "score": 0.2971
+   },
+   {
+    "tag": "soft",
+    "score": 0.2943
+   },
+   {
+    "tag": "classic",
+    "score": 0.2902
+   },
+   {
+    "tag": "polished",
+    "score": 0.2898
+   }
+  ],
+  "80": [
+   {
+    "tag": "expressive",
+    "score": 0.3908
+   },
+   {
+    "tag": "bold",
+    "score": 0.3891
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3821
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3815
+   },
+   {
+    "tag": "fun",
+    "score": 0.3713
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3553
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3378
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3264
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3197
+   },
+   {
+    "tag": "circular",
+    "score": 0.3172
+   }
+  ],
+  "81": [
+   {
+    "tag": "bold",
+    "score": 0.3868
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3557
+   },
+   {
+    "tag": "endless",
+    "score": 0.3463
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3424
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3351
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3261
+   },
+   {
+    "tag": "artistic",
+    "score": 0.325
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3168
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3162
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3154
+   }
+  ],
+  "82": [
+   {
+    "tag": "understated",
+    "score": 0.3183
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3052
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3043
+   },
+   {
+    "tag": "calm",
+    "score": 0.3038
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3024
+   },
+   {
+    "tag": "soft",
+    "score": 0.2928
+   },
+   {
+    "tag": "classic",
+    "score": 0.2902
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2894
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2734
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2695
+   }
+  ],
+  "83": [
+   {
+    "tag": "immersive",
+    "score": 0.3844
+   },
+   {
+    "tag": "layered",
+    "score": 0.3792
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3625
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3596
+   },
+   {
+    "tag": "confident",
+    "score": 0.3527
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3521
+   },
+   {
+    "tag": "techy",
+    "score": 0.3501
+   },
+   {
+    "tag": "endless",
+    "score": 0.3081
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3068
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.2994
+   }
+  ],
+  "84": [
+   {
+    "tag": "refined",
+    "score": 0.4137
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3986
+   },
+   {
+    "tag": "classic",
+    "score": 0.3882
+   },
+   {
+    "tag": "modern",
+    "score": 0.385
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3527
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3196
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3147
+   },
+   {
+    "tag": "calm",
+    "score": 0.3023
+   },
+   {
+    "tag": "silky",
+    "score": 0.3008
+   },
+   {
+    "tag": "shape",
+    "score": 0.3002
+   }
+  ],
+  "85": [
+   {
+    "tag": "edgy",
+    "score": 0.4775
+   },
+   {
+    "tag": "expressive",
+    "score": 0.4511
+   },
+   {
+    "tag": "cool",
+    "score": 0.4113
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3962
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3859
+   },
+   {
+    "tag": "techy",
+    "score": 0.3638
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.361
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3579
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.3459
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3451
+   }
+  ],
+  "86": [
+   {
+    "tag": "dynamic",
+    "score": 0.3934
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3871
+   },
+   {
+    "tag": "layered",
+    "score": 0.3695
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3691
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3433
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3427
+   },
+   {
+    "tag": "cool",
+    "score": 0.3411
+   },
+   {
+    "tag": "techy",
+    "score": 0.3244
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.3032
+   },
+   {
+    "tag": "creative",
+    "score": 0.3016
+   }
+  ],
+  "87": [
+   {
+    "tag": "dynamic",
+    "score": 0.4404
+   },
+   {
+    "tag": "immersive",
+    "score": 0.4177
+   },
+   {
+    "tag": "experimental",
+    "score": 0.404
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3729
+   },
+   {
+    "tag": "techy",
+    "score": 0.3703
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3665
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.341
+   },
+   {
+    "tag": "layered",
+    "score": 0.339
+   },
+   {
+    "tag": "creative",
+    "score": 0.3386
+   },
+   {
+    "tag": "confident",
+    "score": 0.336
+   }
+  ],
+  "88": [
+   {
+    "tag": "graceful",
+    "score": 0.4029
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3787
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3683
+   },
+   {
+    "tag": "soft",
+    "score": 0.3676
+   },
+   {
+    "tag": "classic",
+    "score": 0.3651
+   },
+   {
+    "tag": "calm",
+    "score": 0.3427
+   },
+   {
+    "tag": "effortless",
+    "score": 0.326
+   },
+   {
+    "tag": "silky",
+    "score": 0.3156
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3097
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3092
+   }
+  ],
+  "89": [
+   {
+    "tag": "cloudy",
+    "score": 0.5369
+   },
+   {
+    "tag": "clean",
+    "score": 0.5223
+   },
+   {
+    "tag": "graceful",
+    "score": 0.5069
+   },
+   {
+    "tag": "high-end",
+    "score": 0.4882
+   },
+   {
+    "tag": "modern",
+    "score": 0.4031
+   },
+   {
+    "tag": "shape",
+    "score": 0.3211
+   },
+   {
+    "tag": "sophisticated",
+    "score": 0.2927
+   },
+   {
+    "tag": "silky",
+    "score": 0.2764
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2673
+   },
+   {
+    "tag": "transformative",
+    "score": 0.2659
+   }
+  ],
+  "90": [
+   {
+    "tag": "expressive",
+    "score": 0.4195
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3626
+   },
+   {
+    "tag": "interactive",
+    "score": 0.3612
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3599
+   },
+   {
+    "tag": "techy",
+    "score": 0.359
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3519
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3399
+   },
+   {
+    "tag": "fun",
+    "score": 0.3298
+   },
+   {
+    "tag": "vertical",
+    "score": 0.3201
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3161
+   }
+  ],
+  "91": [
+   {
+    "tag": "understated",
+    "score": 0.3352
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3306
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3147
+   },
+   {
+    "tag": "calm",
+    "score": 0.3127
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3012
+   },
+   {
+    "tag": "classic",
+    "score": 0.3006
+   },
+   {
+    "tag": "soft",
+    "score": 0.2991
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2843
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2665
+   },
+   {
+    "tag": "silky",
+    "score": 0.2621
+   }
+  ],
+  "92": [
+   {
+    "tag": "artistic",
+    "score": 0.4219
+   },
+   {
+    "tag": "impactful",
+    "score": 0.4066
+   },
+   {
+    "tag": "cool",
+    "score": 0.399
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3968
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3955
+   },
+   {
+    "tag": "techy",
+    "score": 0.3678
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3639
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3567
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3271
+   },
+   {
+    "tag": "playful",
+    "score": 0.2964
+   }
+  ],
+  "93": [
+   {
+    "tag": "calm",
+    "score": 0.3562
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3558
+   },
+   {
+    "tag": "classic",
+    "score": 0.3403
+   },
+   {
+    "tag": "soft",
+    "score": 0.3387
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3243
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3224
+   },
+   {
+    "tag": "modern",
+    "score": 0.3133
+   },
+   {
+    "tag": "understated",
+    "score": 0.3046
+   },
+   {
+    "tag": "organic",
+    "score": 0.2987
+   },
+   {
+    "tag": "bold",
+    "score": 0.2894
+   }
+  ],
+  "94": [
+   {
+    "tag": "graceful",
+    "score": 0.3318
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3171
+   },
+   {
+    "tag": "understated",
+    "score": 0.316
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3157
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2927
+   },
+   {
+    "tag": "soft",
+    "score": 0.2923
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2898
+   },
+   {
+    "tag": "classic",
+    "score": 0.2825
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2747
+   },
+   {
+    "tag": "modern",
+    "score": 0.2705
+   }
+  ],
+  "95": [
+   {
+    "tag": "cool",
+    "score": 0.4162
+   },
+   {
+    "tag": "experimental",
+    "score": 0.4
+   },
+   {
+    "tag": "techy",
+    "score": 0.3939
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3771
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3676
+   },
+   {
+    "tag": "artistic",
+    "score": 0.353
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.346
+   },
+   {
+    "tag": "surprising",
+    "score": 0.331
+   },
+   {
+    "tag": "playful",
+    "score": 0.3253
+   },
+   {
+    "tag": "creative",
+    "score": 0.3207
+   }
+  ],
+  "96": [
+   {
+    "tag": "edgy",
+    "score": 0.3449
+   },
+   {
+    "tag": "cool",
+    "score": 0.3227
+   },
+   {
+    "tag": "endless",
+    "score": 0.3222
+   },
+   {
+    "tag": "creative",
+    "score": 0.3082
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2933
+   },
+   {
+    "tag": "organic",
+    "score": 0.2901
+   },
+   {
+    "tag": "techy",
+    "score": 0.2864
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2809
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2806
+   },
+   {
+    "tag": "artistic",
+    "score": 0.2795
+   }
+  ],
+  "97": [
+   {
+    "tag": "calm",
+    "score": 0.339
+   },
+   {
+    "tag": "classic",
+    "score": 0.3381
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3204
+   },
+   {
+    "tag": "modern",
+    "score": 0.3116
+   },
+   {
+    "tag": "soft",
+    "score": 0.309
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3009
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2984
+   },
+   {
+    "tag": "layered",
+    "score": 0.2965
+   },
+   {
+    "tag": "understated",
+    "score": 0.284
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2723
+   }
+  ],
+  "98": [
+   {
+    "tag": "dynamic",
+    "score": 0.3992
+   },
+   {
+    "tag": "cool",
+    "score": 0.394
+   },
+   {
+    "tag": "confident",
+    "score": 0.3372
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.336
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3275
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3226
+   },
+   {
+    "tag": "unique",
+    "score": 0.3093
+   },
+   {
+    "tag": "endless",
+    "score": 0.3041
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.2858
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2856
+   }
+  ],
+  "99": [
+   {
+    "tag": "dynamic",
+    "score": 0.4798
+   },
+   {
+    "tag": "cool",
+    "score": 0.435
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3956
+   },
+   {
+    "tag": "playful",
+    "score": 0.364
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3595
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3568
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3514
+   },
+   {
+    "tag": "artistic",
+    "score": 0.345
+   },
+   {
+    "tag": "fun",
+    "score": 0.3371
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3347
+   }
+  ],
+  "100": [
+   {
+    "tag": "calm",
+    "score": 0.3714
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3693
+   },
+   {
+    "tag": "soft",
+    "score": 0.3633
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3539
+   },
+   {
+    "tag": "understated",
+    "score": 0.3379
+   },
+   {
+    "tag": "modern",
+    "score": 0.322
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3137
+   },
+   {
+    "tag": "graceful",
+    "score": 0.307
+   },
+   {
+    "tag": "minimal",
+    "score": 0.2997
+   },
+   {
+    "tag": "layered",
+    "score": 0.2937
+   }
+  ],
+  "101": [
+   {
+    "tag": "smooth",
+    "score": 0.4588
+   },
+   {
+    "tag": "subtle",
+    "score": 0.4386
+   },
+   {
+    "tag": "gentle",
+    "score": 0.4273
+   },
+   {
+    "tag": "classic",
+    "score": 0.421
+   },
+   {
+    "tag": "calm",
+    "score": 0.3758
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3675
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3295
+   },
+   {
+    "tag": "modern",
+    "score": 0.3095
+   },
+   {
+    "tag": "silky",
+    "score": 0.292
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2904
+   }
+  ],
+  "102": [
+   {
+    "tag": "clean",
+    "score": 0.3978
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3515
+   },
+   {
+    "tag": "soft",
+    "score": 0.3482
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3463
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3397
+   },
+   {
+    "tag": "classic",
+    "score": 0.3345
+   },
+   {
+    "tag": "calm",
+    "score": 0.3303
+   },
+   {
+    "tag": "silky",
+    "score": 0.3179
+   },
+   {
+    "tag": "organic",
+    "score": 0.2929
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2911
+   }
+  ],
+  "103": [
+   {
+    "tag": "clean",
+    "score": 0.3978
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3515
+   },
+   {
+    "tag": "soft",
+    "score": 0.3482
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3463
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3397
+   },
+   {
+    "tag": "classic",
+    "score": 0.3345
+   },
+   {
+    "tag": "calm",
+    "score": 0.3303
+   },
+   {
+    "tag": "silky",
+    "score": 0.3179
+   },
+   {
+    "tag": "organic",
+    "score": 0.2929
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2911
+   }
+  ],
+  "104": [
+   {
+    "tag": "artistic",
+    "score": 0.4282
+   },
+   {
+    "tag": "cool",
+    "score": 0.4183
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3977
+   },
+   {
+    "tag": "techy",
+    "score": 0.3903
+   },
+   {
+    "tag": "endless",
+    "score": 0.378
+   },
+   {
+    "tag": "creative",
+    "score": 0.3772
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3749
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3678
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3449
+   },
+   {
+    "tag": "playful",
+    "score": 0.3298
+   }
+  ],
+  "105": [
+   {
+    "tag": "experimental",
+    "score": 0.3994
+   },
+   {
+    "tag": "expressive",
+    "score": 0.372
+   },
+   {
+    "tag": "endless",
+    "score": 0.3609
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3407
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3384
+   },
+   {
+    "tag": "playful",
+    "score": 0.3312
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3303
+   },
+   {
+    "tag": "unique",
+    "score": 0.3265
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.318
+   },
+   {
+    "tag": "confident",
+    "score": 0.3135
+   }
+  ],
+  "106": [
+   {
+    "tag": "bold",
+    "score": 0.4823
+   },
+   {
+    "tag": "artistic",
+    "score": 0.4181
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3969
+   },
+   {
+    "tag": "creative",
+    "score": 0.388
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3793
+   },
+   {
+    "tag": "playful",
+    "score": 0.3726
+   },
+   {
+    "tag": "impactful",
+    "score": 0.368
+   },
+   {
+    "tag": "endless",
+    "score": 0.362
+   },
+   {
+    "tag": "unique",
+    "score": 0.3558
+   },
+   {
+    "tag": "fun",
+    "score": 0.3463
+   }
+  ],
+  "107": [
+   {
+    "tag": "edgy",
+    "score": 0.3974
+   },
+   {
+    "tag": "endless",
+    "score": 0.3685
+   },
+   {
+    "tag": "cool",
+    "score": 0.3488
+   },
+   {
+    "tag": "creative",
+    "score": 0.3478
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3446
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3362
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3157
+   },
+   {
+    "tag": "organic",
+    "score": 0.3007
+   },
+   {
+    "tag": "fluid",
+    "score": 0.2951
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2948
+   }
+  ],
+  "108": [
+   {
+    "tag": "poppy",
+    "score": 0.4074
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3853
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.383
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3825
+   },
+   {
+    "tag": "3d",
+    "score": 0.3734
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.324
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3229
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3212
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3051
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3051
+   }
+  ],
+  "109": [
+   {
+    "tag": "interactive",
+    "score": 0.4074
+   },
+   {
+    "tag": "surprising",
+    "score": 0.4009
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3961
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3435
+   },
+   {
+    "tag": "alive",
+    "score": 0.343
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3287
+   },
+   {
+    "tag": "circular",
+    "score": 0.3247
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.3193
+   },
+   {
+    "tag": "cool",
+    "score": 0.319
+   },
+   {
+    "tag": "graphic",
+    "score": 0.3118
+   }
+  ],
+  "110": [
+   {
+    "tag": "classic",
+    "score": 0.3963
+   },
+   {
+    "tag": "subtle",
+    "score": 0.39
+   },
+   {
+    "tag": "soft",
+    "score": 0.3816
+   },
+   {
+    "tag": "clean",
+    "score": 0.3654
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3517
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3362
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.332
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3304
+   },
+   {
+    "tag": "modern",
+    "score": 0.3117
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2755
+   }
+  ],
+  "111": [
+   {
+    "tag": "calm",
+    "score": 0.3367
+   },
+   {
+    "tag": "classic",
+    "score": 0.3109
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2994
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2948
+   },
+   {
+    "tag": "smooth",
+    "score": 0.2836
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2732
+   },
+   {
+    "tag": "soft",
+    "score": 0.2729
+   },
+   {
+    "tag": "understated",
+    "score": 0.272
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2692
+   },
+   {
+    "tag": "clean",
+    "score": 0.2511
+   }
+  ],
+  "112": [
+   {
+    "tag": "graceful",
+    "score": 0.3676
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3616
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3552
+   },
+   {
+    "tag": "understated",
+    "score": 0.3065
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3006
+   },
+   {
+    "tag": "classic",
+    "score": 0.2904
+   },
+   {
+    "tag": "soft",
+    "score": 0.284
+   },
+   {
+    "tag": "simple",
+    "score": 0.2819
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.2819
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2807
+   }
+  ],
+  "113": [
+   {
+    "tag": "smooth",
+    "score": 0.4187
+   },
+   {
+    "tag": "classic",
+    "score": 0.3713
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3657
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3639
+   },
+   {
+    "tag": "soft",
+    "score": 0.3618
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3602
+   },
+   {
+    "tag": "calm",
+    "score": 0.3439
+   },
+   {
+    "tag": "silky",
+    "score": 0.3269
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3205
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3055
+   }
+  ],
+  "114": [
+   {
+    "tag": "graceful",
+    "score": 0.4039
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3703
+   },
+   {
+    "tag": "flowing",
+    "score": 0.358
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3497
+   },
+   {
+    "tag": "understated",
+    "score": 0.3488
+   },
+   {
+    "tag": "classic",
+    "score": 0.3349
+   },
+   {
+    "tag": "soft",
+    "score": 0.327
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.2982
+   },
+   {
+    "tag": "simple",
+    "score": 0.2982
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2867
+   }
+  ],
+  "115": [
+   {
+    "tag": "layered",
+    "score": 0.3132
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3087
+   },
+   {
+    "tag": "silky",
+    "score": 0.2992
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2903
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2902
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2899
+   },
+   {
+    "tag": "modern",
+    "score": 0.2582
+   },
+   {
+    "tag": "classic",
+    "score": 0.2574
+   },
+   {
+    "tag": "refined",
+    "score": 0.2494
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2457
+   }
+  ],
+  "116": [
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3373
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3321
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2977
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2888
+   },
+   {
+    "tag": "cool",
+    "score": 0.2868
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2625
+   },
+   {
+    "tag": "experimental",
+    "score": 0.2576
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2562
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2531
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2503
+   }
+  ],
+  "117": [
+   {
+    "tag": "spiraling",
+    "score": 0.3174
+   },
+   {
+    "tag": "techy",
+    "score": 0.3067
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2865
+   },
+   {
+    "tag": "elegant",
+    "score": 0.2712
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.2681
+   },
+   {
+    "tag": "circular",
+    "score": 0.2651
+   },
+   {
+    "tag": "polished",
+    "score": 0.2633
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2574
+   },
+   {
+    "tag": "cool",
+    "score": 0.2539
+   },
+   {
+    "tag": "creative",
+    "score": 0.2487
+   }
+  ],
+  "118": [
+   {
+    "tag": "subtle",
+    "score": 0.4328
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4244
+   },
+   {
+    "tag": "understated",
+    "score": 0.4212
+   },
+   {
+    "tag": "soft",
+    "score": 0.4083
+   },
+   {
+    "tag": "classic",
+    "score": 0.4072
+   },
+   {
+    "tag": "minimal",
+    "score": 0.3708
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3521
+   },
+   {
+    "tag": "calm",
+    "score": 0.3499
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3279
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3234
+   }
+  ],
+  "119": [
+   {
+    "tag": "subtle",
+    "score": 0.5024
+   },
+   {
+    "tag": "graceful",
+    "score": 0.4847
+   },
+   {
+    "tag": "classic",
+    "score": 0.4817
+   },
+   {
+    "tag": "minimal",
+    "score": 0.4398
+   },
+   {
+    "tag": "calm",
+    "score": 0.4175
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4148
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3783
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3566
+   },
+   {
+    "tag": "silky",
+    "score": 0.3559
+   },
+   {
+    "tag": "modern",
+    "score": 0.3415
+   }
+  ],
+  "120": [
+   {
+    "tag": "graceful",
+    "score": 0.4336
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3931
+   },
+   {
+    "tag": "soft",
+    "score": 0.3725
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3581
+   },
+   {
+    "tag": "classic",
+    "score": 0.3579
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3374
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3305
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.3171
+   },
+   {
+    "tag": "simple",
+    "score": 0.3171
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2943
+   }
+  ],
+  "121": [
+   {
+    "tag": "subtle",
+    "score": 0.523
+   },
+   {
+    "tag": "soft",
+    "score": 0.5104
+   },
+   {
+    "tag": "classic",
+    "score": 0.4954
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.4376
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3855
+   },
+   {
+    "tag": "calm",
+    "score": 0.3794
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3685
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3661
+   },
+   {
+    "tag": "modern",
+    "score": 0.36
+   },
+   {
+    "tag": "horizontal scroll",
+    "score": 0.3467
+   }
+  ],
+  "122": [
+   {
+    "tag": "graphic",
+    "score": 0.3562
+   },
+   {
+    "tag": "impactful",
+    "score": 0.346
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3415
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3283
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3217
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3102
+   },
+   {
+    "tag": "cool",
+    "score": 0.3064
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3019
+   },
+   {
+    "tag": "techy",
+    "score": 0.2992
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.2988
+   }
+  ],
+  "123": [
+   {
+    "tag": "subtle",
+    "score": 0.4408
+   },
+   {
+    "tag": "soft",
+    "score": 0.4331
+   },
+   {
+    "tag": "classic",
+    "score": 0.4295
+   },
+   {
+    "tag": "understated",
+    "score": 0.4283
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.371
+   },
+   {
+    "tag": "calm",
+    "score": 0.3574
+   },
+   {
+    "tag": "modern",
+    "score": 0.347
+   },
+   {
+    "tag": "gradual",
+    "score": 0.3402
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3296
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3276
+   }
+  ],
+  "124": [
+   {
+    "tag": "refined",
+    "score": 0.3561
+   },
+   {
+    "tag": "organic",
+    "score": 0.3136
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2997
+   },
+   {
+    "tag": "calm",
+    "score": 0.2954
+   },
+   {
+    "tag": "understated",
+    "score": 0.2949
+   },
+   {
+    "tag": "silky",
+    "score": 0.2948
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2927
+   },
+   {
+    "tag": "modern",
+    "score": 0.2906
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2899
+   },
+   {
+    "tag": "classic",
+    "score": 0.2892
+   }
+  ],
+  "125": [
+   {
+    "tag": "refined",
+    "score": 0.3456
+   },
+   {
+    "tag": "effortless",
+    "score": 0.3137
+   },
+   {
+    "tag": "organic",
+    "score": 0.2987
+   },
+   {
+    "tag": "understated",
+    "score": 0.2919
+   },
+   {
+    "tag": "subtle",
+    "score": 0.291
+   },
+   {
+    "tag": "polished",
+    "score": 0.2875
+   },
+   {
+    "tag": "silky",
+    "score": 0.2871
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2869
+   },
+   {
+    "tag": "shape",
+    "score": 0.2832
+   },
+   {
+    "tag": "calm",
+    "score": 0.2692
+   }
+  ],
+  "126": [
+   {
+    "tag": "futuristic",
+    "score": 0.3641
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3581
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3402
+   },
+   {
+    "tag": "immersive",
+    "score": 0.3275
+   },
+   {
+    "tag": "cool",
+    "score": 0.3261
+   },
+   {
+    "tag": "techy",
+    "score": 0.3246
+   },
+   {
+    "tag": "layered",
+    "score": 0.3122
+   },
+   {
+    "tag": "playful",
+    "score": 0.2881
+   },
+   {
+    "tag": "experimental",
+    "score": 0.286
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.276
+   }
+  ],
+  "127": [
+   {
+    "tag": "bold",
+    "score": 0.3238
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2905
+   },
+   {
+    "tag": "alive",
+    "score": 0.2807
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.279
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2617
+   },
+   {
+    "tag": "circular",
+    "score": 0.2493
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.249
+   },
+   {
+    "tag": "graphic",
+    "score": 0.2469
+   },
+   {
+    "tag": "cool",
+    "score": 0.2435
+   },
+   {
+    "tag": "impactful",
+    "score": 0.242
+   }
+  ],
+  "128": [
+   {
+    "tag": "calm",
+    "score": 0.3326
+   },
+   {
+    "tag": "minimal",
+    "score": 0.324
+   },
+   {
+    "tag": "classic",
+    "score": 0.3089
+   },
+   {
+    "tag": "modern",
+    "score": 0.3041
+   },
+   {
+    "tag": "clean",
+    "score": 0.3023
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3009
+   },
+   {
+    "tag": "soft",
+    "score": 0.2966
+   },
+   {
+    "tag": "understated",
+    "score": 0.2923
+   },
+   {
+    "tag": "shape",
+    "score": 0.2919
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2866
+   }
+  ],
+  "129": [
+   {
+    "tag": "calm",
+    "score": 0.3377
+   },
+   {
+    "tag": "classic",
+    "score": 0.3222
+   },
+   {
+    "tag": "understated",
+    "score": 0.3189
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3164
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3087
+   },
+   {
+    "tag": "soft",
+    "score": 0.3048
+   },
+   {
+    "tag": "silky",
+    "score": 0.3031
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3022
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2929
+   },
+   {
+    "tag": "modern",
+    "score": 0.2895
+   }
+  ],
+  "130": [
+   {
+    "tag": "calm",
+    "score": 0.3285
+   },
+   {
+    "tag": "classic",
+    "score": 0.3241
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3133
+   },
+   {
+    "tag": "understated",
+    "score": 0.3083
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3067
+   },
+   {
+    "tag": "modern",
+    "score": 0.302
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2975
+   },
+   {
+    "tag": "soft",
+    "score": 0.2971
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2926
+   },
+   {
+    "tag": "silky",
+    "score": 0.2851
+   }
+  ],
+  "131": [
+   {
+    "tag": "classic",
+    "score": 0.3695
+   },
+   {
+    "tag": "calm",
+    "score": 0.3579
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3366
+   },
+   {
+    "tag": "soft",
+    "score": 0.3251
+   },
+   {
+    "tag": "gentle",
+    "score": 0.321
+   },
+   {
+    "tag": "understated",
+    "score": 0.3173
+   },
+   {
+    "tag": "modern",
+    "score": 0.309
+   },
+   {
+    "tag": "graceful",
+    "score": 0.301
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2981
+   },
+   {
+    "tag": "minimal",
+    "score": 0.29
+   }
+  ],
+  "132": [
+   {
+    "tag": "elegant",
+    "score": 0.3196
+   },
+   {
+    "tag": "alive",
+    "score": 0.2858
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2833
+   },
+   {
+    "tag": "silky",
+    "score": 0.2556
+   },
+   {
+    "tag": "techy",
+    "score": 0.248
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2454
+   },
+   {
+    "tag": "understated",
+    "score": 0.2426
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2405
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2404
+   },
+   {
+    "tag": "cascading",
+    "score": 0.2354
+   }
+  ],
+  "133": [
+   {
+    "tag": "elegant",
+    "score": 0.4099
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3366
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3339
+   },
+   {
+    "tag": "soft",
+    "score": 0.3166
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3165
+   },
+   {
+    "tag": "classic",
+    "score": 0.2964
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2957
+   },
+   {
+    "tag": "modern",
+    "score": 0.2936
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.2886
+   },
+   {
+    "tag": "shape",
+    "score": 0.2666
+   }
+  ],
+  "134": [
+   {
+    "tag": "elegant",
+    "score": 0.3398
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.3052
+   },
+   {
+    "tag": "fun",
+    "score": 0.2956
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2811
+   },
+   {
+    "tag": "modern",
+    "score": 0.2745
+   },
+   {
+    "tag": "effortless",
+    "score": 0.2717
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2707
+   },
+   {
+    "tag": "organic",
+    "score": 0.2679
+   },
+   {
+    "tag": "shape",
+    "score": 0.2663
+   },
+   {
+    "tag": "charming",
+    "score": 0.2653
+   }
+  ],
+  "135": [
+   {
+    "tag": "elegant",
+    "score": 0.3981
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3359
+   },
+   {
+    "tag": "understated",
+    "score": 0.3343
+   },
+   {
+    "tag": "soft",
+    "score": 0.3273
+   },
+   {
+    "tag": "classic",
+    "score": 0.3217
+   },
+   {
+    "tag": "graceful",
+    "score": 0.317
+   },
+   {
+    "tag": "modern",
+    "score": 0.2899
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2837
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.283
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2556
+   }
+  ],
+  "136": [
+   {
+    "tag": "poppy",
+    "score": 0.3764
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3484
+   },
+   {
+    "tag": "zoom",
+    "score": 0.3276
+   },
+   {
+    "tag": "organic",
+    "score": 0.2944
+   },
+   {
+    "tag": "modern",
+    "score": 0.2906
+   },
+   {
+    "tag": "innovative",
+    "score": 0.2801
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2772
+   },
+   {
+    "tag": "groovy",
+    "score": 0.2758
+   },
+   {
+    "tag": "shape",
+    "score": 0.2698
+   },
+   {
+    "tag": "circular",
+    "score": 0.2678
+   }
+  ],
+  "137": [
+   {
+    "tag": "expressive",
+    "score": 0.442
+   },
+   {
+    "tag": "playful",
+    "score": 0.4247
+   },
+   {
+    "tag": "graphic",
+    "score": 0.4141
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3898
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3775
+   },
+   {
+    "tag": "fun",
+    "score": 0.3769
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3761
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3693
+   },
+   {
+    "tag": "creative",
+    "score": 0.3572
+   },
+   {
+    "tag": "poppy",
+    "score": 0.354
+   }
+  ],
+  "138": [
+   {
+    "tag": "elegant",
+    "score": 0.3421
+   },
+   {
+    "tag": "modern",
+    "score": 0.3105
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2976
+   },
+   {
+    "tag": "fun",
+    "score": 0.2972
+   },
+   {
+    "tag": "understated",
+    "score": 0.2917
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2862
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2827
+   },
+   {
+    "tag": "soft",
+    "score": 0.2782
+   },
+   {
+    "tag": "zoom",
+    "score": 0.2777
+   },
+   {
+    "tag": "silky",
+    "score": 0.2726
+   }
+  ],
+  "139": [
+   {
+    "tag": "expressive",
+    "score": 0.3784
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.3606
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3577
+   },
+   {
+    "tag": "edgy",
+    "score": 0.3575
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3493
+   },
+   {
+    "tag": "unique",
+    "score": 0.325
+   },
+   {
+    "tag": "groovy",
+    "score": 0.3241
+   },
+   {
+    "tag": "bold",
+    "score": 0.3098
+   },
+   {
+    "tag": "vertical",
+    "score": 0.3044
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3018
+   }
+  ],
+  "140": [
+   {
+    "tag": "horizontal",
+    "score": 0.3527
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3069
+   },
+   {
+    "tag": "surprising",
+    "score": 0.301
+   },
+   {
+    "tag": "charming",
+    "score": 0.2994
+   },
+   {
+    "tag": "energetic",
+    "score": 0.2861
+   },
+   {
+    "tag": "modern",
+    "score": 0.2721
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2695
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.2655
+   },
+   {
+    "tag": "groovy",
+    "score": 0.2469
+   },
+   {
+    "tag": "unique",
+    "score": 0.2427
+   }
+  ],
+  "141": [
+   {
+    "tag": "graceful",
+    "score": 0.3544
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3339
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3334
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3131
+   },
+   {
+    "tag": "understated",
+    "score": 0.3078
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2928
+   },
+   {
+    "tag": "soft",
+    "score": 0.288
+   },
+   {
+    "tag": "modern",
+    "score": 0.2847
+   },
+   {
+    "tag": "classic",
+    "score": 0.2778
+   },
+   {
+    "tag": "simple",
+    "score": 0.2761
+   }
+  ],
+  "142": [
+   {
+    "tag": "elegant",
+    "score": 0.3641
+   },
+   {
+    "tag": "flowing",
+    "score": 0.3216
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3216
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2965
+   },
+   {
+    "tag": "modern",
+    "score": 0.2672
+   },
+   {
+    "tag": "fun",
+    "score": 0.2672
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2574
+   },
+   {
+    "tag": "organic",
+    "score": 0.2563
+   },
+   {
+    "tag": "poppy",
+    "score": 0.2517
+   },
+   {
+    "tag": "understated",
+    "score": 0.2507
+   }
+  ],
+  "143": [
+   {
+    "tag": "elegant",
+    "score": 0.3737
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3071
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2961
+   },
+   {
+    "tag": "silky",
+    "score": 0.2835
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2827
+   },
+   {
+    "tag": "soft",
+    "score": 0.2704
+   },
+   {
+    "tag": "seamless",
+    "score": 0.2664
+   },
+   {
+    "tag": "classic",
+    "score": 0.2617
+   },
+   {
+    "tag": "modern",
+    "score": 0.254
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2535
+   }
+  ],
+  "144": [
+   {
+    "tag": "elegant",
+    "score": 0.3479
+   },
+   {
+    "tag": "horizontal",
+    "score": 0.3045
+   },
+   {
+    "tag": "seamless",
+    "score": 0.28
+   },
+   {
+    "tag": "silky",
+    "score": 0.2799
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2732
+   },
+   {
+    "tag": "flowing",
+    "score": 0.2641
+   },
+   {
+    "tag": "understated",
+    "score": 0.2585
+   },
+   {
+    "tag": "subtle",
+    "score": 0.2534
+   },
+   {
+    "tag": "gentle",
+    "score": 0.2352
+   },
+   {
+    "tag": "soft",
+    "score": 0.2272
+   }
+  ],
+  "145": [
+   {
+    "tag": "clean",
+    "score": 0.3146
+   },
+   {
+    "tag": "poppy",
+    "score": 0.3006
+   },
+   {
+    "tag": "fun",
+    "score": 0.2986
+   },
+   {
+    "tag": "zoom",
+    "score": 0.2886
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2865
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2853
+   },
+   {
+    "tag": "surprising",
+    "score": 0.2821
+   },
+   {
+    "tag": "modern",
+    "score": 0.2738
+   },
+   {
+    "tag": "shape",
+    "score": 0.2601
+   },
+   {
+    "tag": "silky",
+    "score": 0.2587
+   }
+  ],
+  "146": [
+   {
+    "tag": "smooth",
+    "score": 0.4063
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3499
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3433
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3361
+   },
+   {
+    "tag": "soft",
+    "score": 0.3358
+   },
+   {
+    "tag": "classic",
+    "score": 0.3334
+   },
+   {
+    "tag": "calm",
+    "score": 0.3184
+   },
+   {
+    "tag": "silky",
+    "score": 0.2905
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.2889
+   },
+   {
+    "tag": "high-end",
+    "score": 0.2849
+   }
+  ],
+  "147": [
+   {
+    "tag": "smooth",
+    "score": 0.3715
+   },
+   {
+    "tag": "subtle",
+    "score": 0.3619
+   },
+   {
+    "tag": "soft",
+    "score": 0.3555
+   },
+   {
+    "tag": "classic",
+    "score": 0.3491
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3461
+   },
+   {
+    "tag": "calm",
+    "score": 0.343
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3254
+   },
+   {
+    "tag": "high-end",
+    "score": 0.3188
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3048
+   },
+   {
+    "tag": "modern",
+    "score": 0.2938
+   }
+  ],
+  "148": [
+   {
+    "tag": "subtle",
+    "score": 0.3461
+   },
+   {
+    "tag": "understated",
+    "score": 0.3356
+   },
+   {
+    "tag": "graceful",
+    "score": 0.331
+   },
+   {
+    "tag": "classic",
+    "score": 0.3308
+   },
+   {
+    "tag": "soft",
+    "score": 0.3287
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3285
+   },
+   {
+    "tag": "calm",
+    "score": 0.3166
+   },
+   {
+    "tag": "modern",
+    "score": 0.3046
+   },
+   {
+    "tag": "shape",
+    "score": 0.2959
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2863
+   }
+  ],
+  "149": [
+   {
+    "tag": "subtle",
+    "score": 0.3363
+   },
+   {
+    "tag": "modern",
+    "score": 0.3277
+   },
+   {
+    "tag": "understated",
+    "score": 0.3243
+   },
+   {
+    "tag": "classic",
+    "score": 0.3219
+   },
+   {
+    "tag": "soft",
+    "score": 0.3203
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3182
+   },
+   {
+    "tag": "shape",
+    "score": 0.3083
+   },
+   {
+    "tag": "calm",
+    "score": 0.3065
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2953
+   },
+   {
+    "tag": "gradual",
+    "score": 0.2734
+   }
+  ],
+  "150": [
+   {
+    "tag": "subtle",
+    "score": 0.4009
+   },
+   {
+    "tag": "soft",
+    "score": 0.3921
+   },
+   {
+    "tag": "understated",
+    "score": 0.3873
+   },
+   {
+    "tag": "gentle",
+    "score": 0.3859
+   },
+   {
+    "tag": "smooth",
+    "score": 0.3675
+   },
+   {
+    "tag": "calm",
+    "score": 0.3661
+   },
+   {
+    "tag": "graceful",
+    "score": 0.3545
+   },
+   {
+    "tag": "cloudy",
+    "score": 0.3381
+   },
+   {
+    "tag": "modern",
+    "score": 0.3308
+   },
+   {
+    "tag": "shape",
+    "score": 0.3053
+   }
+  ],
+  "151": [
+   {
+    "tag": "cool",
+    "score": 0.4042
+   },
+   {
+    "tag": "expressive",
+    "score": 0.394
+   },
+   {
+    "tag": "layered",
+    "score": 0.3892
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3704
+   },
+   {
+    "tag": "techy",
+    "score": 0.3672
+   },
+   {
+    "tag": "playful",
+    "score": 0.3515
+   },
+   {
+    "tag": "endless",
+    "score": 0.3418
+   },
+   {
+    "tag": "fun",
+    "score": 0.3302
+   },
+   {
+    "tag": "artistic",
+    "score": 0.3226
+   },
+   {
+    "tag": "3d effect",
+    "score": 0.3202
+   }
+  ],
+  "152": [
+   {
+    "tag": "elegant",
+    "score": 0.3541
+   },
+   {
+    "tag": "silky",
+    "score": 0.3138
+   },
+   {
+    "tag": "seamless",
+    "score": 0.3016
+   },
+   {
+    "tag": "immersive",
+    "score": 0.2831
+   },
+   {
+    "tag": "layered",
+    "score": 0.2797
+   },
+   {
+    "tag": "graceful",
+    "score": 0.2691
+   },
+   {
+    "tag": "refined",
+    "score": 0.2669
+   },
+   {
+    "tag": "calm",
+    "score": 0.2393
+   },
+   {
+    "tag": "classic",
+    "score": 0.2383
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2357
+   }
+  ],
+  "153": [
+   {
+    "tag": "edgy",
+    "score": 0.385
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3633
+   },
+   {
+    "tag": "unconventional",
+    "score": 0.3365
+   },
+   {
+    "tag": "endless",
+    "score": 0.3284
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3232
+   },
+   {
+    "tag": "techy",
+    "score": 0.3228
+   },
+   {
+    "tag": "impactful",
+    "score": 0.3166
+   },
+   {
+    "tag": "playful",
+    "score": 0.3164
+   },
+   {
+    "tag": "cool",
+    "score": 0.3144
+   },
+   {
+    "tag": "continuous",
+    "score": 0.3126
+   }
+  ],
+  "154": [
+   {
+    "tag": "playful",
+    "score": 0.425
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.4179
+   },
+   {
+    "tag": "cool",
+    "score": 0.3922
+   },
+   {
+    "tag": "fun",
+    "score": 0.384
+   },
+   {
+    "tag": "surprising",
+    "score": 0.3818
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.3572
+   },
+   {
+    "tag": "energetic",
+    "score": 0.3507
+   },
+   {
+    "tag": "techy",
+    "score": 0.3472
+   },
+   {
+    "tag": "experimental",
+    "score": 0.3377
+   },
+   {
+    "tag": "endless",
+    "score": 0.3243
+   }
+  ],
+  "155": [
+   {
+    "tag": "techy",
+    "score": 0.3276
+   },
+   {
+    "tag": "attention-grabbing",
+    "score": 0.3241
+   },
+   {
+    "tag": "spiraling",
+    "score": 0.3223
+   },
+   {
+    "tag": "cool",
+    "score": 0.3175
+   },
+   {
+    "tag": "dynamic",
+    "score": 0.3126
+   },
+   {
+    "tag": "expressive",
+    "score": 0.3053
+   },
+   {
+    "tag": "vertical",
+    "score": 0.2945
+   },
+   {
+    "tag": "creative",
+    "score": 0.2915
+   },
+   {
+    "tag": "endless",
+    "score": 0.283
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2751
+   }
+  ],
+  "156": [
+   {
+    "tag": "immersive",
+    "score": 0.2946
+   },
+   {
+    "tag": "layered",
+    "score": 0.2929
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2808
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2707
+   },
+   {
+    "tag": "impactful",
+    "score": 0.2685
+   },
+   {
+    "tag": "techy",
+    "score": 0.259
+   },
+   {
+    "tag": "shape",
+    "score": 0.2543
+   },
+   {
+    "tag": "futuristic",
+    "score": 0.2504
+   },
+   {
+    "tag": "continuous",
+    "score": 0.2476
+   },
+   {
+    "tag": "modern",
+    "score": 0.2462
+   }
+  ],
+  "157": [
+   {
+    "tag": "immersive",
+    "score": 0.2911
+   },
+   {
+    "tag": "impactful",
+    "score": 0.2903
+   },
+   {
+    "tag": "expressive",
+    "score": 0.2855
+   },
+   {
+    "tag": "layered",
+    "score": 0.2823
+   },
+   {
+    "tag": "revealing",
+    "score": 0.2715
+   },
+   {
+    "tag": "edgy",
+    "score": 0.2647
+   },
+   {
+    "tag": "shape",
+    "score": 0.2528
+   },
+   {
+    "tag": "spatial",
+    "score": 0.2411
+   },
+   {
+    "tag": "techy",
+    "score": 0.239
+   },
+   {
+    "tag": "modern",
+    "score": 0.2372
+   }
+  ]
+ }
+}

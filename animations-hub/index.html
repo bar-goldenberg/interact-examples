@@ -1,0 +1,1346 @@
+<meta charset="utf-8">
+<title>Animations Hub</title>
+<style>
+  :root {
+    --bg: #f6f6f7; --panel: #ffffff; --line: #e2e2e6; --ink: #16161a;
+    --muted: #6b6b76; --accent: #3b5bfd; --chip: #eef0ff; --chip-ink: #2b3ec4;
+    --manual: #0d7a4f; --manual-bg: #e3f5ec; --auto: #7a4fd0; --auto-bg: #f0e9fb;
+    --warn: #a8620a; --warn-bg: #fdf0e0; --danger: #c0392b;
+    --sidebar: 286px; --tags: 300px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14141a; --panel: #1c1c24; --line: #2e2e3a; --ink: #ecedf2;
+      --muted: #9b9bab; --accent: #8ba0ff; --chip: #262b4d; --chip-ink: #b9c4ff;
+      --manual: #6fdca8; --manual-bg: #17362a; --auto: #c9aef8; --auto-bg: #2c2242;
+      --warn: #e0a558; --warn-bg: #3a2a13; --danger: #e8705f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14141a; --panel: #1c1c24; --line: #2e2e3a; --ink: #ecedf2;
+    --muted: #9b9bab; --accent: #8ba0ff; --chip: #262b4d; --chip-ink: #b9c4ff;
+    --manual: #6fdca8; --manual-bg: #17362a; --auto: #c9aef8; --auto-bg: #2c2242;
+    --warn: #e0a558; --warn-bg: #3a2a13; --danger: #e8705f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    height: 100vh; display: grid; overflow: hidden;
+    grid-template-columns: var(--sidebar) 1fr var(--tags);
+    grid-template-areas: "side stage tags";
+  }
+  body.no-tags { grid-template-columns: var(--sidebar) 1fr 0; }
+
+  /* ---------- sidebar ---------- */
+  #side {
+    grid-area: side; background: var(--panel); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .side-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); }
+  .side-head h1 { margin: 0 0 2px; font-size: 14px; letter-spacing: .01em; }
+  .side-head p { margin: 0; font-size: 11px; color: var(--muted); }
+  #q {
+    width: 100%; margin-top: 10px; padding: 7px 9px; font-size: 13px;
+    border: 1px solid var(--line); border-radius: 7px;
+    background: var(--bg); color: var(--ink);
+  }
+  #q:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #tagIndexBar { margin-top: 9px; font-size: 11px; }
+  #drawerBar { margin-top: 5px; font-size: 11px; color: var(--muted); }
+  #dictBar { margin-top: 4px; font-size: 11px; }
+  #filterNote {
+    display: none; margin-top: 6px; font-size: 11px; color: var(--muted);
+  }
+  #filterNote button {
+    border: 0; background: none; color: var(--accent); cursor: pointer;
+    font: inherit; text-decoration: underline; padding: 0;
+  }
+  #list { overflow-y: auto; flex: 1; padding: 6px 0 20px; min-height: 0; }
+  .grp {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 9px 12px 8px; border: 0; border-top: 1px solid var(--line);
+    background: var(--panel); cursor: pointer; text-align: left;
+    font: inherit; font-size: 10px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted);
+    position: sticky; top: 0; z-index: 2;
+  }
+  #list > .grp:first-child { border-top: 0; }
+  .grp:hover { color: var(--ink); }
+  .grp .chev {
+    flex: none; font-size: 9px; line-height: 1; transition: transform .16s ease;
+  }
+  .grp[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+  .grp .gname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .grp .gcount { font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .8; }
+  .grp .gdots { display: flex; gap: 3px; flex: none; }
+  .grpitems { padding-bottom: 4px; }
+  .grpitems.hidden { display: none; }
+  .allToggle {
+    border: 0; background: none; color: var(--accent); cursor: pointer;
+    font: inherit; font-size: 11px; padding: 0; text-decoration: underline;
+  }
+  .item {
+    display: flex; align-items: center; gap: 7px; width: 100%;
+    padding: 6px 12px 6px 14px; border: 0; background: none; cursor: pointer;
+    text-align: left; color: var(--ink); font: inherit; border-left: 2px solid transparent;
+  }
+  .item:hover { background: var(--bg); }
+  .item.on { background: var(--chip); border-left-color: var(--accent); font-weight: 600; }
+  .item.dead { opacity: .45; cursor: not-allowed; }
+  .item .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .dot.manual { background: var(--manual); }
+  .dot.claude { background: var(--auto); }
+
+  /* ---------- stage ---------- */
+  #stage { grid-area: stage; display: flex; flex-direction: column; min-width: 0; }
+  #bar {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    background: var(--panel); border-bottom: 1px solid var(--line); min-height: 46px;
+  }
+  #bar .t { font-weight: 650; font-size: 14px; }
+  #bar .p { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
+  #bar .sp { flex: 1; }
+  .btn {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 7px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  #frameWrap { flex: 1; position: relative; background: var(--bg); min-height: 0; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
+  #empty {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    text-align: center; color: var(--muted); font-size: 13px; padding: 30px;
+  }
+
+  /* ---------- tags ---------- */
+  #tags {
+    grid-area: tags; background: var(--panel); border-left: 1px solid var(--line);
+    overflow-y: auto; padding: 14px; min-height: 0;
+  }
+  body.no-tags #tags { display: none; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 650;
+  }
+  .badge.manual { background: var(--manual-bg); color: var(--manual); }
+  .badge.claude { background: var(--auto-bg); color: var(--auto); }
+  .grouphead {
+    width: 100%; margin: 16px 0 7px; padding: 0; border: 0; background: none;
+    font: inherit; font-size: 10px; letter-spacing: .09em; text-align: left;
+    text-transform: uppercase; color: var(--muted); cursor: default;
+    display: flex; gap: 7px; align-items: baseline;
+  }
+  .grouphead .glabel { flex: 1; }
+  .grouphead .gn { font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .grouphead.fold { cursor: pointer; }
+  .grouphead.fold:hover { color: var(--ink); }
+  .grouphead .chev {
+    font-size: 9px; line-height: 1; transition: transform .16s ease; flex: none;
+  }
+  .grouphead[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chips.hidden { display: none; }
+  .chip {
+    border: 0; background: var(--chip); color: var(--chip-ink);
+    padding: 3px 8px; border-radius: 999px; font-size: 11.5px;
+    cursor: pointer; font: inherit; font-size: 11.5px; line-height: 1.5;
+  }
+  .chip:hover { outline: 1px solid var(--accent); }
+  .chip.lit { background: var(--accent); color: #fff; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 18px; line-height: 1.6; }
+
+  /* ---------- guarded tag editing ---------- */
+  #lockRow {
+    display: flex; align-items: center; gap: 8px; margin-top: 14px;
+    padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  #lockBtn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--muted);
+    border-radius: 999px; padding: 4px 11px; cursor: pointer; font: inherit; font-size: 11px;
+  }
+  #lockBtn:hover { border-color: var(--accent); color: var(--accent); }
+  #lockBtn.open {
+    border-color: var(--warn); color: var(--warn); background: var(--warn-bg); font-weight: 650;
+  }
+  #saveState { font-size: 11px; color: var(--muted); flex: 1; }
+  #saveState.err { color: var(--danger); }
+  #saveState.ok { color: var(--manual); }
+  #undoBtn {
+    border: 0; background: none; color: var(--accent); cursor: pointer;
+    font: inherit; font-size: 11px; text-decoration: underline; padding: 0; display: none;
+  }
+  body.editing #tags { box-shadow: inset 3px 0 0 var(--warn); }
+  #editBox { display: none; margin-top: 10px; }
+  body.editing #editBox { display: block; }
+  #editBox .row { display: flex; gap: 6px; }
+  #newTag {
+    flex: 1; padding: 5px 8px; font-size: 12px; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--bg); color: var(--ink);
+  }
+  #newTag:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #addBtn {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #addBtn:hover { border-color: var(--accent); color: var(--accent); }
+  .chip .x {
+    display: none; margin-left: 5px; opacity: .55; font-weight: 700;
+  }
+  body.editing .chips[data-row="Atmosphere"] .chip .x { display: inline; }
+  .chip.arm {
+    background: var(--danger); color: #fff;
+  }
+  .chip.arm .x { opacity: 1; }
+  .warnline { font-size: 10.5px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+
+  /* ---------- suggested tags ---------- */
+  .schip {
+    border: 1px dashed var(--line); background: none; color: var(--muted);
+    border-radius: 999px; padding: 3px 8px; font: inherit; font-size: 11.5px;
+    cursor: pointer; line-height: 1.5;
+  }
+  .schip:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
+  .schip .plus { opacity: .6; margin-right: 3px; }
+
+  /* ---------- inline definitions for this preset ---------- */
+  .defsub {
+    font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); margin: 9px 0 5px;
+  }
+  .defsub:first-child { margin-top: 2px; }
+  .defrow {
+    font-size: 11.5px; line-height: 1.45; margin: 0 0 6px;
+    padding-left: 8px; border-left: 2px solid var(--line);
+  }
+  .defrow b { color: var(--chip-ink); font-weight: 650; }
+  .defrow.sug b { color: var(--muted); font-weight: 600; }
+  .defrow .lf {
+    display: block; color: var(--muted); font-size: 10.5px; margin-top: 1px;
+  }
+  .defrow:hover { border-left-color: var(--accent); }
+
+  /* ---------- search the whole vocabulary from the panel ---------- */
+  #sugSearch {
+    width: 100%; margin: 7px 0 5px; padding: 5px 8px; font-size: 12px;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--ink);
+  }
+  #sugSearch:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #sugHits { display: flex; flex-wrap: wrap; gap: 5px; }
+  #sugHits .none { font-size: 11px; color: var(--muted); }
+  .schip.has { border-style: solid; opacity: .45; cursor: default; }
+  .schip.has:hover { border-color: var(--line); color: var(--muted); }
+
+  /* ---------- change tracking ---------- */
+  .edited {
+    flex: none; display: inline-flex; align-items: center; color: var(--warn);
+  }
+  .edited svg { display: block; fill: currentColor; }
+  .item.on .edited { color: var(--warn); }
+  .dh .edited { margin-right: 2px; }
+
+  /* ---------- approved / done ---------- */
+  .done { flex: none; display: inline-flex; align-items: center; color: var(--manual); }
+  .done svg { display: block; fill: currentColor; }
+  #doneBtn {
+    border: 1px solid var(--line); background: var(--bg); color: var(--muted);
+    border-radius: 7px; padding: 5px 11px; cursor: pointer; font: inherit; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  #doneBtn:hover { border-color: var(--manual); color: var(--manual); }
+  #doneBtn.on {
+    background: var(--manual-bg); border-color: var(--manual);
+    color: var(--manual); font-weight: 650;
+  }
+  #doneBtn svg { fill: currentColor; }
+  #reviewFilter { display: flex; gap: 4px; margin-top: 7px; }
+  #reviewFilter button {
+    border: 1px solid var(--line); background: none; color: var(--muted);
+    border-radius: 999px; padding: 2px 9px; cursor: pointer; font: inherit; font-size: 10.5px;
+  }
+  #reviewFilter button:hover { border-color: var(--accent); color: var(--accent); }
+  #reviewFilter button.on {
+    background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 650;
+  }
+  #diffBox {
+    display: none; margin-top: 12px; padding: 10px;
+    border: 1px solid var(--warn); border-radius: 8px; background: var(--warn-bg);
+  }
+  #diffBox.show { display: block; }
+  #diffBox .dh {
+    font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--warn); font-weight: 700; margin-bottom: 7px;
+    display: flex; align-items: baseline; gap: 7px;
+  }
+  #diffBox .dh .sp { flex: 1; }
+  .dchip {
+    display: inline-block; padding: 2px 7px; border-radius: 999px;
+    font-size: 11px; margin: 0 4px 4px 0;
+  }
+  .dchip.add { background: var(--manual-bg); color: var(--manual); }
+  .dchip.rem { background: var(--danger); color: #fff; text-decoration: line-through; }
+  .dlabel { font-size: 10.5px; color: var(--muted); margin: 4px 0 2px; }
+  #revertBtn {
+    border: 1px solid var(--warn); background: none; color: var(--warn);
+    border-radius: 6px; padding: 3px 8px; cursor: pointer; font: inherit; font-size: 11px;
+  }
+  #revertBtn:hover { background: var(--warn); color: #fff; }
+  #histBody { overflow-y: auto; padding: 6px 18px 20px; }
+  .hrow {
+    display: grid; grid-template-columns: 132px 1fr; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12.5px;
+  }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow .ts {
+    font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace;
+  }
+  .hrow .nm { font-weight: 600; margin-bottom: 3px; }
+  .hrow .nm button {
+    border: 0; background: none; color: var(--accent); cursor: pointer;
+    font: inherit; font-weight: 600; padding: 0; text-decoration: underline;
+  }
+  kbd {
+    font: inherit; font-size: 10.5px; border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--bg);
+  }
+  /* ---------- atmosphere tag index (overlay) ---------- */
+  #tagIndex, .overlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    background: rgba(0,0,0,.45); padding: 40px 24px;
+  }
+  #tagIndex.open, .overlay.open { display: block; }
+  #tiCard {
+    max-width: 900px; margin: 0 auto; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 12px;
+    max-height: calc(100vh - 80px); display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  }
+  #tiHead {
+    padding: 16px 18px 12px; border-bottom: 1px solid var(--line);
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  #tiHead h2 { margin: 0; font-size: 15px; }
+  #tiHead .sub { font-size: 11px; color: var(--muted); flex: 1; }
+  #tiHead .tihint {
+    font-size: 10.5px; color: var(--accent); border: 1px dashed var(--accent);
+    border-radius: 999px; padding: 2px 8px; white-space: nowrap;
+  }
+  #tiSearch {
+    padding: 6px 9px; font-size: 13px; border: 1px solid var(--line);
+    border-radius: 7px; background: var(--bg); color: var(--ink); width: 190px;
+  }
+  #tiSearch:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #tiBody { overflow-y: auto; padding: 14px 18px 20px; }
+  #tiBody h3 {
+    margin: 4px 0 9px; font-size: 10px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+  }
+  #tiBody h3:not(:first-child) { margin-top: 20px; }
+  .tigrid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tichip {
+    border: 1px solid var(--line); background: var(--chip); color: var(--chip-ink);
+    border-radius: 999px; padding: 5px 11px; cursor: pointer; font: inherit;
+    font-size: 12.5px; display: inline-flex; gap: 7px; align-items: baseline;
+  }
+  .tichip:hover { border-color: var(--accent); }
+  .tichip .n { font-size: 10.5px; opacity: .7; font-variant-numeric: tabular-nums; }
+  .tichip.lit { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tichip.zero {
+    background: none; color: var(--muted); cursor: not-allowed; opacity: .6;
+  }
+  .tichip.zero:hover { border-color: var(--line); }
+  #tiDef {
+    display: none; margin: 0 0 14px; padding: 12px 14px;
+    border: 1px solid var(--accent); border-radius: 9px; background: var(--chip);
+  }
+  #tiDef.show { display: block; }
+  #tiDef h4 {
+    margin: 0 0 6px; font-size: 14px; color: var(--chip-ink);
+    display: flex; gap: 8px; align-items: baseline;
+  }
+  #tiDef h4 .cl {
+    font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+    opacity: .7; font-weight: 500;
+  }
+  #tiDef p { margin: 4px 0; font-size: 12.5px; line-height: 1.5; }
+  #tiDef .lbl { font-weight: 700; }
+  #tiDef .sig { font-size: 11.5px; color: var(--muted); margin-top: 7px; }
+  #tiDef .use {
+    margin-top: 9px; border: 1px solid var(--accent); background: none;
+    color: var(--accent); border-radius: 6px; padding: 3px 9px;
+    cursor: pointer; font: inherit; font-size: 11.5px;
+  }
+  #tiDef .use:hover { background: var(--accent); color: #fff; }
+  #tiClose {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 7px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #tiClose:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; grid-template-areas: "side" "stage" "tags"; overflow: auto; height: auto; }
+    #frameWrap { height: 70vh; }
+  }
+</style>
+
+<div id="side">
+  <div class="side-head">
+    <h1>Animations Hub</h1>
+    <p id="count"></p>
+    <input id="q" type="search" placeholder="Search name or tag…" autocomplete="off">
+    <div id="tagIndexBar">
+      <button class="allToggle" id="openTagIndex" title="Browse every atmosphere tag (t)">All atmosphere tags →</button>
+      &nbsp;·&nbsp;
+      <button class="allToggle" id="openHist" title="Every tag change you have made (h)">History</button>
+    </div>
+    <div id="dictBar">
+      <button class="allToggle" id="openDict" title="What every tag means and what to look for (d)">Tag dictionary</button>
+    </div>
+    <div id="drawerBar"><button class="allToggle" id="allToggle"></button></div>
+    <div id="reviewFilter">
+      <button data-rf="all" class="on">All</button>
+      <button data-rf="todo">To review</button>
+      <button data-rf="done">Done</button>
+    </div>
+    <div id="filterNote"></div>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div id="stage">
+  <div id="bar">
+    <div>
+      <div class="t" id="title">Pick an animation</div>
+      <div class="p" id="path"></div>
+    </div>
+    <div class="sp"></div>
+    <button class="btn" id="prev" title="Previous (↑ / k)">↑</button>
+    <button class="btn" id="next" title="Next (↓ / j)">↓</button>
+    <button class="btn" id="reload" title="Reload">↻</button>
+    <button class="btn" id="pop" title="Open in a new tab">↗</button>
+    <button class="btn" id="toggleTags" title="Hide tag panel">Tags</button>
+    <button id="doneBtn" type="button" title="Mark this preset as reviewed and approved"></button>
+  </div>
+  <div id="frameWrap">
+    <iframe id="frame" title="Animation preview" style="display:none"></iframe>
+    <div id="empty">Choose a preset from the left to preview it.</div>
+  </div>
+</div>
+
+<div id="tags">
+  <div id="tagBody">
+    <p class="hint">Tags appear here once you pick a preset.<br>
+    Click any tag to find every preset sharing it.</p>
+  </div>
+  <div id="lockRow" style="display:none">
+    <button id="lockBtn" type="button"><span id="lockIcon">🔒</span><span id="lockText">Locked</span></button>
+    <span id="saveState"></span>
+    <button id="undoBtn" type="button">Undo</button>
+  </div>
+  <div id="editBox">
+    <div class="row">
+      <input id="newTag" list="vocabList" placeholder="add atmosphere tag…" autocomplete="off">
+      <button id="addBtn" type="button">Add</button>
+    </div>
+    <datalist id="vocabList"></datalist>
+    <p class="warnline" id="warnline"></p>
+  </div>
+  <div id="diffBox">
+    <div class="dh">
+      <span class="edited" id="diffIcon"></span><span>Changed from original</span><span class="sp"></span>
+      <button id="revertBtn" type="button">Revert</button>
+    </div>
+    <div id="diffContent"></div>
+  </div>
+</div>
+
+<div id="histIndex" class="overlay">
+  <div id="tiCard">
+    <div id="tiHead">
+      <h2>Change history</h2>
+      <span class="sub" id="histSub"></span>
+      <button id="histClose" type="button">Close</button>
+    </div>
+    <div id="histBody"></div>
+  </div>
+</div>
+
+<div id="tagIndex">
+  <div id="tiCard">
+    <div id="tiHead">
+      <h2>Atmosphere tags</h2>
+      <span class="tihint">click a tag for its definition</span>
+      <span class="sub" id="tiSub"></span>
+      <input id="tiSearch" type="search" placeholder="filter tags…" autocomplete="off">
+      <button id="tiClose" type="button">Close</button>
+    </div>
+    <div id="tiBody"><div id="tiDef"></div></div>
+  </div>
+</div>
+
+<script>
+const PRESETS = [{"row":118,"name":"aperture-contact-form","path":"contact/aperture-contact-form.html","folder":"contact","file":"aperture-contact-form.html","src":"../contact/aperture-contact-form.html","source":"claude","atmosphere":["polished","smooth","elegant","refined","clean","revealing","silky","depth","structured","gentle","gradual"],"original":["polished","smooth","elegant","interactive","refined","clean","revealing","silky","depth","dimensional","alive","effortless","structured"],"reviewed":"2026-08-27T16:37:08","business":[],"section":[]},{"row":119,"name":"atelier-contact-form","path":"contact/atelier-contact-form.html","folder":"contact","file":"atelier-contact-form.html","src":"../contact/atelier-contact-form.html","source":"claude","atmosphere":["gentle","soft","elegant","refined","clean","gradual","revealing","smooth","polished","transformative"],"original":["gentle","soft","elegant","interactive","refined","clean","understated","gradual","revealing","smooth","polished","transformative","zoom"],"reviewed":"2026-08-27T16:40:09","business":[],"section":[]},{"row":120,"name":"atoll-contact-letter-cascade","path":"contact/atoll-contact-letter-cascade.html","folder":"contact","file":"atoll-contact-letter-cascade.html","src":"../contact/atoll-contact-letter-cascade.html","source":"claude","atmosphere":["clean","minimal","elegant","refined","smooth","polished","gentle","effortless","silky","cascading","staggered","vertical"],"original":["clean","minimal","elegant","refined","understated","smooth","polished","gentle","effortless","silky","cascading","staggered","vertical"],"reviewed":"2026-08-27T16:44:28","business":[],"section":[]},{"row":121,"name":"atoll-contact-word-lift","path":"contact/atoll-contact-word-lift.html","folder":"contact","file":"atoll-contact-word-lift.html","src":"../contact/atoll-contact-word-lift.html","source":"claude","atmosphere":["clean","minimal","elegant","refined","understated","smooth","polished","gentle","graceful","silky","vertical"],"original":["clean","minimal","elegant","refined","understated","smooth","polished","gentle","graceful","silky","vertical","staggered"],"reviewed":"2026-08-27T16:45:17","business":[],"section":[]},{"row":122,"name":"cascade-flip-contact","path":"contact/cascade-flip-contact.html","folder":"contact","file":"cascade-flip-contact.html","src":"../contact/cascade-flip-contact.html","source":"claude","atmosphere":["refined","structured","sophisticated","confident","depth","dimensional","cascading","staggered","bold","artistic","creative","energetic"],"original":["smooth","polished","refined","interactive","structured","sophisticated","clean","confident","depth","3d","dimensional","cascading","staggered"],"reviewed":"2026-08-27T16:46:33","business":[],"section":[]},{"row":123,"name":"iris-contact-form","path":"contact/iris-contact-form.html","folder":"contact","file":"iris-contact-form.html","src":"../contact/iris-contact-form.html","source":"claude","atmosphere":["smooth","silky","elegant","gentle","refined","clean","minimal","graceful","revealing","circular","zoom","organic"],"original":["smooth","silky","elegant","interactive","gentle","refined","clean","minimal","graceful","revealing","circular","zoom","organic"],"reviewed":"","business":[],"section":[]},{"row":124,"name":"location-image-circle-close-contact","path":"contact/location-image-circle-close-contact.html","folder":"contact","file":"location-image-circle-close-contact.html","src":"../contact/location-image-circle-close-contact.html","source":"claude","atmosphere":["smooth","gradual","clean","interactive","elegant","minimal","flowing","continuous","revealing","circular","shape","transformative","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":125,"name":"location-image-sides-then-centre-contact","path":"contact/location-image-sides-then-centre-contact.html","folder":"contact","file":"location-image-sides-then-centre-contact.html","src":"../contact/location-image-sides-then-centre-contact.html","source":"claude","atmosphere":["smooth","gradual","clean","interactive","elegant","minimal","flowing","continuous","structured","revealing","horizontal","vertical","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":126,"name":"mail-pull-back-contact","path":"contact/mail-pull-back-contact.html","folder":"contact","file":"mail-pull-back-contact.html","src":"../contact/mail-pull-back-contact.html","source":"claude","atmosphere":["bold","impactful","graphic","interactive","attention-grabbing","confident","edgy","smooth","polished","zoom","depth","3d","perspective"],"original":[],"reviewed":"2026-08-27T16:47:03","business":[],"section":[]},{"row":127,"name":"pixel-dissolve-contact","path":"contact/pixel-dissolve-contact.html","folder":"contact","file":"pixel-dissolve-contact.html","src":"../contact/pixel-dissolve-contact.html","source":"claude","atmosphere":["techy","structured","organized","interactive","polished","smooth","futuristic","confident","staggered","cascading","revealing","transformative"],"original":["techy","structured","organized","interactive","clean","polished","smooth","futuristic","confident","staggered","cascading","revealing","transformative"],"reviewed":"","business":[],"section":[]},{"row":130,"name":"plumb-contact-card","path":"contact/plumb-contact-card.html","folder":"contact","file":"plumb-contact-card.html","src":"../contact/plumb-contact-card.html","source":"claude","atmosphere":["elegant","clean","minimal","interactive","refined","sophisticated","smooth","gradual","polished","layered","depth","dimensional","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":128,"name":"plumb-contact-card-expand-to-fullscreen","path":"contact/plumb-contact-card-expand-to-fullscreen.html","folder":"contact","file":"plumb-contact-card-expand-to-fullscreen.html","src":"../contact/plumb-contact-card-expand-to-fullscreen.html","source":"claude","atmosphere":["elegant","high-end","sophisticated","interactive","refined","smooth","gradual","seamless","transformative","zoom","depth","layered","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":129,"name":"plumb-contact-card-fade-scale-over-hero","path":"contact/plumb-contact-card-fade-scale-over-hero.html","folder":"contact","file":"plumb-contact-card-fade-scale-over-hero.html","src":"../contact/plumb-contact-card-fade-scale-over-hero.html","source":"claude","atmosphere":["elegant","clean","minimal","interactive","refined","sophisticated","smooth","gradual","effortless","layered","depth","zoom","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":131,"name":"plumb-contact-form-standup","path":"contact/plumb-contact-form-standup.html","folder":"contact","file":"plumb-contact-form-standup.html","src":"../contact/plumb-contact-form-standup.html","source":"claude","atmosphere":["elegant","sophisticated","high-end","interactive","refined","smooth","gradual","clean","3d","depth","dimensional","perspective","spatial"],"original":[],"reviewed":"","business":[],"section":[]},{"row":132,"name":"serpentine-shutter-contact","path":"contact/serpentine-shutter-contact.html","folder":"contact","file":"serpentine-shutter-contact.html","src":"../contact/serpentine-shutter-contact.html","source":"claude","atmosphere":["polished","smooth","interactive","refined","structured","revealing","staggered","horizontal","minimal","organized","seamless","transformative"],"original":["clean","polished","smooth","interactive","refined","structured","revealing","staggered","horizontal","minimal","organized","seamless","transformative"],"reviewed":"","business":[],"section":[]},{"row":20,"name":"3D small carousel","path":"Gallery-and-Carousel/3DSmallCarousel.html","folder":"Gallery-and-Carousel","file":"3DSmallCarousel.html","src":"../Gallery-and-Carousel/3DSmallCarousel.html","source":"manual","atmosphere":["edgy","3d","depth","creative","unconventional","artistic","experimental","bold","modern","continuous","high-end","techy"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","gallery","Product Section","Services Section","Case Studies","About","Team","How It Works","Testimonials","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":22,"name":"3D_Parallax_Gallery","path":"Gallery-and-Carousel/3D_Parallax_Gallery.html","folder":"Gallery-and-Carousel","file":"3D_Parallax_Gallery.html","src":"../Gallery-and-Carousel/3D_Parallax_Gallery.html","source":"claude","atmosphere":["depth","3d","dimensional","interactive","alive","playful","perspective","layered","polished","structured","organized","cool"],"original":[],"reviewed":"","business":[],"section":[]},{"row":18,"name":"Accordion Scroll Vertical","path":"Gallery-and-Carousel/AccordionScrollVertical.html","folder":"Gallery-and-Carousel","file":"AccordionScrollVertical.html","src":"../Gallery-and-Carousel/AccordionScrollVertical.html","source":"manual","atmosphere":["playful","dynamic","interactive","eye-catching","fun","creative","unconventional","artistic","experimental"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Product Section","Services Section","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":12,"name":"acordion scroll","path":"Gallery-and-Carousel/AccordionScrollHorizontal.html","folder":"Gallery-and-Carousel","file":"AccordionScrollHorizontal.html","src":"../Gallery-and-Carousel/AccordionScrollHorizontal.html","source":"manual","atmosphere":["dynamic","interactive","fun","poppy","flowing","sophisticated","modern","spatial","depth","gradual","alive"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Product Section","Services Section","Team","Testimonials","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":23,"name":"BlurFocus_Gallery","path":"Gallery-and-Carousel/BlurFocus_Gallery.html","folder":"Gallery-and-Carousel","file":"BlurFocus_Gallery.html","src":"../Gallery-and-Carousel/BlurFocus_Gallery.html","source":"claude","atmosphere":["revealing","smooth","interactive","transformative","alive","polished","zoom","staggered","structured","organized","subtle","elegant"],"original":[],"reviewed":"","business":[],"section":[]},{"row":1,"name":"Card Spread","path":"Gallery-and-Carousel/CardSpread.html","folder":"Gallery-and-Carousel","file":"CardSpread.html","src":"../Gallery-and-Carousel/CardSpread.html","source":"manual","atmosphere":["smooth","gentle","subtle","elegant","soft","clean","refined","graceful","cloudy","understated","classic","high-end","modern"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Gaming","Health","Fitness","Wellness","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Corporate Websites."],"section":["Hero","Product Section","Services Section","Cards","Interactive Cards"]},{"row":25,"name":"CardSpread_7","path":"Gallery-and-Carousel/CardSpread_7.html","folder":"Gallery-and-Carousel","file":"CardSpread_7.html","src":"../Gallery-and-Carousel/CardSpread_7.html","source":"claude","atmosphere":["bold","circular","impactful","graphic","dynamic","layered","revealing","gradual","spiraling","futuristic","attention-grabbing","techy","flowing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":24,"name":"CardSpreadByHover","path":"Gallery-and-Carousel/CardSpreadByHover.html","folder":"Gallery-and-Carousel","file":"CardSpreadByHover.html","src":"../Gallery-and-Carousel/CardSpreadByHover.html","source":"claude","atmosphere":["smooth","elegant","horizontal","clean","polished","interactive","layered","revealing","effortless","silky","refined","flowing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":26,"name":"CasperGallery","path":"Gallery-and-Carousel/CasperGallery.html","folder":"Gallery-and-Carousel","file":"CasperGallery.html","src":"../Gallery-and-Carousel/CasperGallery.html","source":"claude","atmosphere":["playful","alive","surprising","interactive","poppy","endless","experimental","staggered","zoom","revealing","organic","energetic","immersive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":6,"name":"classic horziontal scroll","path":"Gallery-and-Carousel/ClassicHorizontalScroll.html","folder":"Gallery-and-Carousel","file":"ClassicHorizontalScroll.html","src":"../Gallery-and-Carousel/ClassicHorizontalScroll.html","source":"manual","atmosphere":["horizontal scroll","smooth","clean","elegant","flowing","graceful","seamless","polished","effortless","simple","silky"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","Product Section","Services Section","Feature Gallery","Gallery","Cards","Portfolio","How it works"]},{"row":7,"name":"corner fold scroll animation","path":"Gallery-and-Carousel/CornerFoldScrollAnimation.html","folder":"Gallery-and-Carousel","file":"CornerFoldScrollAnimation.html","src":"../Gallery-and-Carousel/CornerFoldScrollAnimation.html","source":"manual","atmosphere":["dynamic","energetic","continuous","flowing","smooth","circular","silky","effortless","gradual","playful","modern"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Retail","Entertainment","Fitness","Wellness","SaaS","Real Estate","Architecture","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Wedding & Event","."],"section":["Hero","Product Section","Services Section","Feature Gallery","Cards","Interactive Cards","Portfolio"]},{"row":27,"name":"Cornergallery01","path":"Gallery-and-Carousel/Cornergallery01.html","folder":"Gallery-and-Carousel","file":"Cornergallery01.html","src":"../Gallery-and-Carousel/Cornergallery01.html","source":"claude","atmosphere":["immersive","revealing","zoom","interactive","impactful","continuous","transformative","alive","endless","bold","expressive","seamless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":28,"name":"CursorTrail","path":"Gallery-and-Carousel/CursorTrail.html","folder":"Gallery-and-Carousel","file":"CursorTrail.html","src":"../Gallery-and-Carousel/CursorTrail.html","source":"claude","atmosphere":["playful","interactive","alive","poppy","surprising","zoom","revealing","cascading","organic","fun","clean","minimal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":29,"name":"DiagonalShuffle","path":"Gallery-and-Carousel/DiagonalShuffle.html","folder":"Gallery-and-Carousel","file":"DiagonalShuffle.html","src":"../Gallery-and-Carousel/DiagonalShuffle.html","source":"claude","atmosphere":["dynamic","smooth","staggered","cascading","depth","gradual","polished","zoom","playful","energetic","clean","dimensional"],"original":[],"reviewed":"","business":[],"section":[]},{"row":13,"name":"Digital Jukebox","path":"Gallery-and-Carousel/DigitalJukebox.html","folder":"Gallery-and-Carousel","file":"DigitalJukebox.html","src":"../Gallery-and-Carousel/DigitalJukebox.html","source":"manual","atmosphere":["revealing","vertical","confident","impactful","creative","bold","spiraling","expressive","depth","layering","circular"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Entertainment","Gaming","Architecture","Travel","Events","Festivals","Art","Culture","Museums","Beauty","Music","Performing Arts","Interior Design","Home Decor"],"section":["Home Page","Gallery","Product Section","Services Section","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":30,"name":"DolphinAnimation","path":"Gallery-and-Carousel/DolphinAnimation.html","folder":"Gallery-and-Carousel","file":"DolphinAnimation.html","src":"../Gallery-and-Carousel/DolphinAnimation.html","source":"claude","atmosphere":["playful","revealing","alive","interactive","organic","surprising","fun","groovy","transformative","vertical","clean","poppy"],"original":[],"reviewed":"","business":[],"section":[]},{"row":16,"name":"Endless Parallax","path":"Gallery-and-Carousel/EndlessParallax.html","folder":"Gallery-and-Carousel","file":"EndlessParallax.html","src":"../Gallery-and-Carousel/EndlessParallax.html","source":"manual","atmosphere":["playful","bold","3d","expressive","innovative","interactive","dynamic","edgy","fun","futuristic","flowless"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Fashion Brands","Lifestyle Brands","Luxury Brands","Media","Architecture","Travel","Events","Conferences","Festivals","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Wedding & Event"],"section":["Home Page","Hero","Gallery","Cards","Portfolio"]},{"row":2,"name":"expand horzinotal scroll","path":"Gallery-and-Carousel/ExpandingHorizontalScroll.html","folder":"Gallery-and-Carousel","file":"ExpandingHorizontalScroll.html","src":"../Gallery-and-Carousel/ExpandingHorizontalScroll.html","source":"manual","atmosphere":["fluid","cool","impactful","bold","attention-grabbing","dynamic","edgy","sophisticated","high-end","playful","horizontal movement"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Media","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","Product Section","Services Section","Case Studies","Team","How It Works","Testimonials","Feature Gallery","Cards","Interactive Cards."]},{"row":31,"name":"FadeInGallery","path":"Gallery-and-Carousel/FadeInGallery.html","folder":"Gallery-and-Carousel","file":"FadeInGallery.html","src":"../Gallery-and-Carousel/FadeInGallery.html","source":"claude","atmosphere":["immersive","zoom","smooth","revealing","continuous","interactive","impactful","seamless","endless","alive","polished","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":32,"name":"FerrisWheel","path":"Gallery-and-Carousel/FerrisWheel.html","folder":"Gallery-and-Carousel","file":"FerrisWheel.html","src":"../Gallery-and-Carousel/FerrisWheel.html","source":"claude","atmosphere":["circular","endless","continuous","gradual","flowing","seamless","spiraling","playful","smooth","effortless","structured","organized"],"original":[],"reviewed":"","business":[],"section":[]},{"row":4,"name":"horiznotal & vertical scroll","path":"Gallery-and-Carousel/HorizontalAndVerticalScroll.html","folder":"Gallery-and-Carousel","file":"HorizontalAndVerticalScroll.html","src":"../Gallery-and-Carousel/HorizontalAndVerticalScroll.html","source":"manual","atmosphere":["creative","unique","bold","dynamic","classic","playful","confident","silky"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Wedding & Event"],"section":["Hero","Gallery","Product Section","Services Section","Case Studies","How It Works","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":33,"name":"HorizontalCarouselPerspective","path":"Gallery-and-Carousel/HorizontalCarouselPerspective.html","folder":"Gallery-and-Carousel","file":"HorizontalCarouselPerspective.html","src":"../Gallery-and-Carousel/HorizontalCarouselPerspective.html","source":"claude","atmosphere":["depth","3d","dimensional","spatial","perspective","layered","horizontal","gradual","flowing","continuous","effortless","clean","elegant"],"original":[],"reviewed":"","business":[],"section":[]},{"row":17,"name":"horziontally scrolling image gallery","path":"Gallery-and-Carousel/HorizontallyScrollingGallery.html","folder":"Gallery-and-Carousel","file":"HorizontallyScrollingGallery.html","src":"../Gallery-and-Carousel/HorizontallyScrollingGallery.html","source":"manual","atmosphere":["horizontal","organic","playful","fun","smooth","groovy","shape","zoom","interactive","modern","innovative","bold","edgy","sophisticated"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","Product Section","Services Section","Team","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":34,"name":"Interactive_ Rotating_Gallery_Grid","path":"Gallery-and-Carousel/Interactive_ Rotating_Gallery_Grid.html","folder":"Gallery-and-Carousel","file":"Interactive_ Rotating_Gallery_Grid.html","src":"../Gallery-and-Carousel/Interactive_%20Rotating_Gallery_Grid.html","source":"claude","atmosphere":["interactive","alive","depth","dimensional","spatial","perspective","layered","smooth","polished","structured","organized","staggered","playful"],"original":[],"reviewed":"","business":[],"section":[]},{"row":21,"name":"Looped tabs with perspective","path":"Gallery-and-Carousel/LoopedTabsWithPerspective.html","folder":"Gallery-and-Carousel","file":"LoopedTabsWithPerspective.html","src":"../Gallery-and-Carousel/LoopedTabsWithPerspective.html","source":"manual","atmosphere":["smooth","flowing","clean","organized","structured","elegant","soft"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Product Section","Services Section","Team","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":35,"name":"Looping_Sphere_Gallery","path":"Gallery-and-Carousel/Looping_Sphere_Gallery.html","folder":"Gallery-and-Carousel","file":"Looping_Sphere_Gallery.html","src":"../Gallery-and-Carousel/Looping_Sphere_Gallery.html","source":"claude","atmosphere":["immersive","depth","3d","dimensional","spatial","zoom","endless","continuous","futuristic","techy","edgy","alive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":36,"name":"MantaRay","path":"Gallery-and-Carousel/MantaRay.html","folder":"Gallery-and-Carousel","file":"MantaRay.html","src":"../Gallery-and-Carousel/MantaRay.html","source":"claude","atmosphere":["organic","staggered","endless","continuous","flowing","horizontal","gentle","smooth","playful","alive","interactive","zoom","seamless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":37,"name":"Mirror_Hover_Galery","path":"Gallery-and-Carousel/Mirror_Hover_Galery.html","folder":"Gallery-and-Carousel","file":"Mirror_Hover_Galery.html","src":"../Gallery-and-Carousel/Mirror_Hover_Galery.html","source":"claude","atmosphere":["interactive","alive","surprising","staggered","structured","organized","smooth","polished","silky","effortless","zoom","unique","cool"],"original":[],"reviewed":"","business":[],"section":[]},{"row":38,"name":"Mouse track infinite gallery","path":"Gallery-and-Carousel/Mouse track infinite gallery.html","folder":"Gallery-and-Carousel","file":"Mouse track infinite gallery.html","src":"../Gallery-and-Carousel/Mouse%20track%20infinite%20gallery.html","source":"claude","atmosphere":["endless","continuous","flowing","fluid","immersive","effortless","smooth","organic","revealing","interactive","alive","minimal","clean"],"original":[],"reviewed":"","business":[],"section":[]},{"row":39,"name":"Paragraph_Reaveal","path":"Gallery-and-Carousel/Paragraph_Reaveal.html","folder":"Gallery-and-Carousel","file":"Paragraph_Reaveal.html","src":"../Gallery-and-Carousel/Paragraph_Reaveal.html","source":"claude","atmosphere":["elegant","refined","gradual","revealing","soft","clean","minimal","sophisticated","graceful","flowing","continuous","effortless","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":40,"name":"Scroll_3D_Animation","path":"Gallery-and-Carousel/Scroll_3D_Animation.html","folder":"Gallery-and-Carousel","file":"Scroll_3D_Animation.html","src":"../Gallery-and-Carousel/Scroll_3D_Animation.html","source":"claude","atmosphere":["depth","3d","dimensional","spatial","perspective","layered","horizontal","gradual","flowing","continuous","smooth","subtle","effortless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":8,"name":"Shape scroll","path":"Gallery-and-Carousel/ShapeScroll.html","folder":"Gallery-and-Carousel","file":"ShapeScroll.html","src":"../Gallery-and-Carousel/ShapeScroll.html","source":"manual","atmosphere":["playful","bold","graphic","expressive","surprising","energetic","dynamic","interactive","fun","poppy","flowing"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Entertainment","Fitness","Wellness","Real Estate","Architecture","Travel","Events","Festivals","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Wedding & Event","."],"section":["Hero","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":11,"name":"Small carousel","path":"Gallery-and-Carousel/SmallCarousel.html","folder":"Gallery-and-Carousel","file":"SmallCarousel.html","src":"../Gallery-and-Carousel/SmallCarousel.html","source":"manual","atmosphere":["smooth","inspirational","flowing","elegant","seamless","polished","effortless","silky","depth","futuristic","innovative","bold","techy"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Gaming","Fitness","SaaS","Travel","Festivals","Art","Beauty","Cosmetics","Music"],"section":["Hero","Product Section","Services Section","Team","Testimonials","Cards","Interactive Cards","Portfolio"]},{"row":41,"name":"SnakeAnimation","path":"Gallery-and-Carousel/SnakeAnimation.html","folder":"Gallery-and-Carousel","file":"SnakeAnimation.html","src":"../Gallery-and-Carousel/SnakeAnimation.html","source":"claude","atmosphere":["alive","zoom","revealing","transformative","smooth","gentle","playful","dynamic","organic","staggered","immersive","impactful"],"original":[],"reviewed":"","business":[],"section":[]},{"row":42,"name":"SpecimenCardGallery","path":"Gallery-and-Carousel/SpecimenCardGallery.html","folder":"Gallery-and-Carousel","file":"SpecimenCardGallery.html","src":"../Gallery-and-Carousel/SpecimenCardGallery.html","source":"claude","atmosphere":["elegant","refined","smooth","polished","depth","3d","dimensional","perspective","revealing","layered","silky","horizontal","minimal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":3,"name":"sticky repeater stack","path":"Gallery-and-Carousel/StickyRepeaterStack.html","folder":"Gallery-and-Carousel","file":"StickyRepeaterStack.html","src":"../Gallery-and-Carousel/StickyRepeaterStack.html","source":"manual","atmosphere":["playful","charming","unique","depth","z axis","zoom","edgy","silky","fun","futuristic"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Retail","Entertainment","Gaming","Health","Wellness","Education","Finance","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Festivals","Art","Culture","Museums","Restaurants","Beauty","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Wedding & Event"],"section":["Hero","Gallery","Product Section","Services Section","Case Studies","How It Works","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":5,"name":"title folds scroll animation","path":"Gallery-and-Carousel/TitleFoldsScrollAnimation.html","folder":"Gallery-and-Carousel","file":"TitleFoldsScrollAnimation.html","src":"../Gallery-and-Carousel/TitleFoldsScrollAnimation.html","source":"manual","atmosphere":["organic","fluid","creative","smooth","transformative","silky","eye catching","effortless","flowing","gradual"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","eCommerce","Retail","Entertainment","Fitness","Wellness","SaaS","Real Estate","Architecture","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Wedding & Event","."],"section":["Hero","Product Section","Services Section","Feature Gallery","Cards","Interactive Cards","Portfolio"]},{"row":14,"name":"Vertical/ horizontal lanes","path":"Gallery-and-Carousel/VerticalLanes.html","folder":"Gallery-and-Carousel","file":"VerticalLanes.html","src":"../Gallery-and-Carousel/VerticalLanes.html","source":"manual","atmosphere":["smooth","gentle","subtle","elegant","soft","clean","refined","graceful","classic","high-end","modern","silky","endless","immersive","continuous"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Home Page","Product Section","Feature Gallery","Gallery"]},{"row":15,"name":"Vertical/ horizontal lanes","path":"Gallery-and-Carousel/HorizontalLanes.html","folder":"Gallery-and-Carousel","file":"HorizontalLanes.html","src":"../Gallery-and-Carousel/HorizontalLanes.html","source":"manual","atmosphere":["smooth","gentle","subtle","elegant","soft","clean","refined","graceful","classic","high-end","modern","silky","endless","immersive","continuous"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Home Page","Product Section","Feature Gallery","Gallery"]},{"row":43,"name":"Vertical3Dcards","path":"Gallery-and-Carousel/Vertical3Dcards.html","folder":"Gallery-and-Carousel","file":"Vertical3Dcards.html","src":"../Gallery-and-Carousel/Vertical3Dcards.html","source":"claude","atmosphere":["dynamic","bold","smooth","playful","3d","depth","dimensional","perspective","vertical","revealing","layered","graphic"],"original":[],"reviewed":"","business":[],"section":[]},{"row":19,"name":"Wheel Carousel","path":"Gallery-and-Carousel/WheelCarousel.html","folder":"Gallery-and-Carousel","file":"WheelCarousel.html","src":"../Gallery-and-Carousel/WheelCarousel.html","source":"manual","atmosphere":["smooth","flowing","elegant","seamless","polished","gentle","soft","clean"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","gallery","Product Section","Services Section","Case Studies","About","Team","How It Works","Testimonials","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":44,"name":"WindowScroll","path":"Gallery-and-Carousel/WindowScroll.html","folder":"Gallery-and-Carousel","file":"WindowScroll.html","src":"../Gallery-and-Carousel/WindowScroll.html","source":"claude","atmosphere":["3d","depth","dimensional","spatial","perspective","layered","gradual","continuous","flowing","immersive","bold","poppy","impactful"],"original":[],"reviewed":"","business":[],"section":[]},{"row":45,"name":"blow-masthead-header","path":"Headers/blow-masthead-header.html","folder":"Headers","file":"blow-masthead-header.html","src":"../Headers/blow-masthead-header.html","source":"claude","atmosphere":["elegant","classic","sophisticated","high-end","refined","minimal","graphic","gradual","continuous","effortless","transformative","revealing","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":46,"name":"capezzani-wordmark-header","path":"Headers/capezzani-wordmark-header.html","folder":"Headers","file":"capezzani-wordmark-header.html","src":"../Headers/capezzani-wordmark-header.html","source":"claude","atmosphere":["subtle","understated","elegant","classic","refined","minimal","clean","sophisticated","gradual","continuous","effortless","transformative","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":47,"name":"collapsing-logo-header","path":"Headers/collapsing-logo-header.html","folder":"Headers","file":"collapsing-logo-header.html","src":"../Headers/collapsing-logo-header.html","source":"claude","atmosphere":["polished","refined","smooth","interactive","clean","minimal","playful","alive","poppy","silky","effortless","transformative","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":48,"name":"invert-header","path":"Headers/invert-header.html","folder":"Headers","file":"invert-header.html","src":"../Headers/invert-header.html","source":"claude","atmosphere":["subtle","clean","minimal","understated","refined","elegant","confident","smooth","transformative","revealing","graphic"],"original":["subtle","clean","minimal","understated","refined","elegant","confident","smooth","gradual","continuous","transformative","revealing","graphic"],"reviewed":"2026-08-27T16:48:34","business":[],"section":[]},{"row":49,"name":"scroll-side-reveal-header","path":"Headers/scroll-side-reveal-header.html","folder":"Headers","file":"scroll-side-reveal-header.html","src":"../Headers/scroll-side-reveal-header.html","source":"claude","atmosphere":["clean","minimal","subtle","understated","refined","elegant","smooth","seamless","gradual","revealing","transformative","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":50,"name":"spectrum-collapse-header","path":"Headers/spectrum-collapse-header.html","folder":"Headers","file":"spectrum-collapse-header.html","src":"../Headers/spectrum-collapse-header.html","source":"claude","atmosphere":["bold","impactful","graphic","confident","clean","minimal","structured","smooth","gradual","continuous","transformative","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":51,"name":"visionaire-logo-header","path":"Headers/visionaire-logo-header.html","folder":"Headers","file":"visionaire-logo-header.html","src":"../Headers/visionaire-logo-header.html","source":"claude","atmosphere":["smooth","polished","refined","clean","minimal","playful","poppy","energetic","revealing","transformative","circular","zoom","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":52,"name":"wordmark-handoff-header","path":"Headers/wordmark-handoff-header.html","folder":"Headers","file":"wordmark-handoff-header.html","src":"../Headers/wordmark-handoff-header.html","source":"claude","atmosphere":["clean","minimal","understated","refined","subtle","elegant","polished","smooth","gradual","structured","organized","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":53,"name":"3d-blinds-flip-reveal","path":"Image_Background/3d-blinds-flip-reveal.html","folder":"Image_Background","file":"3d-blinds-flip-reveal.html","src":"../Image_Background/3d-blinds-flip-reveal.html","source":"claude","atmosphere":["bold","impactful","confident","dynamic","techy","polished","smooth","depth","3d","dimensional","layered","revealing","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":59,"name":"auto-shape-cycle","path":"Image_Background/auto-shape-cycle.html","folder":"Image_Background","file":"auto-shape-cycle.html","src":"../Image_Background/auto-shape-cycle.html","source":"claude","atmosphere":["elegant","refined","clean","sophisticated","organic","shape","smooth","continuous","endless","seamless","gradual","calm","minimal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":55,"name":"BG_image_ShapeMask","path":"Image_Background/BG_image_ShapeMask.html","folder":"Image_Background","file":"BG_image_ShapeMask.html","src":"../Image_Background/BG_image_ShapeMask.html","source":"claude","atmosphere":["elegant","refined","calm","gentle","soft","minimal","smooth","gradual","revealing","shape","organic","subtle"],"original":[],"reviewed":"","business":[],"section":[]},{"row":54,"name":"BG_Image_ShapeMask_Gallery","path":"Image_Background/BG_Image_ShapeMask_Gallery.html","folder":"Image_Background","file":"BG_Image_ShapeMask_Gallery.html","src":"../Image_Background/BG_Image_ShapeMask_Gallery.html","source":"claude","atmosphere":["elegant","refined","calm","gentle","soft","minimal","smooth","gradual","continuous","revealing","shape","organic","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":60,"name":"column-squeeze-reveal","path":"Image_Background/column-squeeze-reveal.html","folder":"Image_Background","file":"column-squeeze-reveal.html","src":"../Image_Background/column-squeeze-reveal.html","source":"claude","atmosphere":["bold","graphic","elegant","sophisticated","high-end","refined","minimal","structured","gradual","smooth","transformative","zoom","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":56,"name":"Diagonal_Slideshow","path":"Image_Background/Diagonal_Slideshow.html","folder":"Image_Background","file":"Diagonal_Slideshow.html","src":"../Image_Background/Diagonal_Slideshow.html","source":"claude","atmosphere":["bold","edgy","cool","sophisticated","expressive","artistic","dynamic","futuristic","gradual","revealing","transformative","layered","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":61,"name":"dot-churn","path":"Image_Background/dot-churn.html","folder":"Image_Background","file":"dot-churn.html","src":"../Image_Background/dot-churn.html","source":"claude","atmosphere":["playful","poppy","surprising","graphic","bold","edgy","artistic","expressive","unconventional","endless","continuous","staggered","alive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":62,"name":"horizontal-stripe-cascade-reveal","path":"Image_Background/horizontal-stripe-cascade-reveal.html","folder":"Image_Background","file":"horizontal-stripe-cascade-reveal.html","src":"../Image_Background/horizontal-stripe-cascade-reveal.html","source":"claude","atmosphere":["smooth","polished","dynamic","confident","clean","minimal","techy","horizontal","staggered","cascading","revealing","zoom","layered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":57,"name":"Kinetic 155 Horizon","path":"Image_Background/Kinetic 155 Horizon.html","folder":"Image_Background","file":"Kinetic 155 Horizon.html","src":"../Image_Background/Kinetic%20155%20Horizon.html","source":"claude","atmosphere":["elegant","refined","calm","minimal","high-end","smooth","polished","interactive","alive","depth","perspective","3d","dimensional"],"original":[],"reviewed":"","business":[],"section":[]},{"row":63,"name":"left-panel-slide-out-reveal","path":"Image_Background/left-panel-slide-out-reveal.html","folder":"Image_Background","file":"left-panel-slide-out-reveal.html","src":"../Image_Background/left-panel-slide-out-reveal.html","source":"claude","atmosphere":["smooth","elegant","clean","minimal","refined","calm","understated","polished","horizontal","revealing","gradual","layered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":64,"name":"line-churn","path":"Image_Background/line-churn.html","folder":"Image_Background","file":"line-churn.html","src":"../Image_Background/line-churn.html","source":"claude","atmosphere":["bold","graphic","impactful","edgy","experimental","creative","endless","continuous","revealing","transformative","horizontal","staggered","structured"],"original":[],"reviewed":"","business":[],"section":[]},{"row":65,"name":"lumina-orbit-scroll","path":"Image_Background/lumina-orbit-scroll.html","folder":"Image_Background","file":"lumina-orbit-scroll.html","src":"../Image_Background/lumina-orbit-scroll.html","source":"claude","atmosphere":["elegant","sophisticated","high-end","refined","calm","immersive","classic","depth","3d","dimensional","perspective","zoom","gradual"],"original":[],"reviewed":"","business":[],"section":[]},{"row":66,"name":"manifest-expand-scroll","path":"Image_Background/manifest-expand-scroll.html","folder":"Image_Background","file":"manifest-expand-scroll.html","src":"../Image_Background/manifest-expand-scroll.html","source":"claude","atmosphere":["bold","impactful","graphic","confident","minimal","refined","high-end","cool","gradual","revealing","zoom","transformative","shape"],"original":[],"reviewed":"","business":[],"section":[]},{"row":67,"name":"manifest-expand-scroll_02","path":"Image_Background/manifest-expand-scroll_02.html","folder":"Image_Background","file":"manifest-expand-scroll_02.html","src":"../Image_Background/manifest-expand-scroll_02.html","source":"claude","atmosphere":["bold","impactful","graphic","confident","minimal","refined","high-end","cool","gradual","revealing","zoom","transformative","shape"],"original":[],"reviewed":"","business":[],"section":[]},{"row":68,"name":"pixel-churn","path":"Image_Background/pixel-churn.html","folder":"Image_Background","file":"pixel-churn.html","src":"../Image_Background/pixel-churn.html","source":"claude","atmosphere":["bold","graphic","impactful","techy","creative","surprising","expressive","endless","continuous","staggered","structured","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":70,"name":"rift-slit-reveal","path":"Image_Background/rift-slit-reveal.html","folder":"Image_Background","file":"rift-slit-reveal.html","src":"../Image_Background/rift-slit-reveal.html","source":"claude","atmosphere":["elegant","minimal","refined","high-end","bold","sophisticated","cool","revealing","shape","zoom","gradual","staggered","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":69,"name":"rift-slit-reveal-02","path":"Image_Background/rift-slit-reveal-02.html","folder":"Image_Background","file":"rift-slit-reveal-02.html","src":"../Image_Background/rift-slit-reveal-02.html","source":"claude","atmosphere":["elegant","minimal","refined","high-end","bold","sophisticated","cool","revealing","shape","zoom","gradual","staggered","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":71,"name":"scroll-shape-morph","path":"Image_Background/scroll-shape-morph.html","folder":"Image_Background","file":"scroll-shape-morph.html","src":"../Image_Background/scroll-shape-morph.html","source":"claude","atmosphere":["clean","minimal","playful","creative","elegant","graphic","refined","shape","transformative","organic","gradual","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":72,"name":"scroll-shape-shift-interior","path":"Image_Background/scroll-shape-shift-interior.html","folder":"Image_Background","file":"scroll-shape-shift-interior.html","src":"../Image_Background/scroll-shape-shift-interior.html","source":"claude","atmosphere":["elegant","refined","clean","sophisticated","minimal","smooth","gradual","continuous","revealing","shape","transformative","organic"],"original":[],"reviewed":"","business":[],"section":[]},{"row":73,"name":"staggered-stripes-reveal","path":"Image_Background/staggered-stripes-reveal.html","folder":"Image_Background","file":"staggered-stripes-reveal.html","src":"../Image_Background/staggered-stripes-reveal.html","source":"claude","atmosphere":["bold","impactful","confident","dynamic","techy","polished","smooth","seamless","staggered","cascading","revealing","zoom","structured"],"original":[],"reviewed":"","business":[],"section":[]},{"row":74,"name":"sticky-perspective-shrink","path":"Image_Background/sticky-perspective-shrink.html","folder":"Image_Background","file":"sticky-perspective-shrink.html","src":"../Image_Background/sticky-perspective-shrink.html","source":"claude","atmosphere":["elegant","sophisticated","refined","high-end","classic","minimal","calm","gradual","depth","perspective","3d","dimensional","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":58,"name":"TextMask2Image","path":"Image_Background/TextMask2Image.html","folder":"Image_Background","file":"TextMask2Image.html","src":"../Image_Background/TextMask2Image.html","source":"claude","atmosphere":["bold","impactful","graphic","attention-grabbing","elegant","clean","smooth","gradual","zoom","revealing","transformative","immersive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":134,"name":"dropdown","path":"interact-UI-elements/dropdown.html","folder":"interact-UI-elements","file":"dropdown.html","src":"../interact-UI-elements/dropdown.html","source":"claude","atmosphere":["clean","smooth","polished","interactive","minimal","refined","cool","silky","alive","playful","vertical","revealing","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":133,"name":"dropdown-light","path":"interact-UI-elements/dropdown-light.html","folder":"interact-UI-elements","file":"dropdown-light.html","src":"../interact-UI-elements/dropdown-light.html","source":"claude","atmosphere":["clean","smooth","polished","interactive","minimal","refined","understated","silky","alive","playful","vertical","revealing"],"original":["clean","smooth","polished","interactive","minimal","refined","understated","silky","alive","playful","vertical","revealing","zoom"],"reviewed":"2026-08-27T16:49:17","business":[],"section":[]},{"row":135,"name":"label","path":"interact-UI-elements/label.html","folder":"interact-UI-elements","file":"label.html","src":"../interact-UI-elements/label.html","source":"claude","atmosphere":["clean","minimal","structured","interactive","organized","subtle","smooth","polished","refined","alive","calm","zoom","shape"],"original":[],"reviewed":"","business":[],"section":[]},{"row":136,"name":"lock-toggle","path":"interact-UI-elements/lock-toggle.html","folder":"interact-UI-elements","file":"lock-toggle.html","src":"../interact-UI-elements/lock-toggle.html","source":"claude","atmosphere":["playful","charming","smooth","interactive","polished","alive","fun","clean","minimal","expressive","horizontal","vertical","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":137,"name":"menu","path":"interact-UI-elements/menu.html","folder":"interact-UI-elements","file":"menu.html","src":"../interact-UI-elements/menu.html","source":"claude","atmosphere":["edgy","techy","futuristic","interactive","bold","dynamic","cool","unique","alive","circular","spiraling","endless","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":138,"name":"on-off-toggle","path":"interact-UI-elements/on-off-toggle.html","folder":"interact-UI-elements","file":"on-off-toggle.html","src":"../interact-UI-elements/on-off-toggle.html","source":"claude","atmosphere":["smooth","polished","clean","interactive","minimal","playful","charming","alive","subtle","refined","horizontal","circular","transformative"],"original":[],"reviewed":"","business":[],"section":[]},{"row":139,"name":"password-input","path":"interact-UI-elements/password-input.html","folder":"interact-UI-elements","file":"password-input.html","src":"../interact-UI-elements/password-input.html","source":"claude","atmosphere":["playful","charming","surprising","interactive","fun","alive","poppy","clean","minimal","techy","cool","zoom","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":140,"name":"radio-buttons","path":"interact-UI-elements/radio-buttons.html","folder":"interact-UI-elements","file":"radio-buttons.html","src":"../interact-UI-elements/radio-buttons.html","source":"claude","atmosphere":["poppy","playful","smooth","interactive","polished","clean","minimal","organized","structured","alive","fun","zoom","circular"],"original":[],"reviewed":"","business":[],"section":[]},{"row":142,"name":"search-input","path":"interact-UI-elements/search-input.html","folder":"interact-UI-elements","file":"search-input.html","src":"../interact-UI-elements/search-input.html","source":"claude","atmosphere":["smooth","polished","silky","effortless","refined","minimal","clean","techy","playful","alive","interactive","horizontal","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":141,"name":"search-input-light","path":"interact-UI-elements/search-input-light.html","folder":"interact-UI-elements","file":"search-input-light.html","src":"../interact-UI-elements/search-input-light.html","source":"claude","atmosphere":["smooth","silky","polished","interactive","effortless","clean","minimal","elegant","refined","playful","alive","horizontal","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":144,"name":"smiley-nav","path":"interact-UI-elements/smiley-nav.html","folder":"interact-UI-elements","file":"smiley-nav.html","src":"../interact-UI-elements/smiley-nav.html","source":"claude","atmosphere":["refined","minimal","clean","techy","sophisticated","smooth","polished","effortless","interactive","alive","structured","organized","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":143,"name":"smiley-nav-light","path":"interact-UI-elements/smiley-nav-light.html","folder":"interact-UI-elements","file":"smiley-nav-light.html","src":"../interact-UI-elements/smiley-nav-light.html","source":"claude","atmosphere":["clean","minimal","refined","understated","organized","structured","smooth","polished","effortless","interactive","alive","staggered","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":145,"name":"social-bar","path":"interact-UI-elements/social-bar.html","folder":"interact-UI-elements","file":"social-bar.html","src":"../interact-UI-elements/social-bar.html","source":"claude","atmosphere":["refined","minimal","elegant","techy","playful","charming","smooth","polished","interactive","alive","circular","horizontal","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":75,"name":"Column_Shutters","path":"Lists/Column_Shutters.html","folder":"Lists","file":"Column_Shutters.html","src":"../Lists/Column_Shutters.html","source":"claude","atmosphere":["clean","structured","organized","interactive","bold","graphic","polished","smooth","refined","staggered","cascading","horizontal","alive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":76,"name":"Flex_Cards","path":"Lists/Flex_Cards.html","folder":"Lists","file":"Flex_Cards.html","src":"../Lists/Flex_Cards.html","source":"claude","atmosphere":["clean","structured","organized","interactive","bold","graphic","polished","smooth","refined","staggered","horizontal","gradual","alive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":77,"name":"Horizontal_parting_list","path":"Lists/Horizontal_parting_list.html","folder":"Lists","file":"Horizontal_parting_list.html","src":"../Lists/Horizontal_parting_list.html","source":"claude","atmosphere":["edgy","techy","graphic","interactive","unique","creative","cool","horizontal","flowing","continuous","gradual","revealing","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":78,"name":"Icon_Pill_Slider","path":"Lists/Icon_Pill_Slider.html","folder":"Lists","file":"Icon_Pill_Slider.html","src":"../Lists/Icon_Pill_Slider.html","source":"claude","atmosphere":["elegant","refined","clean","interactive","understated","smooth","silky","polished","effortless","horizontal","revealing","circular","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":79,"name":"Icon_Pill_Slider_Scroll","path":"Lists/Icon_Pill_Slider_Scroll.html","folder":"Lists","file":"Icon_Pill_Slider_Scroll.html","src":"../Lists/Icon_Pill_Slider_Scroll.html","source":"claude","atmosphere":["elegant","refined","sophisticated","minimal","smooth","gradual","flowing","continuous","effortless","horizontal","circular","revealing","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":80,"name":"MouseTrack_Parting_List","path":"Lists/MouseTrack_Parting_List.html","folder":"Lists","file":"MouseTrack_Parting_List.html","src":"../Lists/MouseTrack_Parting_List.html","source":"claude","atmosphere":["playful","alive","unique","interactive","creative","cool","techy","graphic","surprising","revealing","horizontal","vertical","effortless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":81,"name":"Parting_List","path":"Lists/Parting_List.html","folder":"Lists","file":"Parting_List.html","src":"../Lists/Parting_List.html","source":"claude","atmosphere":["edgy","techy","graphic","unique","creative","cool","structured","horizontal","revealing","zoom","gradual","continuous","artistic","futuristic","dynamic"],"original":["edgy","techy","graphic","unique","creative","cool","structured","horizontal","revealing","zoom","gradual","continuous"],"reviewed":"","business":[],"section":[]},{"row":82,"name":"Product_Stroll_List","path":"Lists/Product_Stroll_List.html","folder":"Lists","file":"Product_Stroll_List.html","src":"../Lists/Product_Stroll_List.html","source":"claude","atmosphere":["smooth","polished","clean","refined","elegant","sophisticated","minimal","structured","staggered","revealing","transformative","zoom","impactful","high-end","gradual"],"original":["smooth","polished","clean","refined","elegant","sophisticated","minimal","structured","staggered","revealing","transformative","zoom","impactful"],"reviewed":"","business":[],"section":[]},{"row":83,"name":"Split_Screen_Scroll","path":"Lists/Split_Screen_Scroll.html","folder":"Lists","file":"Split_Screen_Scroll.html","src":"../Lists/Split_Screen_Scroll.html","source":"claude","atmosphere":["bold","impactful","dynamic","edgy","graphic","attention-grabbing","cool","depth","3d","dimensional","perspective","revealing","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":84,"name":"Word_Cloud_List","path":"Lists/Word_Cloud_List.html","folder":"Lists","file":"Word_Cloud_List.html","src":"../Lists/Word_Cloud_List.html","source":"claude","atmosphere":["alive","organic","playful","interactive","soft","subtle","minimal","understated","elegant","clean","smooth","zoom","creative"],"original":["alive","organic","playful","interactive","soft","subtle","minimal","understated","elegant","clean","smooth","zoom","creative"],"reviewed":"","business":[],"section":[]},{"row":146,"name":"BG_Color_Invert","path":"text_Image/BG_Color_Invert.html","folder":"text_Image","file":"BG_Color_Invert.html","src":"../text_Image/BG_Color_Invert.html","source":"claude","atmosphere":["gradual","flowing","continuous","effortless","clean","elegant","minimal","refined","understated","layered","vertical","revealing","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":147,"name":"Image_Stroll","path":"text_Image/Image_Stroll.html","folder":"text_Image","file":"Image_Stroll.html","src":"../text_Image/Image_Stroll.html","source":"claude","atmosphere":["elegant","refined","minimal","understated","sophisticated","clean","gradual","flowing","continuous","staggered","cascading","revealing","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":148,"name":"pointer-scale-scroll-blur","path":"text_Image/pointer-scale-scroll-blur.html","folder":"text_Image","file":"pointer-scale-scroll-blur.html","src":"../text_Image/pointer-scale-scroll-blur.html","source":"claude","atmosphere":["elegant","refined","sophisticated","high-end","minimal","clean","smooth","polished","graphic","interactive","alive","zoom","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":149,"name":"pointer-track-scroll-fade","path":"text_Image/pointer-track-scroll-fade.html","folder":"text_Image","file":"pointer-track-scroll-fade.html","src":"../text_Image/pointer-track-scroll-fade.html","source":"claude","atmosphere":["elegant","sophisticated","high-end","refined","minimal","clean","bold","graphic","smooth","playful","interactive","alive","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":150,"name":"scroll-blur-split-layout","path":"text_Image/scroll-blur-split-layout.html","folder":"text_Image","file":"scroll-blur-split-layout.html","src":"../text_Image/scroll-blur-split-layout.html","source":"claude","atmosphere":["elegant","sophisticated","high-end","interactive","classic","refined","minimal","clean","graphic","gradual","flowing","continuous","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":151,"name":"scroll-perspective-hero","path":"text_Image/scroll-perspective-hero.html","folder":"text_Image","file":"scroll-perspective-hero.html","src":"../text_Image/scroll-perspective-hero.html","source":"claude","atmosphere":["bold","impactful","futuristic","immersive","dynamic","energetic","attention-grabbing","graphic","edgy","3d","depth","perspective","zoom"],"original":[],"reviewed":"","business":[],"section":[]},{"row":152,"name":"scroll-tilt-reveal","path":"text_Image/scroll-tilt-reveal.html","folder":"text_Image","file":"scroll-tilt-reveal.html","src":"../text_Image/scroll-tilt-reveal.html","source":"claude","atmosphere":["smooth","polished","depth","3d","dimensional","bold","gradual","perspective","clean","minimal","effortless","flowing","graphic"],"original":[],"reviewed":"","business":[],"section":[]},{"row":153,"name":"shape-mask-parallax","path":"text_Image/shape-mask-parallax.html","folder":"text_Image","file":"shape-mask-parallax.html","src":"../text_Image/shape-mask-parallax.html","source":"claude","atmosphere":["revealing","shape","graphic","transformative","bold","creative","organic","artistic","expressive","layered","minimal","surprising","unique"],"original":[],"reviewed":"","business":[],"section":[]},{"row":154,"name":"single screen parallax","path":"text_Image/single screen parallax .html","folder":"text_Image","file":"single screen parallax .html","src":"../text_Image/single%20screen%20parallax%20.html","source":"claude","atmosphere":["bold","graphic","attention-grabbing","interactive","horizontal","impactful","edgy","alive","zoom","flowing","poppy","gradual","expressive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":155,"name":"slab-pull","path":"text_Image/slab-pull.html","folder":"text_Image","file":"slab-pull.html","src":"../text_Image/slab-pull.html","source":"claude","atmosphere":["bold","graphic","revealing","staggered","impactful","minimal","cascading","clean","confident","transformative","edgy","structured","surprising"],"original":[],"reviewed":"","business":[],"section":[]},{"row":156,"name":"whip-swivel","path":"text_Image/whip-swivel.html","folder":"text_Image","file":"whip-swivel.html","src":"../text_Image/whip-swivel.html","source":"claude","atmosphere":["depth","3d","dimensional","bold","perspective","graphic","minimal","clean","horizontal","confident","transformative","surprising","smooth"],"original":[],"reviewed":"","business":[],"section":[]},{"row":157,"name":"whip-turn","path":"text_Image/whip-turn.html","folder":"text_Image","file":"whip-turn.html","src":"../text_Image/whip-turn.html","source":"claude","atmosphere":["depth","3d","dimensional","bold","perspective","graphic","minimal","clean","vertical","confident","transformative","surprising","smooth"],"original":[],"reviewed":"","business":[],"section":[]},{"row":85,"name":"$lot_Machine","path":"Typographic_interactions/$lot_Machine.html","folder":"Typographic_interactions","file":"$lot_Machine.html","src":"../Typographic_interactions/%24lot_Machine.html","source":"claude","atmosphere":["playful","bold","dynamic","energetic","surprising","fun","graphic","impactful","attention-grabbing","staggered","revealing","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":86,"name":"3D-Rolodex-Flip","path":"Typographic_interactions/3D-Rolodex-Flip.html","folder":"Typographic_interactions","file":"3D-Rolodex-Flip.html","src":"../Typographic_interactions/3D-Rolodex-Flip.html","source":"claude","atmosphere":["bold","impactful","graphic","attention-grabbing","edgy","confident","artistic","3d","depth","dimensional","perspective","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":87,"name":"Accelerated3DSpin","path":"Typographic_interactions/Accelerated3DSpin.html","folder":"Typographic_interactions","file":"Accelerated3DSpin.html","src":"../Typographic_interactions/Accelerated3DSpin.html","source":"claude","atmosphere":["bold","impactful","graphic","attention-grabbing","edgy","artistic","cool","endless","continuous","3d","depth","perspective","circular"],"original":[],"reviewed":"","business":[],"section":[]},{"row":88,"name":"Aura Stack","path":"Typographic_interactions/Aura Stack.html","folder":"Typographic_interactions","file":"Aura Stack.html","src":"../Typographic_interactions/Aura%20Stack.html","source":"claude","atmosphere":["smooth","clean","minimal","refined","elegant","sophisticated","understated","polished","seamless","revealing","staggered","layered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":89,"name":"Blurry_Transition","path":"Typographic_interactions/Blurry_Transition.html","folder":"Typographic_interactions","file":"Blurry_Transition.html","src":"../Typographic_interactions/Blurry_Transition.html","source":"claude","atmosphere":["gentle","soft","calm","subtle","smooth","gradual","elegant","classic","refined","understated","minimal","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":111,"name":"book animation","path":"Typographic_interactions/book animation.html","folder":"Typographic_interactions","file":"book animation.html","src":"../Typographic_interactions/book%20animation.html","source":"claude","atmosphere":["elegant","refined","polished","sophisticated","minimal","structured","high-end","gradual","depth","3d","dimensional","perspective","layered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":112,"name":"cards-peel-off-scroll","path":"Typographic_interactions/cards-peel-off-scroll.html","folder":"Typographic_interactions","file":"cards-peel-off-scroll.html","src":"../Typographic_interactions/cards-peel-off-scroll.html","source":"claude","atmosphere":["elegant","clean","smooth","polished","layered","depth","refined","structured","silky","cascading","sophisticated","effortless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":90,"name":"Circular_Scroll_Nav","path":"Typographic_interactions/Circular_Scroll_Nav.html","folder":"Typographic_interactions","file":"Circular_Scroll_Nav.html","src":"../Typographic_interactions/Circular_Scroll_Nav.html","source":"claude","atmosphere":["circular","spiraling","dynamic","bold","staggered","structured","organized","playful","poppy","alive","confident","cool"],"original":[],"reviewed":"","business":[],"section":[]},{"row":91,"name":"Editorial Text Reveal","path":"Typographic_interactions/Editorial Text Reveal.html","folder":"Typographic_interactions","file":"Editorial Text Reveal.html","src":"../Typographic_interactions/Editorial%20Text%20Reveal.html","source":"claude","atmosphere":["smooth","clean","minimal","refined","sophisticated","elegant","polished","structured","gradual","horizontal","layered","revealing","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":113,"name":"focus-pull","path":"Typographic_interactions/focus-pull.html","folder":"Typographic_interactions","file":"focus-pull.html","src":"../Typographic_interactions/focus-pull.html","source":"claude","atmosphere":["clean","minimal","understated","refined","elegant","artistic","gradual","flowing","revealing","continuous","depth","effortless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":92,"name":"Gooey_text","path":"Typographic_interactions/Gooey_text.html","folder":"Typographic_interactions","file":"Gooey_text.html","src":"../Typographic_interactions/Gooey_text.html","source":"claude","atmosphere":["experimental","bold","graphic","creative","unique","edgy","attention-grabbing","organic","transformative","revealing","endless","continuous","immersive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":93,"name":"Headline_Images_Overlay","path":"Typographic_interactions/Headline_Images_Overlay.html","folder":"Typographic_interactions","file":"Headline_Images_Overlay.html","src":"../Typographic_interactions/Headline_Images_Overlay.html","source":"claude","atmosphere":["elegant","sophisticated","artistic","high-end","minimal","refined","graphic","shape","revealing","transformative","endless","continuous","immersive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":94,"name":"IconText Pro gallery","path":"Typographic_interactions/IconText Pro gallery.html","folder":"Typographic_interactions","file":"IconText Pro gallery.html","src":"../Typographic_interactions/IconText%20Pro%20gallery.html","source":"claude","atmosphere":["smooth","polished","clean","interactive","refined","elegant","minimal","sophisticated","silky","organized","structured","alive","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":95,"name":"Marquee_Scroll_Velocity","path":"Typographic_interactions/Marquee_Scroll_Velocity.html","folder":"Typographic_interactions","file":"Marquee_Scroll_Velocity.html","src":"../Typographic_interactions/Marquee_Scroll_Velocity.html","source":"claude","atmosphere":["bold","graphic","impactful","attention-grabbing","dynamic","energetic","edgy","endless","horizontal","continuous","seamless","flowing","immersive"],"original":[],"reviewed":"","business":[],"section":[]},{"row":96,"name":"Mindshift Transition","path":"Typographic_interactions/Mindshift Transition.html","folder":"Typographic_interactions","file":"Mindshift Transition.html","src":"../Typographic_interactions/Mindshift%20Transition.html","source":"claude","atmosphere":["bold","impactful","graphic","attention-grabbing","confident","elegant","sophisticated","revealing","transformative","shape","horizontal","gradual","continuous"],"original":[],"reviewed":"","business":[],"section":[]},{"row":97,"name":"Mirror_Mouse_Track","path":"Typographic_interactions/Mirror_Mouse_Track.html","folder":"Typographic_interactions","file":"Mirror_Mouse_Track.html","src":"../Typographic_interactions/Mirror_Mouse_Track.html","source":"claude","atmosphere":["elegant","sophisticated","refined","interactive","high-end","minimal","smooth","alive","immersive","depth","3d","dimensional","perspective"],"original":[],"reviewed":"","business":[],"section":[]},{"row":98,"name":"Paragraph_mask_scroll","path":"Typographic_interactions/Paragraph_mask_scroll.html","folder":"Typographic_interactions","file":"Paragraph_mask_scroll.html","src":"../Typographic_interactions/Paragraph_mask_scroll.html","source":"claude","atmosphere":["bold","graphic","techy","futuristic","impactful","attention-grabbing","edgy","polished","structured","staggered","layered","cascading","revealing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":99,"name":"Ripple_Hover","path":"Typographic_interactions/Ripple_Hover.html","folder":"Typographic_interactions","file":"Ripple_Hover.html","src":"../Typographic_interactions/Ripple_Hover.html","source":"claude","atmosphere":["techy","futuristic","bold","interactive","graphic","edgy","experimental","impactful","attention-grabbing","alive","layered","staggered","cascading"],"original":[],"reviewed":"","business":[],"section":[]},{"row":100,"name":"RiseOfTheDead","path":"Typographic_interactions/RiseOfTheDead.html","folder":"Typographic_interactions","file":"RiseOfTheDead.html","src":"../Typographic_interactions/RiseOfTheDead.html","source":"claude","atmosphere":["elegant","sophisticated","classic","refined","high-end","gradual","smooth","immersive","depth","3d","dimensional","perspective","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":101,"name":"Scroll_Mask_Reveal","path":"Typographic_interactions/Scroll_Mask_Reveal.html","folder":"Typographic_interactions","file":"Scroll_Mask_Reveal.html","src":"../Typographic_interactions/Scroll_Mask_Reveal.html","source":"claude","atmosphere":["elegant","soft","refined","clean","understated","graceful","minimal","gradual","seamless","revealing","transformative","staggered","cascading"],"original":[],"reviewed":"","business":[],"section":[]},{"row":102,"name":"Scroll_Paragraph_Fade","path":"Typographic_interactions/Scroll_Paragraph_Fade.html","folder":"Typographic_interactions","file":"Scroll_Paragraph_Fade.html","src":"../Typographic_interactions/Scroll_Paragraph_Fade.html","source":"claude","atmosphere":["smooth","gradual","flowing","effortless","continuous","elegant","refined","understated","minimal","revealing","staggered","transformative","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":103,"name":"Scroll_Paragraph_Reveal","path":"Typographic_interactions/Scroll_Paragraph_Reveal.html","folder":"Typographic_interactions","file":"Scroll_Paragraph_Reveal.html","src":"../Typographic_interactions/Scroll_Paragraph_Reveal.html","source":"claude","atmosphere":["smooth","gradual","flowing","effortless","continuous","elegant","refined","understated","minimal","revealing","staggered","transformative","vertical"],"original":[],"reviewed":"","business":[],"section":[]},{"row":104,"name":"Scroll_Skew","path":"Typographic_interactions/Scroll_Skew.html","folder":"Typographic_interactions","file":"Scroll_Skew.html","src":"../Typographic_interactions/Scroll_Skew.html","source":"claude","atmosphere":["bold","edgy","experimental","impactful","graphic","attention-grabbing","unconventional","dynamic","layered","horizontal","depth","transformative","continuous"],"original":[],"reviewed":"","business":[],"section":[]},{"row":114,"name":"stacked-text-cards-scroll","path":"Typographic_interactions/stacked-text-cards-scroll.html","folder":"Typographic_interactions","file":"stacked-text-cards-scroll.html","src":"../Typographic_interactions/stacked-text-cards-scroll.html","source":"claude","atmosphere":["elegant","clean","smooth","gentle","polished","layered","depth","refined","silky","structured","staggered","effortless"],"original":[],"reviewed":"","business":[],"section":[]},{"row":105,"name":"Strobe_Headline","path":"Typographic_interactions/Strobe_Headline.html","folder":"Typographic_interactions","file":"Strobe_Headline.html","src":"../Typographic_interactions/Strobe_Headline.html","source":"claude","atmosphere":["bold","impactful","attention-grabbing","futuristic","techy","immersive","edgy","cool","graphic","dynamic","layered","staggered","polished"],"original":[],"reviewed":"","business":[],"section":[]},{"row":106,"name":"Tech_ Glitch","path":"Typographic_interactions/Tech_ Glitch.html","folder":"Typographic_interactions","file":"Tech_ Glitch.html","src":"../Typographic_interactions/Tech_%20Glitch.html","source":"claude","atmosphere":["techy","futuristic","edgy","experimental","unconventional","surprising","cool","graphic","dynamic","revealing","staggered","transformative","horizontal"],"original":[],"reviewed":"","business":[],"section":[]},{"row":115,"name":"text-cards-slide-in","path":"Typographic_interactions/text-cards-slide-in.html","folder":"Typographic_interactions","file":"text-cards-slide-in.html","src":"../Typographic_interactions/text-cards-slide-in.html","source":"claude","atmosphere":["smooth","polished","dimensional","depth","3d","perspective","horizontal","elegant","clean","dynamic","spatial","flowing"],"original":[],"reviewed":"","business":[],"section":[]},{"row":116,"name":"text-fade-3d-perspective","path":"Typographic_interactions/text-fade-3d-perspective.html","folder":"Typographic_interactions","file":"text-fade-3d-perspective.html","src":"../Typographic_interactions/text-fade-3d-perspective.html","source":"claude","atmosphere":["bold","impactful","dimensional","depth","3d","perspective","immersive","minimal","graphic","sophisticated","spatial","layered","confident"],"original":[],"reviewed":"","business":[],"section":[]},{"row":117,"name":"textFoldTransition","path":"Typographic_interactions/textFoldTransition.html","folder":"Typographic_interactions","file":"textFoldTransition.html","src":"../Typographic_interactions/textFoldTransition.html","source":"claude","atmosphere":["bold","graphic","impactful","clean","minimal","seamless","revealing","vertical","staggered","cascading","smooth","confident"],"original":[],"reviewed":"","business":[],"section":[]},{"row":107,"name":"The Iris Gate","path":"Typographic_interactions/The Iris Gate.html","folder":"Typographic_interactions","file":"The Iris Gate.html","src":"../Typographic_interactions/The%20Iris%20Gate.html","source":"claude","atmosphere":["bold","impactful","graphic","attention-grabbing","sophisticated","artistic","immersive","gradual","continuous","revealing","shape","transformative"],"original":["bold","impactful","graphic","attention-grabbing","elegant","sophisticated","artistic","immersive","gradual","continuous","revealing","shape","transformative"],"reviewed":"","business":[],"section":[]},{"row":108,"name":"Tunnel_Vision","path":"Typographic_interactions/Tunnel_Vision.html","folder":"Typographic_interactions","file":"Tunnel_Vision.html","src":"../Typographic_interactions/Tunnel_Vision.html","source":"claude","atmosphere":["playful","bold","alive","interactive","fun","immersive","surprising","expressive","depth","dimensional","layered","perspective","spatial"],"original":[],"reviewed":"","business":[],"section":[]},{"row":109,"name":"Vshape_Headline","path":"Typographic_interactions/Vshape_Headline.html","folder":"Typographic_interactions","file":"Vshape_Headline.html","src":"../Typographic_interactions/Vshape_Headline.html","source":"claude","atmosphere":["playful","poppy","fun","energetic","charming","bold","dynamic","expressive","staggered","vertical","shape","cascading","gradual"],"original":[],"reviewed":"","business":[],"section":[]},{"row":110,"name":"Waterfall_Text","path":"Typographic_interactions/Waterfall_Text.html","folder":"Typographic_interactions","file":"Waterfall_Text.html","src":"../Typographic_interactions/Waterfall_Text.html","source":"claude","atmosphere":["gentle","calm","smooth","gradual","flowing","elegant","refined","understated","depth","dimensional","perspective","cascading","staggered"],"original":[],"reviewed":"","business":[],"section":[]},{"row":10,"name":"3D room","path":"","folder":"(no file)","file":"","src":"","source":"manual","atmosphere":["playful","interactive","bold","graphic","expressive","3d effect","circular","zoom","depth","experimental","elegant","immersive","layered","dimensional"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","gallery","Product Section","Services Section","Case Studies","About","Team","How It Works","Testimonials","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]},{"row":9,"name":"3D rotating fan","path":"","folder":"(no file)","file":"","src":"","source":"manual","atmosphere":["playful","3d effect","cool","dynamic","energetic","interactive","fun","poppy","flowing","modern","edgy","layered","dimensional"],"original":[],"reviewed":"","business":["Creative Agencies","Design Studios","Tech Companies","Startups","Fashion Brands","Lifestyle Brands","Luxury Brands","Automotive","eCommerce","Retail","Entertainment","Media","Streaming Services","Gaming","Health","Fitness","Wellness","Education","Finance","Banking","SaaS","Real Estate","Architecture","Hospitality","Travel","Events","Conferences","Festivals","Nonprofits","Art","Culture","Museums","Restaurants","Beauty","Cosmetics","Music","Performing Arts","Interior Design","Home Decor","Marketing & Consulting Agencies","Environmental & Sustainability Initiatives","Wedding & Event","Corporate Websites."],"section":["Hero","gallery","Product Section","Services Section","Case Studies","About","Team","How It Works","Testimonials","Feature Gallery","Gallery","Cards","Interactive Cards","Portfolio"]}];
+const VOCAB_ALL = ["3d","3d effect","alive","artistic","attention-grabbing","bold","calm","cascading","charming","circular","classic","clean","cloudy","confident","continuous","cool","creative","depth","dimensional","dynamic","edgy","effortless","elegant","endless","energetic","experimental","expressive","eye catching","eye-catching","flowing","flowless","fluid","fun","futuristic","gentle","graceful","gradual","graphic","groovy","high-end","horizontal","horizontal movement","horizontal scroll","immersive","impactful","innovative","inspirational","interactive","layered","layering","luxurious","minimal","modern","organic","organized","perspective","playful","polished","poppy","refined","revealing","seamless","shape","silky","simple","smooth","soft","sophisticated","spatial","spiraling","staggered","structured","subtle","surprising","techy","transformative","unconventional","understated","unique","vertical","z axis","zoom"];
+
+const EDIT_ICON = '<svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">'
+  + '<path d="M11.4 1.7a1.35 1.35 0 0 1 1.9 0l1 1a1.35 1.35 0 0 1 0 1.9l-1 1-2.9-2.9 1-1z"/>'
+  + '<path d="M9.6 3.5l2.9 2.9-6.4 6.4-3.5.6.6-3.5L9.6 3.5z"/></svg>';
+
+const DONE_ICON = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">'
+  + '<path d="M6.2 12.3L2.4 8.5l1.3-1.3 2.5 2.5 6-6L13.5 5l-7.3 7.3z"/></svg>';
+const $ = s => document.querySelector(s);
+const listEl = $('#list'), qEl = $('#q'), frame = $('#frame');
+let current = -1, tagFilter = null, view = PRESETS.slice();
+let bust = Date.now();   // cache-buster seed for iframe loads
+let reviewFilter = 'all';   // all | todo | done
+
+/* ---- collapsible folder drawers ---- */
+const STORE = 'animationsHub.collapsedFolders';
+let collapsed = new Set();
+try {
+  const saved = localStorage.getItem(STORE);
+  if (saved) collapsed = new Set(JSON.parse(saved));
+} catch (e) { /* private window / blocked storage - just start expanded */ }
+
+function saveDrawers() {
+  try { localStorage.setItem(STORE, JSON.stringify([...collapsed])); } catch (e) {}
+}
+function toggleDrawer(folder) {
+  collapsed.has(folder) ? collapsed.delete(folder) : collapsed.add(folder);
+  saveDrawers(); renderList();
+}
+function setAllDrawers(collapse) {
+  collapsed = collapse ? new Set(PRESETS.map(p => p.folder)) : new Set();
+  saveDrawers(); renderList();
+}
+
+const norm = s => s.toLowerCase();
+const allTags = p => [...p.atmosphere, ...p.business, ...p.section];
+
+function matches(p, q) {
+  if (reviewFilter === 'done' && !p.reviewed) return false;
+  if (reviewFilter === 'todo' && p.reviewed) return false;
+  if (tagFilter && !allTags(p).some(t => norm(t) === norm(tagFilter))) return false;
+  if (!q) return true;
+  const hay = [p.name, p.path, ...allTags(p)].join(' ').toLowerCase();
+  return q.split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+
+function renderList() {
+  const q = norm(qEl.value.trim());
+  const searching = !!q || !!tagFilter;   // while filtering, force every drawer open
+  view = PRESETS.filter(p => matches(p, q));
+  listEl.innerHTML = '';
+
+  const order = [];
+  const groups = new Map();
+  view.forEach(p => {
+    if (!groups.has(p.folder)) { groups.set(p.folder, []); order.push(p.folder); }
+    groups.get(p.folder).push(p);
+  });
+
+  order.forEach(folder => {
+    const items = groups.get(folder);
+    const shut = !searching && collapsed.has(folder);
+    const head = document.createElement('button');
+    head.className = 'grp';
+    head.setAttribute('aria-expanded', String(!shut));
+    head.innerHTML =
+      '<span class="chev">▼</span><span class="gname"></span>' +
+      '<span class="gdots"></span><span class="gcount"></span>';
+    head.querySelector('.gname').textContent = folder;
+    head.querySelector('.gcount').textContent = items.length;
+    const man = items.filter(x => x.source === 'manual').length;
+    if (man) {
+      const d = document.createElement('span');
+      d.className = 'dot manual';
+      d.title = man + ' manually tagged';
+      head.querySelector('.gdots').appendChild(d);
+    }
+    head.title = shut ? 'Open ' + folder : 'Close ' + folder;
+    head.onclick = () => toggleDrawer(folder);
+    listEl.appendChild(head);
+
+    const box = document.createElement('div');
+    box.className = 'grpitems' + (shut ? ' hidden' : '');
+    items.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'item' + (p.path ? '' : ' dead') + (PRESETS.indexOf(p) === current ? ' on' : '');
+      b.innerHTML = '<span class="dot ' + p.source + '"></span><span class="nm"></span>' +
+        (isEdited(p) ? '<span class="edited" title="edited - tags differ from the original">' + EDIT_ICON + '</span>' : '') +
+        (p.reviewed ? '<span class="done" title="approved ' + p.reviewed + '">' + DONE_ICON + '</span>' : '');
+      b.querySelector('.nm').textContent = p.name;
+      b.title = (p.path || 'No file in this repo') + (isEdited(p) ? '  (edited)' : '');
+      b.onclick = () => select(PRESETS.indexOf(p));
+      box.appendChild(b);
+    });
+    listEl.appendChild(box);
+  });
+
+  const nEdited = PRESETS.filter(isEdited).length;
+  const nDone = PRESETS.filter(p => p.reviewed).length;
+  $('#count').textContent = view.length + ' of ' + PRESETS.length + ' presets' +
+    (nEdited ? '  ·  ' + nEdited + ' edited' : '') +
+    (nDone ? '  ·  ' + nDone + ' done' : '');
+  const allShut = order.length > 0 && order.every(f => collapsed.has(f));
+  const at = $('#allToggle');
+  at.textContent = allShut ? 'Open all' : 'Close all';
+  at.onclick = () => setAllDrawers(!allShut);
+  $('#drawerBar').style.display = searching ? 'none' : 'block';
+  const note = $('#filterNote');
+  if (tagFilter) {
+    note.style.display = 'block';
+    note.innerHTML = 'Filtered by tag <b></b> — ';
+    note.querySelector('b').textContent = '“' + tagFilter + '”';
+    const clr = document.createElement('button');
+    clr.textContent = 'clear';
+    clr.onclick = () => { tagFilter = null; renderList(); if (current >= 0) renderTags(PRESETS[current]); };
+    note.appendChild(clr);
+  } else note.style.display = 'none';
+}
+
+/* Business type and Section type stay folded away by default - only Atmosphere
+   is open, since that is the axis you actually work in. */
+const TG_STORE = 'animationsHub.collapsedTagGroups';
+let tagGroupShut = new Set(['Business type', 'Section type']);
+try {
+  const s = localStorage.getItem(TG_STORE);
+  if (s) tagGroupShut = new Set(JSON.parse(s));
+} catch (e) {}
+
+function toggleTagGroup(label) {
+  tagGroupShut.has(label) ? tagGroupShut.delete(label) : tagGroupShut.add(label);
+  try { localStorage.setItem(TG_STORE, JSON.stringify([...tagGroupShut])); } catch (e) {}
+  if (current >= 0) renderTags(PRESETS[current]);
+}
+
+function chipRow(label, items, total, foldable) {
+  if (!items.length) return '';
+  const shut = foldable && tagGroupShut.has(label);
+  const head = '<button class="grouphead' + (foldable ? ' fold' : '') + '" data-g="' + label + '"' +
+    (foldable ? ' aria-expanded="' + String(!shut) + '"' : '') + '>' +
+    (foldable ? '<span class="chev">▼</span>' : '') +
+    '<span class="glabel">' + label + '</span><span class="gn">' + items.length +
+    (total ? ' of ' + total : '') + '</span></button>';
+  return head + '<div class="chips' + (shut ? ' hidden' : '') + '" data-row="' + label + '"></div>';
+}
+
+function renderTags(p) {
+  const body = $('#tagBody');
+  body.innerHTML =
+    '<span class="badge ' + p.source + '">' +
+      (p.source === 'manual' ? '● Tagged manually' : '● Tagged by Claude') + '</span>' +
+    chipRow('Atmosphere', p.atmosphere) +
+    '<div class="grouphead"><span class="glabel">Suggested</span>' +
+      '<span class="gn">nearest ' + suggestionsFor(p).length + '</span></div>' +
+    '<div class="chips" data-row="Suggested"></div>' +
+    '<input id="sugSearch" type="search" placeholder="search all ' + VOCAB_ALL.length +
+      ' tags\u2026" autocomplete="off">' +
+    '<div id="sugHits"></div>' +
+    chipRow('Business type', p.business, 43, true) +
+    chipRow('Section type', p.section, 0, true) +
+    defBlock(p);
+  const fill = (label, items, removable) => {
+    const row = body.querySelector('[data-row="' + label + '"]');
+    if (!row) return;
+    items.forEach(t => {
+      const c = document.createElement('button');
+      const isArmed = removable && armed === t;
+      c.className = 'chip' + (tagFilter && norm(t) === norm(tagFilter) ? ' lit' : '') + (isArmed ? ' arm' : '');
+      c.appendChild(document.createTextNode(isArmed ? t + '  remove?' : t));
+      if (removable) {
+        const x = document.createElement('span');
+        x.className = 'x';
+        x.textContent = '×';
+        x.title = 'Remove this tag';
+        x.onclick = e => { e.stopPropagation(); armRemove(p, t); };
+        c.appendChild(x);
+      }
+      const def = DICT[norm(t)];
+      if (def) c.title = def.means + '  |  Look for: ' + def.look_for;
+      c.onclick = () => {
+        tagFilter = (tagFilter && norm(tagFilter) === norm(t)) ? null : t;
+        renderList(); renderTags(p);
+      };
+      row.appendChild(c);
+    });
+  };
+  fillSuggested(p, body);
+  wireSugSearch(p, body);
+  fillDefs(p, body);
+  fill('Atmosphere', p.atmosphere, true);
+  fill('Business type', p.business, false);
+  fill('Section type', p.section, false);
+  body.querySelectorAll('.grouphead.fold').forEach(h => {
+    h.onclick = () => toggleTagGroup(h.dataset.g);
+  });
+  const h = document.createElement('p');
+  h.className = 'hint';
+  h.innerHTML = 'Click a tag to filter the list.<br><kbd>↑</kbd><kbd>↓</kbd> or <kbd>j</kbd><kbd>k</kbd> flip · <kbd>/</kbd> search · <kbd>t</kbd> all tags';
+  body.appendChild(h);
+  $('#lockRow').style.display = 'flex';
+  paintLock();
+  renderDiff(p);
+  paintDone();
+}
+
+function select(i) {
+  const p = PRESETS[i];
+  if (!p) return;
+  current = i;
+  if (collapsed.has(p.folder)) { collapsed.delete(p.folder); saveDrawers(); }
+  $('#title').textContent = p.name;
+  $('#path').textContent = p.path || 'no file in this repo';
+  renderTags(p);
+  if (p.src) {
+    // Cache-buster: a bare path can be served from a stale disk-cache entry
+    // (including a cached 404 from a previous broken run). A fresh query string
+    // guarantees the request actually reaches the server.
+    frame.src = p.src + (p.src.includes('?') ? '&' : '?') + 'v=' + (++bust);
+    frame.style.display = 'block';
+    $('#empty').style.display = 'none';
+  } else {
+    frame.removeAttribute('src');
+    frame.style.display = 'none';
+    $('#empty').style.display = 'grid';
+    $('#empty').textContent = '“' + p.name + '” has no matching file in this repo, so there is nothing to preview. Its tags are still shown on the right.';
+  }
+  renderList();
+  const on = listEl.querySelector('.item.on');
+  if (on) on.scrollIntoView({ block: 'nearest' });
+}
+
+function step(d) {
+  if (!view.length) return;
+  const vi = view.indexOf(PRESETS[current]);
+  const next = vi < 0 ? 0 : Math.min(view.length - 1, Math.max(0, vi + d));
+  select(PRESETS.indexOf(view[next]));
+}
+
+/* ================= suggested tags =================
+   Ranked by animations-hub/suggest-tags.py: PPMI co-occurrence + cosine, scored
+   against the tags this preset already has. Tags you removed by hand are never
+   suggested back. Regenerate with:
+       python3 animations-hub/suggest-tags.py --k 12 */
+let SUGGEST = {};
+let sugQuery = '';   // survives re-renders so typing is not interrupted
+
+function suggestionsFor(p) {
+  const raw = SUGGEST[String(p.row)] || [];
+  const have = new Set(p.atmosphere.map(norm));
+  return raw.filter(x => !have.has(norm(x.tag)));
+}
+
+function fillSuggested(p, body) {
+  const row = body.querySelector('[data-row="Suggested"]');
+  if (!row) return;
+  suggestionsFor(p).forEach(x => {
+    const c = document.createElement('button');
+    c.className = 'schip';
+    c.innerHTML = '<span class="plus">+</span>';
+    c.appendChild(document.createTextNode(x.tag));
+    c.title = 'closeness ' + x.score + (unlocked ? ' - click to add' : ' - unlock editing to add');
+    c.onclick = () => addSuggested(p, x.tag);
+    row.appendChild(c);
+  });
+}
+
+function wireSugSearch(p, body) {
+  const inp = body.querySelector('#sugSearch');
+  const hits = body.querySelector('#sugHits');
+  if (!inp || !hits) return;
+  inp.value = sugQuery;
+  const draw = () => {
+    const q = norm(inp.value.trim());
+    hits.innerHTML = '';
+    if (!q) return;
+    const have = new Set(p.atmosphere.map(norm));
+    // search the WHOLE vocabulary - excluding what is already listed above only
+    // made "elegant" report "no match", which was plainly wrong
+    const found = VOCAB_ALL.filter(t => t.includes(q)).slice(0, 24);
+    if (!found.length) {
+      const n = document.createElement('span');
+      n.className = 'none';
+      n.textContent = 'no tag matches \u201c' + inp.value.trim() + '\u201d';
+      hits.appendChild(n);
+      return;
+    }
+    found.forEach(t => {
+      const already = have.has(t);
+      const c = document.createElement('button');
+      c.className = 'schip' + (already ? ' has' : '');
+      if (!already) c.innerHTML = '<span class="plus">+</span>';
+      c.appendChild(document.createTextNode(t));
+      const d = DICT[t];
+      c.title = already ? 'already applied'
+              : (d ? d.means + '  |  Look for: ' + d.look_for : 'add this tag');
+      if (!already) c.onclick = () => { sugQuery = ''; addSuggested(p, t); };
+      hits.appendChild(c);
+    });
+  };
+  inp.oninput = () => { sugQuery = inp.value; draw(); };
+  inp.onkeydown = e => {
+    if (e.key === 'Escape') { inp.value = ''; sugQuery = ''; draw(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = hits.querySelector('.schip:not(.has)');
+      if (first) first.click();
+    }
+  };
+  draw();
+}
+
+async function addSuggested(p, tag) {
+  if (!unlocked) { status('unlock editing to accept a suggestion', 'err'); return; }
+  if (p.atmosphere.some(t => norm(t) === norm(tag))) return;
+  undoSnap = { row: p.row, tags: p.atmosphere.slice() };
+  if (await postTags(p, p.atmosphere.concat([tag]), { allowNew: true })) renderList();
+  renderTags(p);
+}
+
+(async function loadSuggestions() {
+  try {
+    const r = await fetch('tag-suggestions.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    const d = await r.json();
+    SUGGEST = d.suggestions || {};
+    if (current >= 0) renderTags(PRESETS[current]);
+  } catch (e) { /* no suggestions file - the row simply does not appear */ }
+})();
+
+/* ================= approved / done =================
+   A one-click toggle, unlike tag editing: it adds no risk of losing data, it is
+   trivially reversible, and it is the action you take most often. It stamps a
+   timestamp into the CSV's `reviewed` column and logs to the history. */
+function paintDone() {
+  const btn = $('#doneBtn');
+  if (current < 0) { btn.style.display = 'none'; return; }
+  const p = PRESETS[current];
+  btn.style.display = 'inline-flex';
+  btn.classList.toggle('on', !!p.reviewed);
+  btn.innerHTML = DONE_ICON + '<span>' + (p.reviewed ? 'Done' : 'Mark done') + '</span>';
+  btn.title = p.reviewed
+    ? 'Approved ' + p.reviewed + ' - click to un-approve'
+    : 'Mark this preset as reviewed and approved';
+  if (!serverEditable) {
+    btn.title = 'Needs the local server (python3 animations-hub/server.py)';
+  }
+}
+
+$('#doneBtn').onclick = async () => {
+  if (current < 0) return;
+  const p = PRESETS[current];
+  if (!serverEditable) { status('read-only - start server.py to approve', 'err'); return; }
+  const want = !p.reviewed;
+  try {
+    const r = await fetch('/api/reviewed', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ row: p.row, reviewed: want })
+    });
+    const d = await r.json();
+    if (!d.ok) { status(d.error || 'could not save', 'err'); return; }
+    p.reviewed = d.reviewed;
+    status(want ? 'marked done' : 'un-marked', want ? 'ok' : '');
+    paintDone(); renderList();
+  } catch (e) {
+    status('server unreachable', 'err');
+  }
+};
+
+/* ================= change tracking =================
+   The CSV carries an atmosphere_original column. It stays empty until a row is
+   first edited, at which point the server copies the pre-edit tags into it. So
+   "has an original that differs from now" == "you changed this one". */
+function isEdited(p) {
+  const o = p.original || [];
+  if (!o.length) return false;
+  const a = p.atmosphere || [];
+  return o.length !== a.length || o.some(t => !a.includes(t)) || a.some(t => !o.includes(t));
+}
+
+function renderDiff(p) {
+  const box = $('#diffBox');
+  if (!isEdited(p)) { box.classList.remove('show'); return; }
+  const o = p.original, a = p.atmosphere;
+  const added = a.filter(t => !o.includes(t));
+  const removed = o.filter(t => !a.includes(t));
+  const c = $('#diffContent');
+  c.innerHTML = '';
+  const line = (label, items, cls) => {
+    if (!items.length) return;
+    const l = document.createElement('div');
+    l.className = 'dlabel';
+    l.textContent = label;
+    c.appendChild(l);
+    const w = document.createElement('div');
+    items.forEach(t => {
+      const s = document.createElement('span');
+      s.className = 'dchip ' + cls;
+      s.textContent = t;
+      w.appendChild(s);
+    });
+    c.appendChild(w);
+  };
+  $('#diffIcon').innerHTML = EDIT_ICON;
+  line('added', added, 'add');
+  line('removed', removed, 'rem');
+  const base = document.createElement('div');
+  base.className = 'dlabel';
+  base.style.marginTop = '7px';
+  base.textContent = 'original (' + o.length + '): ' + o.join(', ');
+  c.appendChild(base);
+  box.classList.add('show');
+}
+
+$('#revertBtn').onclick = async () => {
+  if (current < 0) return;
+  const p = PRESETS[current];
+  if (!isEdited(p)) return;
+  if (!serverEditable) { status('read-only', 'err'); return; }
+  if (!confirm('Revert “' + p.name + '” to its original tags?\n\nnow:      ' +
+      p.atmosphere.join(', ') + '\noriginal: ' + p.original.join(', '))) return;
+  undoSnap = { row: p.row, tags: p.atmosphere.slice() };
+  if (await postTags(p, p.original.slice(), { allowNew: true })) renderList();
+  renderTags(p);
+};
+
+/* ---- change history overlay ---- */
+async function openHist() {
+  $('#histIndex').classList.add('open');
+  const body = $('#histBody');
+  body.innerHTML = '<p class="hint">Loading…</p>';
+  try {
+    const r = await fetch('/api/history', { cache: 'no-store' });
+    const d = await r.json();
+    const items = (d && d.entries) || [];
+    $('#histSub').textContent = items.length
+      ? items.length + ' change' + (items.length === 1 ? '' : 's') + ', newest first'
+      : '';
+    if (!items.length) {
+      body.innerHTML = '<p class="hint">No changes recorded yet.<br>' +
+        'Every add or remove you make from here is appended to ' +
+        '<code>animations-hub/tag-history.csv</code>.</p>';
+      return;
+    }
+    body.innerHTML = '';
+    items.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'hrow';
+      const left = document.createElement('div');
+      left.className = 'ts';
+      left.textContent = (e.timestamp || '').replace('T', '  ');
+      const right = document.createElement('div');
+      const nm = document.createElement('div');
+      nm.className = 'nm';
+      const jump = document.createElement('button');
+      jump.textContent = e.preset;
+      jump.onclick = () => {
+        const p = PRESETS.find(x => String(x.row) === String(e.row));
+        if (p) { closeHist(); qEl.value = ''; tagFilter = null; select(PRESETS.indexOf(p)); }
+      };
+      nm.appendChild(jump);
+      right.appendChild(nm);
+      const mk = (label, val, cls) => {
+        if (!val) return;
+        val.split(',').map(s => s.trim()).filter(Boolean).forEach(t => {
+          const s = document.createElement('span');
+          s.className = 'dchip ' + cls;
+          s.textContent = (cls === 'add' ? '+ ' : '− ') + t;
+          right.appendChild(s);
+        });
+      };
+      mk('added', e.added, 'add');
+      mk('removed', e.removed, 'rem');
+      if (!e.added && !e.removed) {
+        const a = document.createElement('span');
+        a.className = 'dchip ' + (e.action === 'approved' ? 'add' : 'rem');
+        a.style.textDecoration = 'none';
+        a.textContent = e.action === 'approved' ? '\u2713 marked done'
+                       : e.action === 'un-approved' ? '\u2715 un-marked'
+                       : e.action;
+        right.appendChild(a);
+      }
+      row.appendChild(left); row.appendChild(right);
+      body.appendChild(row);
+    });
+  } catch (err) {
+    body.innerHTML = '<p class="hint">History needs the local server ' +
+      '(<code>python3 animations-hub/server.py</code>).</p>';
+    $('#histSub').textContent = '';
+  }
+}
+function closeHist() { $('#histIndex').classList.remove('open'); }
+$('#openHist').onclick = openHist;
+$('#histClose').onclick = closeHist;
+$('#histIndex').onclick = e => { if (e.target.id === 'histIndex') closeHist(); };
+
+/* ================= atmosphere tag index =================
+   Every atmosphere tag in one place, with how many presets carry it. Picking one
+   applies exactly the same filter as clicking a chip in the side panel. */
+function atmosphereCounts() {
+  const c = new Map();
+  PRESETS.forEach(p => p.atmosphere.forEach(t => {
+    const k = norm(t);
+    c.set(k, (c.get(k) || 0) + 1);
+  }));
+  return c;
+}
+
+function renderTagIndex() {
+  const counts = atmosphereCounts();
+  const q = norm($('#tiSearch').value.trim());
+  const used = [...counts.entries()].filter(([t]) => !q || t.includes(q));
+  used.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const unused = VOCAB_ALL
+    .map(norm)
+    .filter(t => !counts.has(t) && (!q || t.includes(q)))
+    .sort();
+
+  const body = $('#tiBody');
+  const keep = $('#tiDef');
+  body.innerHTML = '';
+  if (keep) body.appendChild(keep);
+  const section = (title, rows, zero) => {
+    if (!rows.length) return;
+    const h = document.createElement('h3');
+    h.textContent = title;
+    body.appendChild(h);
+    const g = document.createElement('div');
+    g.className = 'tigrid';
+    rows.forEach(entry => {
+      const t = zero ? entry : entry[0];
+      const n = zero ? 0 : entry[1];
+      const b = document.createElement('button');
+      b.className = 'tichip' + (zero ? ' zero' : '') +
+        (tagFilter && norm(tagFilter) === t ? ' lit' : '');
+      b.innerHTML = '<span></span><span class="n"></span>';
+      b.firstChild.textContent = t;
+      b.lastChild.textContent = zero ? '—' : n;
+      b.title = zero ? 'in vocabulary.json but not used by any preset'
+                     : n + ' preset' + (n === 1 ? '' : 's');
+      b.onclick = () => showDef(t);
+      g.appendChild(b);
+    });
+    body.appendChild(g);
+  };
+  section('In use · ' + used.length + ' tags', used, false);
+  section('Available but unused · ' + unused.length, unused, true);
+  if (!used.length && !unused.length) {
+    body.innerHTML = '<p class="hint">No tag matches that.</p>';
+  }
+  $('#tiSub').textContent = counts.size + ' tags in use across ' + PRESETS.length +
+    ' presets · ' + VOCAB_ALL.length + ' allowed by vocabulary.json' +
+    (tagFilter ? ' · filtering by “' + tagFilter + '”' : '');
+}
+
+let DICT = {};
+
+(async function loadDict() {
+  try {
+    const r = await fetch('tag-dictionary.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    DICT = (await r.json()).entries || {};
+    if (current >= 0) renderTags(PRESETS[current]);
+  } catch (e) { /* dictionary optional */ }
+})();
+
+function showDef(tag) {
+  const d = DICT[norm(tag)];
+  const box = $('#tiDef');
+  if (!d) { box.classList.remove('show'); return; }
+  const s = d.signature || {};
+  const bits = [];
+  if (s.keeps_company_with && s.keeps_company_with.length) bits.push('travels with ' + s.keeps_company_with.join(', '));
+  if (s.typical_triggers && s.typical_triggers.length) bits.push('triggers ' + s.typical_triggers.join(', '));
+  if (s.median_duration_ms) bits.push('median ' + s.median_duration_ms + 'ms');
+  if (s.pct_real_3d >= 40) bits.push(s.pct_real_3d + '% genuinely 3D');
+  if (s.pct_infinite_loop >= 25) bits.push(s.pct_infinite_loop + '% loop forever');
+  if (s.pct_dark_palette >= 45) bits.push(s.pct_dark_palette + '% dark palette');
+  box.innerHTML = '';
+  const h = document.createElement('h4');
+  h.innerHTML = '<span></span><span class="cl"></span>';
+  h.firstChild.textContent = tag;
+  h.lastChild.textContent = d.cluster_name || '';
+  box.appendChild(h);
+  const mk = (label, text) => {
+    const el = document.createElement('p');
+    el.innerHTML = '<span class="lbl"></span> ';
+    el.firstChild.textContent = label;
+    el.appendChild(document.createTextNode(text));
+    box.appendChild(el);
+  };
+  mk('Means:', d.means);
+  mk('Look for:', d.look_for);
+  if (bits.length) {
+    const sg = document.createElement('div');
+    sg.className = 'sig';
+    sg.textContent = bits.join(' · ') + (s.examples && s.examples.length ? '  —  e.g. ' + s.examples.join(', ') : '');
+    box.appendChild(sg);
+  }
+  const btn = document.createElement('button');
+  btn.className = 'use';
+  btn.textContent = 'Filter presets by “' + tag + '”';
+  btn.onclick = () => pickTag(tag);
+  box.appendChild(btn);
+  box.classList.add('show');
+  box.scrollIntoView({ block: 'nearest' });
+}
+
+function defBlock(p) {
+  if (!Object.keys(DICT).length) return '';
+  const applied = p.atmosphere.filter(t => DICT[norm(t)]);
+  const sugg = suggestionsFor(p).map(x => x.tag).filter(t => DICT[norm(t)]);
+  if (!applied.length && !sugg.length) return '';
+  const shut = tagGroupShut.has('Definitions');
+  return '<button class="grouphead fold" data-g="Definitions" aria-expanded="' + String(!shut) + '">' +
+    '<span class="chev">\u25BC</span><span class="glabel">What these mean</span>' +
+    '<span class="gn">' + (applied.length + sugg.length) + '</span></button>' +
+    '<div class="chips' + (shut ? ' hidden' : '') + '" data-row="Definitions" ' +
+    'style="display:block"></div>';
+}
+
+function fillDefs(p, body) {
+  const box = body.querySelector('[data-row="Definitions"]');
+  if (!box) return;
+  const applied = p.atmosphere.filter(t => DICT[norm(t)]);
+  const sugg = suggestionsFor(p).map(x => x.tag).filter(t => DICT[norm(t)]);
+  const section = (label, list, cls) => {
+    if (!list.length) return;
+    const h = document.createElement('div');
+    h.className = 'defsub';
+    h.textContent = label;
+    box.appendChild(h);
+    list.forEach(t => {
+      const d = DICT[norm(t)];
+      const row = document.createElement('div');
+      row.className = 'defrow' + (cls ? ' ' + cls : '');
+      row.innerHTML = '<b></b> <span class="mn"></span><span class="lf"></span>';
+      row.querySelector('b').textContent = t;
+      row.querySelector('.mn').textContent = d.means;
+      row.querySelector('.lf').textContent = 'Look for: ' + d.look_for;
+      row.title = (d.cluster_name ? d.cluster_name + ' — ' : '') + d.means;
+      box.appendChild(row);
+    });
+  };
+  section('applied \u00b7 ' + applied.length, applied, '');
+  section('suggested \u00b7 ' + sugg.length, sugg, 'sug');
+}
+
+function pickTag(t) {
+  tagFilter = (tagFilter && norm(tagFilter) === norm(t)) ? null : t;
+  closeTagIndex();
+  qEl.value = '';
+  renderList();
+  if (current >= 0) renderTags(PRESETS[current]);
+}
+
+function openTagIndex() {
+  $('#tagIndex').classList.add('open');
+  $('#tiSearch').value = '';
+  renderTagIndex();
+  $('#tiSearch').focus();
+}
+function closeTagIndex() { $('#tagIndex').classList.remove('open'); }
+
+$('#openTagIndex').onclick = openTagIndex;
+$('#openDict').onclick = () => {
+  openTagIndex();
+  // land on a definition straight away so the feature explains itself
+  const first = (current >= 0 && PRESETS[current].atmosphere[0]) || 'graceful';
+  showDef(first);
+};
+$('#tiClose').onclick = closeTagIndex;
+$('#tiSearch').oninput = renderTagIndex;
+$('#tagIndex').onclick = e => { if (e.target.id === 'tagIndex') closeTagIndex(); };
+
+document.querySelectorAll('#reviewFilter button').forEach(btn => {
+  btn.onclick = () => {
+    reviewFilter = btn.dataset.rf;
+    document.querySelectorAll('#reviewFilter button')
+      .forEach(b => b.classList.toggle('on', b === btn));
+    renderList();
+  };
+});
+
+qEl.oninput = renderList;
+$('#prev').onclick = () => step(-1);
+$('#next').onclick = () => step(1);
+$('#reload').onclick = () => { if (current >= 0) { frame.src = 'about:blank'; setTimeout(() => select(current), 40); } };
+$('#pop').onclick = () => { if (frame.src) window.open(frame.src, '_blank'); };
+$('#toggleTags').onclick = () => document.body.classList.toggle('no-tags');
+
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#tagIndex').classList.contains('open')) {
+    closeTagIndex(); return;
+  }
+  if (e.key === 'Escape' && $('#histIndex').classList.contains('open')) {
+    closeHist(); return;
+  }
+  if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.key === '/') { e.preventDefault(); qEl.focus(); return; }
+  if (e.key === 't') { e.preventDefault(); openTagIndex(); return; }
+  if (e.key === 'h') { e.preventDefault(); openHist(); return; }
+  if (e.key === 'd') { e.preventDefault(); $('#openDict').click(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); step(1); }
+  if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); step(-1); }
+});
+
+/* ================= guarded atmosphere editing =================
+   Three locks stand between a stray click and a CSV write:
+     1. the panel is read-only until you explicitly unlock it (with a confirm)
+     2. removing a tag needs two clicks - the first only arms it
+     3. a tag outside vocabulary.json needs a second confirm to be accepted
+   The server enforces the same vocabulary rule and refuses to empty a row. */
+let serverEditable = false, unlocked = false, armed = null, armTimer = null;
+let vocab = [], undoSnap = null;
+
+function status(msg, cls) {
+  const el = $('#saveState');
+  el.textContent = msg || '';
+  el.className = cls || '';
+}
+
+function paintLock() {
+  const btn = $('#lockBtn');
+  if (!serverEditable) {
+    $('#lockIcon').textContent = '🔒';
+    $('#lockText').textContent = 'Read-only';
+    btn.classList.remove('open');
+    btn.title = 'Start animations-hub/server.py to enable tag editing';
+    document.body.classList.remove('editing');
+    if (!$('#saveState').textContent) status('static server — tags not editable');
+    return;
+  }
+  $('#lockIcon').textContent = unlocked ? '🔓' : '🔒';
+  $('#lockText').textContent = unlocked ? 'Editing' : 'Locked';
+  btn.classList.toggle('open', unlocked);
+  btn.title = unlocked ? 'Lock editing again' : 'Unlock to add or remove atmosphere tags';
+  document.body.classList.toggle('editing', unlocked);
+  $('#warnline').textContent = unlocked
+    ? 'Writes go straight to interact-examples-tags.csv. Off-vocabulary tags need confirming; removing needs two clicks.'
+    : '';
+  $('#undoBtn').style.display = (unlocked && undoSnap) ? 'inline' : 'none';
+}
+
+function disarm() {
+  armed = null;
+  if (armTimer) { clearTimeout(armTimer); armTimer = null; }
+}
+
+async function postTags(p, tags, extra) {
+  try {
+    const r = await fetch('/api/tags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ row: p.row, atmosphere: tags }, extra || {}))
+    });
+    const d = await r.json();
+    if (!d.ok) { status(d.error || 'save failed', 'err'); return false; }
+    p.atmosphere = d.atmosphere;
+    if (Array.isArray(d.original)) p.original = d.original;   // baseline the server just captured
+    status('Saved to CSV · ' + d.atmosphere.length + ' tags', 'ok');
+    return true;
+  } catch (e) {
+    status('server unreachable — not saved', 'err');
+    return false;
+  }
+}
+
+async function armRemove(p, tag) {
+  if (!unlocked) { status('unlock first', 'err'); return; }
+  if (armed !== tag) {                     // first click only arms it
+    disarm(); armed = tag;
+    status('click × again to remove “' + tag + '”');
+    armTimer = setTimeout(() => { disarm(); status(''); renderTags(p); }, 4000);
+    renderTags(p);
+    return;
+  }
+  disarm();
+  const next = p.atmosphere.filter(t => t !== tag);
+  if (!next.length) {
+    status('a preset must keep at least one tag', 'err');
+    renderTags(p); return;
+  }
+  undoSnap = { row: p.row, tags: p.atmosphere.slice() };
+  if (await postTags(p, next, { allowNew: true })) renderList();
+  renderTags(p);
+}
+
+async function addTag(p) {
+  if (!unlocked) { status('unlock first', 'err'); return; }
+  const input = $('#newTag');
+  const t = input.value.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (!t) return;
+  if (p.atmosphere.some(x => norm(x) === t)) { status('already tagged', 'err'); return; }
+  if (vocab.length && !vocab.includes(t)) {
+    if (!confirm('“' + t + '” is not in vocabulary.json.\n\nOff-vocabulary terms make filtering less reliable. Add it anyway?')) {
+      status('not added'); return;
+    }
+  }
+  undoSnap = { row: p.row, tags: p.atmosphere.slice() };
+  if (await postTags(p, p.atmosphere.concat([t]), { allowNew: true })) {
+    input.value = '';
+    renderList();
+  }
+  renderTags(p);
+}
+
+$('#lockBtn').onclick = () => {
+  if (!serverEditable) {
+    alert('This page is served statically, so tags cannot be edited.\n\nRun:  python3 animations-hub/server.py\nthen reload this page.');
+    return;
+  }
+  if (!unlocked) {
+    if (!confirm('Unlock tag editing?\n\nAdding or removing a tag writes immediately to interact-examples-tags.csv.')) return;
+    unlocked = true; status('editing unlocked');
+  } else {
+    unlocked = false; disarm(); status('');
+  }
+  paintLock();
+  if (current >= 0) renderTags(PRESETS[current]);
+};
+
+$('#addBtn').onclick = () => { if (current >= 0) addTag(PRESETS[current]); };
+$('#newTag').onkeydown = e => {
+  if (e.key === 'Enter') { e.preventDefault(); if (current >= 0) addTag(PRESETS[current]); }
+};
+$('#undoBtn').onclick = async () => {
+  if (!undoSnap) return;
+  const p = PRESETS.find(x => x.row === undoSnap.row);
+  if (!p) return;
+  const tags = undoSnap.tags.slice();
+  undoSnap = null;
+  if (await postTags(p, tags, { allowNew: true })) renderList();
+  if (current >= 0) renderTags(PRESETS[current]);
+  paintLock();
+};
+
+/* Ask the server for live data. If it answers, editing is possible and the tag
+   values shown come from the CSV rather than the copy baked in at build time. */
+(async function connect() {
+  try {
+    const r = await fetch('/api/presets', { cache: 'no-store' });
+    if (!r.ok) throw new Error('no api');
+    const d = await r.json();
+    if (!d.ok || !Array.isArray(d.presets) || d.presets.length !== PRESETS.length) throw new Error('shape');
+    vocab = d.vocabulary || [];
+    d.presets.forEach((fresh, i) => Object.assign(PRESETS[i], fresh));
+    serverEditable = true;
+    const dl = $('#vocabList');
+    dl.innerHTML = '';
+    vocab.forEach(t => { const o = document.createElement('option'); o.value = t; dl.appendChild(o); });
+    status('');
+    renderList();
+    if (current >= 0) renderTags(PRESETS[current]);
+  } catch (e) {
+    serverEditable = false;
+  }
+  paintLock();
+})();
+
+paintDone();
+renderList();
+</script>

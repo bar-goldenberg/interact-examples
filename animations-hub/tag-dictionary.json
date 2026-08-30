@@ -1,0 +1,3095 @@
+{
+ "entries": {
+  "3d": {
+   "means": "Actual three-dimensional transforms, not a fake.",
+   "look_for": "`perspective` plus `rotateX/rotateY` or `translateZ` in the CSS.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 27,
+    "share_pct": 17,
+    "keeps_company_with": [
+     "perspective",
+     "dimensional",
+     "spatial",
+     "depth",
+     "high-end"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 780,
+    "main_transforms": [
+     "translateY",
+     "rotateY",
+     "rotateX"
+    ],
+    "pct_real_3d": 96,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 41,
+    "examples": [
+     "Endless Parallax",
+     "3D small carousel",
+     "3D_Parallax_Gallery"
+    ]
+   }
+  },
+  "3d effect": {
+   "means": "Reads three-dimensional without necessarily being real 3D.",
+   "look_for": "Faked shadows/skew that imply volume. Prefer '3d' when perspective is genuinely used.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {}
+  },
+  "alive": {
+   "means": "Idles rather than waiting - moves without being asked.",
+   "look_for": "A slow continuous float/drift, or pointer-tracking. animations.dev's 'float'.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 42,
+    "share_pct": 27,
+    "keeps_company_with": [
+     "organized",
+     "interactive",
+     "poppy",
+     "playful",
+     "surprising"
+    ],
+    "typical_triggers": [
+     "hover",
+     "pointerMove",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 400,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 40,
+    "examples": [
+     "acordion scroll",
+     "3D_Parallax_Gallery",
+     "BlurFocus_Gallery"
+    ]
+   }
+  },
+  "artistic": {
+   "means": "Prioritises expression over utility.",
+   "look_for": "Would sit comfortably in a gallery; composition matters more than conversion.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 12,
+    "share_pct": 8,
+    "keeps_company_with": [
+     "unconventional",
+     "creative",
+     "expressive",
+     "edgy",
+     "shape"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 42,
+    "pct_infinite_loop": 25,
+    "pct_dark_palette": 25,
+    "examples": [
+     "Accordion Scroll Vertical",
+     "3D small carousel",
+     "Diagonal_Slideshow"
+    ]
+   }
+  },
+  "attention-grabbing": {
+   "means": "Designed to interrupt.",
+   "look_for": "High contrast against its surroundings, motion where the eye is not already looking, or a loop.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 18,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "impactful",
+     "edgy",
+     "graphic",
+     "futuristic",
+     "experimental"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pageVisible"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 33,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 28,
+    "examples": [
+     "expand horzinotal scroll",
+     "CardSpread_7",
+     "TextMask2Image"
+    ]
+   }
+  },
+  "bold": {
+   "means": "Loud and unmissable. Commits fully to the effect.",
+   "look_for": "Large travel or scale, heavy type, strong contrast, long confident duration (~900ms median here).",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 56,
+    "share_pct": 36,
+    "keeps_company_with": [
+     "attention-grabbing",
+     "expressive",
+     "impactful",
+     "confident",
+     "graphic"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 35,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 29,
+    "examples": [
+     "expand horzinotal scroll",
+     "horiznotal & vertical scroll",
+     "Shape scroll"
+    ]
+   }
+  },
+  "calm": {
+   "means": "Nothing competes for attention; the pace lowers your pulse.",
+   "look_for": "Single slow motion, no loops demanding attention, muted palette.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 10,
+    "share_pct": 6,
+    "keeps_company_with": [
+     "classic",
+     "soft",
+     "gentle",
+     "shape",
+     "subtle"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 400,
+    "main_transforms": [
+     "scale",
+     "rotateX",
+     "rotateY"
+    ],
+    "pct_real_3d": 40,
+    "pct_infinite_loop": 10,
+    "pct_dark_palette": 20,
+    "examples": [
+     "BG_Image_ShapeMask_Gallery",
+     "BG_image_ShapeMask",
+     "Kinetic 155 Horizon"
+    ]
+   }
+  },
+  "cascading": {
+   "means": "A staggered reveal that reads as a wave.",
+   "look_for": "Stagger plus a directional order - left-to-right, top-to-bottom.",
+   "cluster": "staggered",
+   "cluster_name": "Order & choreography",
+   "signature": {
+    "presets": 17,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "staggered",
+     "confident",
+     "energetic",
+     "techy",
+     "futuristic"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "interest"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 810,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 18,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 24,
+    "examples": [
+     "CursorTrail",
+     "DiagonalShuffle",
+     "horizontal-stripe-cascade-reveal"
+    ]
+   }
+  },
+  "charming": {
+   "means": "Small, personable, a little humane.",
+   "look_for": "Tiny idiosyncratic details; imperfection used deliberately.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 6,
+    "share_pct": 4,
+    "keeps_company_with": [
+     "fun",
+     "playful",
+     "alive",
+     "horizontal",
+     "interactive"
+    ],
+    "typical_triggers": [
+     "click",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease"
+    ],
+    "median_duration_ms": 400,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "rotate"
+    ],
+    "pct_real_3d": 17,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 50,
+    "examples": [
+     "sticky repeater stack",
+     "Vshape_Headline",
+     "lock-toggle"
+    ]
+   }
+  },
+  "circular": {
+   "means": "Motion follows an arc or a full rotation.",
+   "look_for": "`rotate()` as the main transform, or elements arranged on a radius.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 16,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "spiraling",
+     "poppy",
+     "playful",
+     "organized",
+     "endless"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "click"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 750,
+    "main_transforms": [
+     "rotate",
+     "translateY",
+     "scale"
+    ],
+    "pct_real_3d": 13,
+    "pct_infinite_loop": 13,
+    "pct_dark_palette": 33,
+    "examples": [
+     "corner fold scroll animation",
+     "Digital Jukebox",
+     "CardSpread_7"
+    ]
+   }
+  },
+  "classic": {
+   "means": "Familiar, timeless vocabulary. No trend markers.",
+   "look_for": "Fade, slide, simple scale. No 3D, no glitch, no neon. Would have looked fine ten years ago.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 11,
+    "share_pct": 7,
+    "keeps_company_with": [
+     "modern",
+     "graceful",
+     "subtle",
+     "soft",
+     "high-end"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "rotateX"
+    ],
+    "pct_real_3d": 27,
+    "pct_infinite_loop": 18,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Card Spread",
+     "horiznotal & vertical scroll",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "clean": {
+   "means": "Visually uncluttered - the motion reads instantly.",
+   "look_for": "Few colours (2-3), generous whitespace, one clear thing moving at a time.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 70,
+    "share_pct": 45,
+    "keeps_company_with": [
+     "understated",
+     "soft",
+     "subtle",
+     "silky",
+     "minimal"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 19,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 19,
+    "examples": [
+     "Card Spread",
+     "classic horziontal scroll",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "cloudy": {
+   "means": "Diffuse, hazy, soft-focus quality.",
+   "look_for": "Blur filters, low-contrast washes, overlapping translucency.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "translateX",
+     "translateY"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Card Spread"
+    ]
+   }
+  },
+  "confident": {
+   "means": "Decisive. No hesitation, no wobble.",
+   "look_for": "Single committed movement, snappy deceleration, no bounce-back. Figma's 'steep, snappy deceleration'.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 20,
+    "share_pct": 13,
+    "keeps_company_with": [
+     "impactful",
+     "cascading",
+     "bold",
+     "graphic",
+     "vertical"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 40,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 35,
+    "examples": [
+     "horiznotal & vertical scroll",
+     "Digital Jukebox",
+     "invert-header"
+    ]
+   }
+  },
+  "continuous": {
+   "means": "Never fully stops while on screen.",
+   "look_for": "`iterations: Infinity`, or a scroll-driven effect with no rest state.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 41,
+    "share_pct": 26,
+    "keeps_company_with": [
+     "endless",
+     "artistic",
+     "flowing",
+     "immersive",
+     "effortless"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 1000,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 24,
+    "examples": [
+     "corner fold scroll animation",
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "cool": {
+   "means": "Detached, confident, understated-but-current.",
+   "look_for": "Restrained palette with one sharp accent; motion that does not try to please.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 20,
+    "share_pct": 13,
+    "keeps_company_with": [
+     "unique",
+     "edgy",
+     "futuristic",
+     "techy",
+     "dynamic"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 550,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 16,
+    "pct_infinite_loop": 5,
+    "pct_dark_palette": 37,
+    "examples": [
+     "expand horzinotal scroll",
+     "3D_Parallax_Gallery",
+     "Mirror_Hover_Galery"
+    ]
+   }
+  },
+  "creative": {
+   "means": "An idea you have not seen applied this way.",
+   "look_for": "The mechanism itself is the novelty, not just the styling.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 15,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "unique",
+     "experimental",
+     "artistic",
+     "organic",
+     "techy"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 850,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 27,
+    "pct_dark_palette": 27,
+    "examples": [
+     "horiznotal & vertical scroll",
+     "title folds scroll animation",
+     "Digital Jukebox"
+    ]
+   }
+  },
+  "depth": {
+   "means": "Reads as having a front and a back.",
+   "look_for": "Overlap, scale-with-distance, blur-with-distance, or an explicit Z translation. 84% of presets tagged this are genuinely 3D.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 44,
+    "share_pct": 28,
+    "keeps_company_with": [
+     "spatial",
+     "perspective",
+     "dimensional",
+     "3d",
+     "layered"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 700,
+    "main_transforms": [
+     "translateY",
+     "rotateX",
+     "scale"
+    ],
+    "pct_real_3d": 84,
+    "pct_infinite_loop": 5,
+    "pct_dark_palette": 40,
+    "examples": [
+     "sticky repeater stack",
+     "Small carousel",
+     "acordion scroll"
+    ]
+   }
+  },
+  "dimensional": {
+   "means": "Occupies volume; you could walk around it.",
+   "look_for": "Multiple faces or planes visible at once.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 30,
+    "share_pct": 19,
+    "keeps_company_with": [
+     "spatial",
+     "perspective",
+     "3d",
+     "depth",
+     "layered"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "linear"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "translateY",
+     "rotateX",
+     "rotateY"
+    ],
+    "pct_real_3d": 96,
+    "pct_infinite_loop": 4,
+    "pct_dark_palette": 46,
+    "examples": [
+     "3D_Parallax_Gallery",
+     "DiagonalShuffle",
+     "HorizontalCarouselPerspective"
+    ]
+   }
+  },
+  "dynamic": {
+   "means": "Visibly energetic; velocity is part of the message.",
+   "look_for": "Fast phases, direction changes, several elements moving at once at different rates.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 28,
+    "share_pct": 18,
+    "keeps_company_with": [
+     "energetic",
+     "futuristic",
+     "fun",
+     "cool",
+     "edgy"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 700,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 22,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 26,
+    "examples": [
+     "expand horzinotal scroll",
+     "horiznotal & vertical scroll",
+     "corner fold scroll animation"
+    ]
+   }
+  },
+  "edgy": {
+   "means": "Slightly uncomfortable on purpose.",
+   "look_for": "Asymmetry, clipping, glitch, harsh timing, unexpected cuts.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 27,
+    "share_pct": 17,
+    "keeps_company_with": [
+     "futuristic",
+     "attention-grabbing",
+     "experimental",
+     "unique",
+     "cool"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 760,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 35,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 42,
+    "examples": [
+     "expand horzinotal scroll",
+     "sticky repeater stack",
+     "Endless Parallax"
+    ]
+   }
+  },
+  "effortless": {
+   "means": "Looks like it costs the interface nothing.",
+   "look_for": "No strain, no bounce, no overshoot. Consistent velocity into a soft stop.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 30,
+    "share_pct": 19,
+    "keeps_company_with": [
+     "silky",
+     "flowing",
+     "understated",
+     "vertical",
+     "continuous"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 550,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "rotate"
+    ],
+    "pct_real_3d": 23,
+    "pct_infinite_loop": 7,
+    "pct_dark_palette": 27,
+    "examples": [
+     "title folds scroll animation",
+     "classic horziontal scroll",
+     "corner fold scroll animation"
+    ]
+   }
+  },
+  "elegant": {
+   "means": "Restrained motion that still feels considered and expensive.",
+   "look_for": "Asymmetric easing with a long deceleration, serif or high-contrast type, unhurried duration (600ms+).",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 70,
+    "share_pct": 45,
+    "keeps_company_with": [
+     "soft",
+     "classic",
+     "understated",
+     "gentle",
+     "high-end"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 10,
+    "pct_dark_palette": 14,
+    "examples": [
+     "Card Spread",
+     "classic horziontal scroll",
+     "Small carousel"
+    ]
+   }
+  },
+  "endless": {
+   "means": "Reads as having no beginning or end.",
+   "look_for": "Seamless infinite loop - marquee, lane, wheel. You cannot identify frame zero.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 18,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "immersive",
+     "continuous",
+     "seamless",
+     "experimental",
+     "organic"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "hover",
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-in-out"
+    ],
+    "median_duration_ms": 1700,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 22,
+    "pct_infinite_loop": 72,
+    "pct_dark_palette": 39,
+    "examples": [
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes",
+     "CasperGallery"
+    ]
+   }
+  },
+  "energetic": {
+   "means": "High tempo, springy.",
+   "look_for": "Short durations (<400ms), overshoot in the easing curve, quick successive triggers.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 11,
+    "share_pct": 7,
+    "keeps_company_with": [
+     "poppy",
+     "dynamic",
+     "fun",
+     "playful",
+     "surprising"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-in-out"
+    ],
+    "median_duration_ms": 850,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "rotate"
+    ],
+    "pct_real_3d": 40,
+    "pct_infinite_loop": 10,
+    "pct_dark_palette": 40,
+    "examples": [
+     "corner fold scroll animation",
+     "Shape scroll",
+     "CasperGallery"
+    ]
+   }
+  },
+  "experimental": {
+   "means": "Feels like a prototype exploring an idea.",
+   "look_for": "Unusual mechanics, no established convention, may not survive a usability test.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 9,
+    "share_pct": 6,
+    "keeps_company_with": [
+     "unconventional",
+     "creative",
+     "edgy",
+     "endless",
+     "attention-grabbing"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "ease-in-out",
+     "ease-out"
+    ],
+    "median_duration_ms": 1000,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 38,
+    "pct_dark_palette": 12,
+    "examples": [
+     "Accordion Scroll Vertical",
+     "3D small carousel",
+     "CasperGallery"
+    ]
+   }
+  },
+  "expressive": {
+   "means": "The motion carries meaning beyond function.",
+   "look_for": "The movement says something about the content - it is not a generic fade-in.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 13,
+    "share_pct": 8,
+    "keeps_company_with": [
+     "fun",
+     "surprising",
+     "poppy",
+     "artistic",
+     "bold"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 1000,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 25,
+    "pct_dark_palette": 33,
+    "examples": [
+     "Shape scroll",
+     "Digital Jukebox",
+     "Endless Parallax"
+    ]
+   }
+  },
+  "eye catching": {
+   "means": "Legacy unhyphenated spelling - prefer 'eye-catching'.",
+   "look_for": "Same meaning. Kept only because one existing row uses it.",
+   "cluster": "eye catching",
+   "cluster_name": "Legacy wording",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "scale",
+     "scaleX",
+     "translateY"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 100,
+    "examples": [
+     "title folds scroll animation"
+    ]
+   }
+  },
+  "eye-catching": {
+   "means": "Pulls the eye on first glance.",
+   "look_for": "Same intent as attention-grabbing but usually via colour/shape rather than speed.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "interest"
+    ],
+    "typical_easing": [
+     "ease-out"
+    ],
+    "median_duration_ms": 450,
+    "main_transforms": [
+     "translateY"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Accordion Scroll Vertical"
+    ]
+   }
+  },
+  "flowing": {
+   "means": "Continuous directional movement, like a current.",
+   "look_for": "Sustained travel in one direction, overlapping element timing so there is never a still frame.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 33,
+    "share_pct": 21,
+    "keeps_company_with": [
+     "effortless",
+     "spatial",
+     "continuous",
+     "seamless",
+     "gradual"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 460,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 41,
+    "pct_infinite_loop": 16,
+    "pct_dark_palette": 34,
+    "examples": [
+     "title folds scroll animation",
+     "classic horziontal scroll",
+     "corner fold scroll animation"
+    ]
+   }
+  },
+  "flowless": {
+   "means": "Ambiguous legacy term - probably meant 'flawless' or 'flowing'.",
+   "look_for": "Do not apply to new rows; pick 'seamless' or 'flowing' instead.",
+   "cluster": "flowless",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "activate",
+     "pointerMove",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-in-out"
+    ],
+    "median_duration_ms": 730,
+    "main_transforms": [
+     "scale",
+     "translateX",
+     "translateY"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 100,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Endless Parallax"
+    ]
+   }
+  },
+  "fluid": {
+   "means": "Liquid-like, continuously deforming.",
+   "look_for": "Curved paths, easing without hard stops, shapes that bend rather than snap.",
+   "cluster": "fluid",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {
+    "presets": 3,
+    "share_pct": 2,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 550,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 33,
+    "pct_dark_palette": 67,
+    "examples": [
+     "expand horzinotal scroll",
+     "title folds scroll animation",
+     "Mouse track infinite gallery"
+    ]
+   }
+  },
+  "fun": {
+   "means": "Produces a small smile.",
+   "look_for": "Unexpected but harmless behaviour - wobble, squash, a face, a pop.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 15,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "charming",
+     "poppy",
+     "expressive",
+     "surprising",
+     "modern"
+    ],
+    "typical_triggers": [
+     "pointerMove",
+     "viewEnter",
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 500,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 14,
+    "pct_infinite_loop": 7,
+    "pct_dark_palette": 29,
+    "examples": [
+     "sticky repeater stack",
+     "Shape scroll",
+     "acordion scroll"
+    ]
+   }
+  },
+  "futuristic": {
+   "means": "Speculative, not-yet-mainstream.",
+   "look_for": "3D perspective, glass/neon, chromatic effects, unusual axis of movement.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 14,
+    "share_pct": 9,
+    "keeps_company_with": [
+     "techy",
+     "edgy",
+     "unique",
+     "dynamic",
+     "attention-grabbing"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 29,
+    "pct_infinite_loop": 7,
+    "pct_dark_palette": 43,
+    "examples": [
+     "sticky repeater stack",
+     "Small carousel",
+     "Endless Parallax"
+    ]
+   }
+  },
+  "gentle": {
+   "means": "Low amplitude. The motion is small relative to the element.",
+   "look_for": "Travel under ~40px or scale change under ~10%. Nothing crosses the viewport.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 16,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "soft",
+     "graceful",
+     "calm",
+     "modern",
+     "classic"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 920,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 19,
+    "pct_infinite_loop": 25,
+    "pct_dark_palette": 19,
+    "examples": [
+     "Card Spread",
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "graceful": {
+   "means": "Unhurried, curved, weight-bearing motion - it looks like it has mass.",
+   "look_for": "Arcs rather than straight lines, no sudden direction changes, slow settle. NN/g's 'long gradual deceleration'.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 8,
+    "share_pct": 5,
+    "keeps_company_with": [
+     "soft",
+     "modern",
+     "gentle",
+     "classic",
+     "subtle"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 1120,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 25,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Card Spread",
+     "classic horziontal scroll",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "gradual": {
+   "means": "The change is spread across a long span; no single moment carries it.",
+   "look_for": "Scroll-linked with `linear` easing over a tall section (300vh+). Scrubbing back and forth feels identical.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 60,
+    "share_pct": 38,
+    "keeps_company_with": [
+     "calm",
+     "shape",
+     "sophisticated",
+     "flowing",
+     "continuous"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 820,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 32,
+    "pct_infinite_loop": 3,
+    "pct_dark_palette": 17,
+    "examples": [
+     "title folds scroll animation",
+     "corner fold scroll animation",
+     "acordion scroll"
+    ]
+   }
+  },
+  "graphic": {
+   "means": "Poster-like. Reads as flat shape and type.",
+   "look_for": "Oversized type, hard-edged shapes, strong figure/ground, often masks rather than 3D.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 47,
+    "share_pct": 30,
+    "keeps_company_with": [
+     "attention-grabbing",
+     "impactful",
+     "edgy",
+     "bold",
+     "surprising"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 26,
+    "pct_infinite_loop": 13,
+    "pct_dark_palette": 24,
+    "examples": [
+     "Shape scroll",
+     "CardSpread_7",
+     "Vertical3Dcards"
+    ]
+   }
+  },
+  "groovy": {
+   "means": "Rhythmic, slightly retro, on a beat.",
+   "look_for": "Repeating cycles with a swing feel; wavy rather than linear paths.",
+   "cluster": "flowless",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {
+    "presets": 2,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "pointerMove",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 550,
+    "main_transforms": [
+     "rotate",
+     "translateY",
+     "scale"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 50,
+    "examples": [
+     "horziontally scrolling image gallery",
+     "DolphinAnimation"
+    ]
+   }
+  },
+  "high-end": {
+   "means": "Reads as premium/luxury.",
+   "look_for": "Slow, generous timing, dark or monochrome palette, serif display type, lots of negative space.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 24,
+    "share_pct": 15,
+    "keeps_company_with": [
+     "classic",
+     "modern",
+     "sophisticated",
+     "graceful",
+     "refined"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 860,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 33,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 8,
+    "examples": [
+     "Card Spread",
+     "expand horzinotal scroll",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "horizontal": {
+   "means": "The dominant axis is left/right.",
+   "look_for": "translateX dominates; row layouts; sideways travel.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 36,
+    "share_pct": 23,
+    "keeps_company_with": [
+     "polished",
+     "techy",
+     "interactive",
+     "effortless",
+     "alive"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 500,
+    "main_transforms": [
+     "translateX",
+     "translateY",
+     "scale"
+    ],
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 8,
+    "pct_dark_palette": 25,
+    "examples": [
+     "horziontally scrolling image gallery",
+     "CardSpreadByHover",
+     "HorizontalCarouselPerspective"
+    ]
+   }
+  },
+  "horizontal movement": {
+   "means": "Legacy phrasing for sideways travel - prefer 'horizontal'.",
+   "look_for": "Same cue as 'horizontal'. Kept only because existing rows use it.",
+   "cluster": "eye catching",
+   "cluster_name": "Legacy wording",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "linear"
+    ],
+    "median_duration_ms": 400,
+    "main_transforms": [
+     "scale",
+     "translateX",
+     "translateY"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "expand horzinotal scroll"
+    ]
+   }
+  },
+  "horizontal scroll": {
+   "means": "Vertical scrolling is remapped to sideways travel.",
+   "look_for": "A sticky viewport with a wide track moved by translateX.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "translateX"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "classic horziontal scroll"
+    ]
+   }
+  },
+  "immersive": {
+   "means": "Fills your field of view; you are inside it.",
+   "look_for": "Full-viewport, edge-to-edge, no visible page chrome.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 22,
+    "share_pct": 14,
+    "keeps_company_with": [
+     "endless",
+     "spatial",
+     "classic",
+     "attention-grabbing",
+     "impactful"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-in-out"
+    ],
+    "median_duration_ms": 850,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotateX"
+    ],
+    "pct_real_3d": 43,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 24,
+    "examples": [
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes",
+     "CasperGallery"
+    ]
+   }
+  },
+  "impactful": {
+   "means": "Lands with force - there is a moment of arrival.",
+   "look_for": "A sharp deceleration into the final state, often with scale. You feel it stop.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 33,
+    "share_pct": 21,
+    "keeps_company_with": [
+     "attention-grabbing",
+     "confident",
+     "bold",
+     "edgy",
+     "graphic"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pageVisible"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 950,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 30,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 30,
+    "examples": [
+     "expand horzinotal scroll",
+     "Digital Jukebox",
+     "CardSpread_7"
+    ]
+   }
+  },
+  "innovative": {
+   "means": "New technique, not just new styling.",
+   "look_for": "Uses a capability most sites do not - scroll-linked 3D, pointer-driven fields, masked type.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 3,
+    "share_pct": 2,
+    "keeps_company_with": [
+     "bold"
+    ],
+    "typical_triggers": [
+     "hover",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 560,
+    "main_transforms": [
+     "scale",
+     "translateX",
+     "translateY"
+    ],
+    "pct_real_3d": 33,
+    "pct_infinite_loop": 33,
+    "pct_dark_palette": 67,
+    "examples": [
+     "Small carousel",
+     "Endless Parallax",
+     "horziontally scrolling image gallery"
+    ]
+   }
+  },
+  "inspirational": {
+   "means": "Aspirational tone; makes you want the thing.",
+   "look_for": "Wide landscape imagery, generous scale, uplifting upward movement.",
+   "cluster": "flowless",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "ease-out"
+    ],
+    "median_duration_ms": 350,
+    "main_transforms": [
+     "rotateY",
+     "scale",
+     "translate"
+    ],
+    "pct_real_3d": 100,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 100,
+    "examples": [
+     "Small carousel"
+    ]
+   }
+  },
+  "interactive": {
+   "means": "Responds to you, not to the scroll position.",
+   "look_for": "Requires a hover / click / pointermove / interest trigger. THIS IS A HARD RULE: scroll-only work is never 'interactive'.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 57,
+    "share_pct": 36,
+    "keeps_company_with": [
+     "alive",
+     "fun",
+     "organized",
+     "poppy",
+     "playful"
+    ],
+    "typical_triggers": [
+     "hover",
+     "viewEnter",
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 420,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 9,
+    "pct_dark_palette": 35,
+    "examples": [
+     "Shape scroll",
+     "acordion scroll",
+     "Endless Parallax"
+    ]
+   }
+  },
+  "layered": {
+   "means": "Distinct stacked planes.",
+   "look_for": "3+ visually separated depth planes with different motion rates.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 31,
+    "share_pct": 20,
+    "keeps_company_with": [
+     "spatial",
+     "dimensional",
+     "depth",
+     "perspective",
+     "futuristic"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 41,
+    "pct_infinite_loop": 7,
+    "pct_dark_palette": 10,
+    "examples": [
+     "3D_Parallax_Gallery",
+     "CardSpreadByHover",
+     "CardSpread_7"
+    ]
+   }
+  },
+  "layering": {
+   "means": "Legacy phrasing - prefer 'layered'.",
+   "look_for": "Same cue as 'layered'.",
+   "cluster": "layering",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "rotateX",
+     "translateY",
+     "translateZ"
+    ],
+    "pct_real_3d": 100,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "Digital Jukebox"
+    ]
+   }
+  },
+  "minimal": {
+   "means": "Reduced to the fewest possible moving parts.",
+   "look_for": "One or two properties animating; sparse composition; often just opacity + a small transform.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 72,
+    "share_pct": 46,
+    "keeps_company_with": [
+     "understated",
+     "shape",
+     "refined",
+     "clean",
+     "sophisticated"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 580,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "rotate"
+    ],
+    "pct_real_3d": 19,
+    "pct_infinite_loop": 7,
+    "pct_dark_palette": 21,
+    "examples": [
+     "CursorTrail",
+     "Mouse track infinite gallery",
+     "Paragraph_Reaveal"
+    ]
+   }
+  },
+  "modern": {
+   "means": "Current design-language markers.",
+   "look_for": "Large geometric sans, flat or subtle-gradient surfaces, generous radii, scroll-linked motion.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 8,
+    "share_pct": 5,
+    "keeps_company_with": [
+     "graceful",
+     "classic",
+     "soft",
+     "subtle",
+     "fun"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 530,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 14,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 29,
+    "examples": [
+     "Card Spread",
+     "corner fold scroll animation",
+     "acordion scroll"
+    ]
+   }
+  },
+  "organic": {
+   "means": "Natural, non-mechanical curvature.",
+   "look_for": "Blob shapes, uneven timing, nothing perfectly aligned to a grid.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 17,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "shape",
+     "creative",
+     "gentle",
+     "calm",
+     "endless"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 1000,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translate"
+    ],
+    "pct_real_3d": 12,
+    "pct_infinite_loop": 35,
+    "pct_dark_palette": 24,
+    "examples": [
+     "title folds scroll animation",
+     "horziontally scrolling image gallery",
+     "CasperGallery"
+    ]
+   }
+  },
+  "organized": {
+   "means": "Everything lands on a grid or rhythm.",
+   "look_for": "Consistent spacing and equal timing steps; alignment is obvious.",
+   "cluster": "staggered",
+   "cluster_name": "Order & choreography",
+   "signature": {
+    "presets": 17,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "structured",
+     "alive",
+     "polished",
+     "interactive",
+     "subtle"
+    ],
+    "typical_triggers": [
+     "hover",
+     "viewEnter",
+     "click"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 300,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 29,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 47,
+    "examples": [
+     "Looped tabs with perspective",
+     "3D_Parallax_Gallery",
+     "BlurFocus_Gallery"
+    ]
+   }
+  },
+  "perspective": {
+   "means": "Vanishing-point convergence is visible.",
+   "look_for": "A `perspective()` value; parallel edges converge; near elements move faster.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 26,
+    "share_pct": 17,
+    "keeps_company_with": [
+     "3d",
+     "spatial",
+     "dimensional",
+     "depth",
+     "calm"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 640,
+    "main_transforms": [
+     "rotateX",
+     "translateY",
+     "rotateY"
+    ],
+    "pct_real_3d": 100,
+    "pct_infinite_loop": 4,
+    "pct_dark_palette": 46,
+    "examples": [
+     "3D_Parallax_Gallery",
+     "HorizontalCarouselPerspective",
+     "Interactive_ Rotating_Gallery_Grid"
+    ]
+   }
+  },
+  "playful": {
+   "means": "Invites you to mess with it.",
+   "look_for": "Overshoot/bounce in the curve, exaggeration, response to hover or pointer.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 40,
+    "share_pct": 25,
+    "keeps_company_with": [
+     "charming",
+     "fun",
+     "poppy",
+     "energetic",
+     "surprising"
+    ],
+    "typical_triggers": [
+     "hover",
+     "viewProgress",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 400,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 21,
+    "pct_infinite_loop": 16,
+    "pct_dark_palette": 32,
+    "examples": [
+     "expand horzinotal scroll",
+     "sticky repeater stack",
+     "horiznotal & vertical scroll"
+    ]
+   }
+  },
+  "polished": {
+   "means": "Finished. Every state and edge is handled.",
+   "look_for": "Hover, active and rest states all defined; nothing pops or reflows; timing consistent across siblings.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 53,
+    "share_pct": 34,
+    "keeps_company_with": [
+     "organized",
+     "silky",
+     "structured",
+     "smooth",
+     "horizontal"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 8,
+    "pct_dark_palette": 34,
+    "examples": [
+     "classic horziontal scroll",
+     "Small carousel",
+     "Wheel Carousel"
+    ]
+   }
+  },
+  "poppy": {
+   "means": "Quick, punchy, spring-loaded.",
+   "look_for": "Very short duration with visible overshoot - a spring with low damping (bounce).",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 15,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "fun",
+     "energetic",
+     "surprising",
+     "expressive",
+     "playful"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "pointerMove",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 420,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "rotate"
+    ],
+    "pct_real_3d": 21,
+    "pct_infinite_loop": 14,
+    "pct_dark_palette": 29,
+    "examples": [
+     "Shape scroll",
+     "acordion scroll",
+     "CasperGallery"
+    ]
+   }
+  },
+  "refined": {
+   "means": "Nothing extraneous. Every moving part is doing work.",
+   "look_for": "Few simultaneous properties, consistent timing between siblings, no decorative wobble.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 72,
+    "share_pct": 46,
+    "keeps_company_with": [
+     "understated",
+     "high-end",
+     "classic",
+     "elegant",
+     "gentle"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 700,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 6,
+    "pct_dark_palette": 12,
+    "examples": [
+     "Card Spread",
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "revealing": {
+   "means": "Content is uncovered rather than moved.",
+   "look_for": "Masks, clip-path, wipes, curtains. The element does not travel - the window onto it changes.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 78,
+    "share_pct": 50,
+    "keeps_company_with": [
+     "transformative",
+     "shape",
+     "organic",
+     "minimal",
+     "understated"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 14,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 21,
+    "examples": [
+     "Digital Jukebox",
+     "BlurFocus_Gallery",
+     "CardSpreadByHover"
+    ]
+   }
+  },
+  "seamless": {
+   "means": "No visible seam, join or restart point.",
+   "look_for": "Loops where you cannot spot the wrap; transitions where the outgoing and incoming states share geometry.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 16,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "endless",
+     "flowing",
+     "cascading",
+     "impactful",
+     "understated"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 420,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 12,
+    "pct_infinite_loop": 31,
+    "pct_dark_palette": 25,
+    "examples": [
+     "classic horziontal scroll",
+     "Small carousel",
+     "Wheel Carousel"
+    ]
+   }
+  },
+  "shape": {
+   "means": "Geometry itself is the subject.",
+   "look_for": "border-radius/clip-path morphing; the silhouette changes.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 17,
+    "share_pct": 11,
+    "keeps_company_with": [
+     "organic",
+     "calm",
+     "transformative",
+     "artistic",
+     "gradual"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 900,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 12,
+    "examples": [
+     "horziontally scrolling image gallery",
+     "BG_Image_ShapeMask_Gallery",
+     "BG_image_ShapeMask"
+    ]
+   }
+  },
+  "silky": {
+   "means": "Frictionless, high-frame-rate glide.",
+   "look_for": "Transform/opacity only (GPU-friendly), no layout thrash, no jitter under fast scroll.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 24,
+    "share_pct": 15,
+    "keeps_company_with": [
+     "graceful",
+     "gentle",
+     "effortless",
+     "modern",
+     "unique"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 17,
+    "pct_infinite_loop": 8,
+    "pct_dark_palette": 29,
+    "examples": [
+     "sticky repeater stack",
+     "horiznotal & vertical scroll",
+     "title folds scroll animation"
+    ]
+   }
+  },
+  "simple": {
+   "means": "A single readable idea, easy to describe in one sentence.",
+   "look_for": "If explaining it needs an 'and then', it is not simple.",
+   "cluster": "effortless",
+   "cluster_name": "Flow & continuity",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "translateX"
+    ],
+    "pct_real_3d": 0,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 0,
+    "examples": [
+     "classic horziontal scroll"
+    ]
+   }
+  },
+  "smooth": {
+   "means": "No visible jerk, stutter or hard stop anywhere in the motion.",
+   "look_for": "One continuous curve per property. Ease-out or a gentle cubic-bezier, nothing linear-and-abrupt. If it stutters on scroll it is not smooth.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 89,
+    "share_pct": 57,
+    "keeps_company_with": [
+     "gentle",
+     "subtle",
+     "polished",
+     "silky",
+     "organized"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 13,
+    "pct_dark_palette": 31,
+    "examples": [
+     "Card Spread",
+     "title folds scroll animation",
+     "classic horziontal scroll"
+    ]
+   }
+  },
+  "soft": {
+   "means": "No hard edges in either the easing or the visuals.",
+   "look_for": "Long tails on the easing, blur, feathered masks, rounded corners, low-contrast palette.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 12,
+    "share_pct": 8,
+    "keeps_company_with": [
+     "graceful",
+     "gentle",
+     "subtle",
+     "modern",
+     "classic"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 1300,
+    "main_transforms": [
+     "scale",
+     "translateX",
+     "translateY"
+    ],
+    "pct_real_3d": 8,
+    "pct_infinite_loop": 42,
+    "pct_dark_palette": 8,
+    "examples": [
+     "Card Spread",
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "sophisticated": {
+   "means": "Complex underneath, simple on the surface.",
+   "look_for": "Several coordinated properties that resolve into one apparent movement. Orchestration, not a single tween.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 37,
+    "share_pct": 24,
+    "keeps_company_with": [
+     "high-end",
+     "classic",
+     "shape",
+     "gradual",
+     "refined"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "linear"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 5,
+    "pct_dark_palette": 14,
+    "examples": [
+     "expand horzinotal scroll",
+     "acordion scroll",
+     "horziontally scrolling image gallery"
+    ]
+   }
+  },
+  "spatial": {
+   "means": "The layout itself is a space you move through.",
+   "look_for": "Movement implies travel - into a room, along a corridor, through layers.",
+   "cluster": "dimensional",
+   "cluster_name": "Depth & space",
+   "signature": {
+    "presets": 10,
+    "share_pct": 6,
+    "keeps_company_with": [
+     "perspective",
+     "dimensional",
+     "3d",
+     "depth",
+     "layered"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "ease-out",
+     "linear"
+    ],
+    "median_duration_ms": 630,
+    "main_transforms": [
+     "translateY",
+     "rotateX",
+     "translateX"
+    ],
+    "pct_real_3d": 90,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 20,
+    "examples": [
+     "acordion scroll",
+     "HorizontalCarouselPerspective",
+     "Interactive_ Rotating_Gallery_Grid"
+    ]
+   }
+  },
+  "spiraling": {
+   "means": "Rotation combined with scale or depth - a helix.",
+   "look_for": "rotate + scale together, or rotate + translateZ.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 5,
+    "share_pct": 3,
+    "keeps_company_with": [
+     "circular",
+     "dynamic",
+     "bold"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "click"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 200,
+    "main_transforms": [
+     "rotate",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 20,
+    "pct_dark_palette": 40,
+    "examples": [
+     "Digital Jukebox",
+     "CardSpread_7",
+     "FerrisWheel"
+    ]
+   }
+  },
+  "staggered": {
+   "means": "Siblings start one after another, not together.",
+   "look_for": "A per-item delay of roughly 40-100ms. animations.dev: prevents the 'lacks elegance' parallel entrance.",
+   "cluster": "staggered",
+   "cluster_name": "Order & choreography",
+   "signature": {
+    "presets": 49,
+    "share_pct": 31,
+    "keeps_company_with": [
+     "cascading",
+     "organized",
+     "structured",
+     "techy",
+     "understated"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 27,
+    "pct_infinite_loop": 16,
+    "pct_dark_palette": 35,
+    "examples": [
+     "BlurFocus_Gallery",
+     "CasperGallery",
+     "DiagonalShuffle"
+    ]
+   }
+  },
+  "structured": {
+   "means": "A visible underlying system.",
+   "look_for": "Repeating modules, clear hierarchy, motion that respects the layout.",
+   "cluster": "staggered",
+   "cluster_name": "Order & choreography",
+   "signature": {
+    "presets": 33,
+    "share_pct": 21,
+    "keeps_company_with": [
+     "organized",
+     "polished",
+     "cascading",
+     "staggered",
+     "confident"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 560,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 27,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 39,
+    "examples": [
+     "Looped tabs with perspective",
+     "3D_Parallax_Gallery",
+     "BlurFocus_Gallery"
+    ]
+   }
+  },
+  "subtle": {
+   "means": "You notice the result, not the movement.",
+   "look_for": "Would a non-designer even register it happened? If the effect announces itself, it is not subtle.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 14,
+    "share_pct": 9,
+    "keeps_company_with": [
+     "soft",
+     "classic",
+     "modern",
+     "graceful",
+     "understated"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 500,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "translateX"
+    ],
+    "pct_real_3d": 14,
+    "pct_infinite_loop": 21,
+    "pct_dark_palette": 7,
+    "examples": [
+     "Card Spread",
+     "Vertical/ horizontal lanes",
+     "Vertical/ horizontal lanes"
+    ]
+   }
+  },
+  "surprising": {
+   "means": "Does something you did not predict.",
+   "look_for": "The second half of the motion contradicts what the first half implied.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 16,
+    "share_pct": 10,
+    "keeps_company_with": [
+     "poppy",
+     "fun",
+     "expressive",
+     "unique",
+     "energetic"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "pointerMove",
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 1000,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "rotate"
+    ],
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 38,
+    "examples": [
+     "Shape scroll",
+     "CasperGallery",
+     "CursorTrail"
+    ]
+   }
+  },
+  "techy": {
+   "means": "Machine-like, engineered.",
+   "look_for": "Monospace type, grid overlays, stepped/`steps()` timing, scan-lines, dark UI.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 21,
+    "share_pct": 13,
+    "keeps_company_with": [
+     "futuristic",
+     "unique",
+     "cool",
+     "edgy",
+     "creative"
+    ],
+    "typical_triggers": [
+     "viewEnter",
+     "viewProgress",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 500,
+    "main_transforms": [
+     "translateX",
+     "translateY",
+     "scale"
+    ],
+    "pct_real_3d": 19,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 33,
+    "examples": [
+     "Small carousel",
+     "3D small carousel",
+     "CardSpread_7"
+    ]
+   }
+  },
+  "transformative": {
+   "means": "The thing becomes something else.",
+   "look_for": "Start and end states are different in kind, not just position - shape morphs, folds, squeezes.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 48,
+    "share_pct": 31,
+    "keeps_company_with": [
+     "shape",
+     "revealing",
+     "organic",
+     "confident",
+     "gradual"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 820,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translate"
+    ],
+    "pct_real_3d": 10,
+    "pct_infinite_loop": 6,
+    "pct_dark_palette": 29,
+    "examples": [
+     "title folds scroll animation",
+     "BlurFocus_Gallery",
+     "Cornergallery01"
+    ]
+   }
+  },
+  "unconventional": {
+   "means": "Breaks an expected pattern deliberately.",
+   "look_for": "Scroll that moves sideways, nav that is not at the top, reversed reading order.",
+   "cluster": "bold",
+   "cluster_name": "Energy & statement",
+   "signature": {
+    "presets": 5,
+    "share_pct": 3,
+    "keeps_company_with": [
+     "experimental",
+     "artistic",
+     "edgy",
+     "dynamic",
+     "continuous"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "interest"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 1150,
+    "main_transforms": [
+     "translateX",
+     "translateY",
+     "skewX"
+    ],
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 20,
+    "pct_dark_palette": 20,
+    "examples": [
+     "Accordion Scroll Vertical",
+     "3D small carousel",
+     "dot-churn"
+    ]
+   }
+  },
+  "understated": {
+   "means": "Deliberately less than it could have been.",
+   "look_for": "The effect is clearly held back - short travel, low opacity change, no flourish at the end.",
+   "cluster": "soft",
+   "cluster_name": "Restraint & polish",
+   "signature": {
+    "presets": 20,
+    "share_pct": 13,
+    "keeps_company_with": [
+     "subtle",
+     "graceful",
+     "soft",
+     "calm",
+     "vertical"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "rotate"
+    ],
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 5,
+    "pct_dark_palette": 5,
+    "examples": [
+     "Card Spread",
+     "capezzani-wordmark-header",
+     "invert-header"
+    ]
+   }
+  },
+  "unique": {
+   "means": "You would recognise it again.",
+   "look_for": "One distinctive gesture that no other preset here repeats.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 9,
+    "share_pct": 6,
+    "keeps_company_with": [
+     "creative",
+     "cool",
+     "futuristic",
+     "techy",
+     "surprising"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "click"
+    ],
+    "typical_easing": [
+     "linear",
+     "ease-out"
+    ],
+    "median_duration_ms": 450,
+    "main_transforms": [
+     "translateY",
+     "translateX",
+     "scale"
+    ],
+    "pct_real_3d": 11,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 33,
+    "examples": [
+     "sticky repeater stack",
+     "horiznotal & vertical scroll",
+     "Mirror_Hover_Galery"
+    ]
+   }
+  },
+  "vertical": {
+   "means": "The dominant axis is up/down.",
+   "look_for": "translateY dominates; column layouts; top-to-bottom reveals.",
+   "cluster": "confident",
+   "cluster_name": "Direction & reveal",
+   "signature": {
+    "presets": 21,
+    "share_pct": 13,
+    "keeps_company_with": [
+     "understated",
+     "fun",
+     "surprising",
+     "confident",
+     "effortless"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "pointerMove"
+    ],
+    "typical_easing": [
+     "linear",
+     "cubic-bezier"
+    ],
+    "median_duration_ms": 600,
+    "main_transforms": [
+     "translateY",
+     "rotateX",
+     "rotate"
+    ],
+    "pct_real_3d": 29,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 24,
+    "examples": [
+     "Digital Jukebox",
+     "DolphinAnimation",
+     "Vertical3Dcards"
+    ]
+   }
+  },
+  "z axis": {
+   "means": "Legacy phrasing for depth movement - prefer 'depth' or '3d'.",
+   "look_for": "translateZ / toward-or-away-from-viewer motion.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 1,
+    "share_pct": 1,
+    "keeps_company_with": [],
+    "typical_triggers": [
+     "viewProgress"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "median_duration_ms": null,
+    "main_transforms": [
+     "rotate",
+     "scale",
+     "translateY"
+    ],
+    "pct_real_3d": 100,
+    "pct_infinite_loop": 0,
+    "pct_dark_palette": 100,
+    "examples": [
+     "sticky repeater stack"
+    ]
+   }
+  },
+  "zoom": {
+   "means": "Scale is the primary motion.",
+   "look_for": "`scale()` doing most of the work - push in or pull out.",
+   "cluster": "playful",
+   "cluster_name": "Play & response",
+   "signature": {
+    "presets": 42,
+    "share_pct": 27,
+    "keeps_company_with": [
+     "cool",
+     "high-end",
+     "shape",
+     "organic",
+     "immersive"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "viewEnter",
+     "hover"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "ease-out"
+    ],
+    "median_duration_ms": 800,
+    "main_transforms": [
+     "scale",
+     "translateY",
+     "translateX"
+    ],
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 37,
+    "examples": [
+     "sticky repeater stack",
+     "horziontally scrolling image gallery",
+     "BlurFocus_Gallery"
+    ]
+   }
+  }
+ },
+ "clusters": {
+  "bold": "Energy & statement",
+  "soft": "Restraint & polish",
+  "playful": "Play & response",
+  "dimensional": "Depth & space",
+  "effortless": "Flow & continuity",
+  "confident": "Direction & reveal",
+  "gradual": "Form & change",
+  "staggered": "Order & choreography",
+  "flowless": "Loose / idiosyncratic",
+  "eye catching": "Legacy wording",
+  "fluid": "Loose / idiosyncratic",
+  "layering": "Loose / idiosyncratic"
+ }
+}
