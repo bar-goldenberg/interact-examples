@@ -6,14 +6,14 @@
    "cluster": "dimensional",
    "cluster_name": "Depth & space",
    "signature": {
-    "presets": 27,
-    "share_pct": 17,
+    "presets": 29,
+    "share_pct": 18,
     "keeps_company_with": [
      "perspective",
-     "dimensional",
      "spatial",
+     "dimensional",
      "depth",
-     "high-end"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -21,18 +21,18 @@
      "pointerMove"
     ],
     "typical_easing": [
-     "cubic-bezier",
-     "linear"
+     "linear",
+     "cubic-bezier"
     ],
-    "median_duration_ms": 780,
+    "median_duration_ms": 800,
     "main_transforms": [
      "translateY",
-     "rotateY",
-     "rotateX"
+     "rotateX",
+     "rotateY"
     ],
     "pct_real_3d": 96,
     "pct_infinite_loop": 11,
-    "pct_dark_palette": 41,
+    "pct_dark_palette": 37,
     "examples": [
      "Endless Parallax",
      "3D small carousel",
@@ -56,11 +56,11 @@
     "presets": 42,
     "share_pct": 27,
     "keeps_company_with": [
+     "charming",
      "organized",
      "interactive",
      "poppy",
-     "playful",
-     "surprising"
+     "fun"
     ],
     "typical_triggers": [
      "hover",
@@ -79,7 +79,7 @@
     ],
     "pct_real_3d": 24,
     "pct_infinite_loop": 12,
-    "pct_dark_palette": 40,
+    "pct_dark_palette": 43,
     "examples": [
      "acordion scroll",
      "3D_Parallax_Gallery",
@@ -93,14 +93,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 12,
-    "share_pct": 8,
+    "presets": 21,
+    "share_pct": 13,
     "keeps_company_with": [
      "unconventional",
      "creative",
-     "expressive",
-     "edgy",
-     "shape"
+     "experimental",
+     "attention-grabbing",
+     "unique"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -111,15 +111,15 @@
      "linear",
      "ease-out"
     ],
-    "median_duration_ms": 600,
+    "median_duration_ms": 1000,
     "main_transforms": [
      "translateY",
-     "scale",
-     "translateX"
+     "translateX",
+     "scale"
     ],
-    "pct_real_3d": 42,
-    "pct_infinite_loop": 25,
-    "pct_dark_palette": 25,
+    "pct_real_3d": 38,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 29,
     "examples": [
      "Accordion Scroll Vertical",
      "3D small carousel",
@@ -133,37 +133,37 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 18,
-    "share_pct": 11,
+    "presets": 33,
+    "share_pct": 21,
     "keeps_company_with": [
      "impactful",
-     "edgy",
-     "graphic",
      "futuristic",
-     "experimental"
+     "artistic",
+     "edgy",
+     "techy"
     ],
     "typical_triggers": [
      "viewProgress",
      "viewEnter",
-     "pageVisible"
+     "pointerMove"
     ],
     "typical_easing": [
-     "linear",
-     "cubic-bezier"
+     "cubic-bezier",
+     "linear"
     ],
-    "median_duration_ms": 800,
+    "median_duration_ms": 1000,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 33,
-    "pct_infinite_loop": 11,
-    "pct_dark_palette": 28,
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 24,
+    "pct_dark_palette": 33,
     "examples": [
      "expand horzinotal scroll",
-     "CardSpread_7",
-     "TextMask2Image"
+     "title folds scroll animation",
+     "Endless Parallax"
     ]
    }
   },
@@ -173,14 +173,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 56,
-    "share_pct": 36,
+    "presets": 60,
+    "share_pct": 38,
     "keeps_company_with": [
-     "attention-grabbing",
-     "expressive",
-     "impactful",
      "confident",
-     "graphic"
+     "attention-grabbing",
+     "impactful",
+     "futuristic",
+     "artistic"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -194,12 +194,12 @@
     "median_duration_ms": 900,
     "main_transforms": [
      "translateY",
-     "scale",
-     "translateX"
+     "translateX",
+     "scale"
     ],
-    "pct_real_3d": 35,
-    "pct_infinite_loop": 15,
-    "pct_dark_palette": 29,
+    "pct_real_3d": 32,
+    "pct_infinite_loop": 14,
+    "pct_dark_palette": 31,
     "examples": [
      "expand horzinotal scroll",
      "horiznotal & vertical scroll",
@@ -213,37 +213,37 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 10,
-    "share_pct": 6,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
-     "classic",
      "soft",
+     "classic",
      "gentle",
-     "shape",
-     "subtle"
+     "subtle",
+     "understated"
     ],
     "typical_triggers": [
      "viewProgress",
      "hover",
-     "viewEnter"
+     "pointerMove"
     ],
     "typical_easing": [
      "ease-out",
-     "cubic-bezier"
+     "linear"
     ],
-    "median_duration_ms": 400,
+    "median_duration_ms": 820,
     "main_transforms": [
      "scale",
-     "rotateX",
-     "rotateY"
+     "translateY",
+     "rotateX"
     ],
-    "pct_real_3d": 40,
-    "pct_infinite_loop": 10,
-    "pct_dark_palette": 20,
+    "pct_real_3d": 39,
+    "pct_infinite_loop": 4,
+    "pct_dark_palette": 17,
     "examples": [
-     "BG_Image_ShapeMask_Gallery",
-     "BG_image_ShapeMask",
-     "Kinetic 155 Horizon"
+     "HorizontalCarouselPerspective",
+     "SnakeAnimation",
+     "SpecimenCardGallery"
     ]
    }
   },
@@ -258,9 +258,9 @@
     "keeps_company_with": [
      "staggered",
      "confident",
-     "energetic",
      "techy",
-     "futuristic"
+     "futuristic",
+     "structured"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -293,37 +293,37 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 6,
-    "share_pct": 4,
+    "presets": 11,
+    "share_pct": 7,
     "keeps_company_with": [
+     "groovy",
      "fun",
      "playful",
      "alive",
-     "horizontal",
-     "interactive"
+     "energetic"
     ],
     "typical_triggers": [
+     "hover",
      "click",
-     "viewProgress",
-     "hover"
+     "viewEnter"
     ],
     "typical_easing": [
      "cubic-bezier",
-     "ease"
+     "ease-out"
     ],
     "median_duration_ms": 400,
     "main_transforms": [
      "scale",
-     "translateY",
-     "rotate"
+     "rotate",
+     "translateY"
     ],
-    "pct_real_3d": 17,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 50,
+    "pct_real_3d": 18,
+    "pct_infinite_loop": 9,
+    "pct_dark_palette": 45,
     "examples": [
      "sticky repeater stack",
-     "Vshape_Headline",
-     "lock-toggle"
+     "CasperGallery",
+     "CursorTrail"
     ]
    }
   },
@@ -337,10 +337,10 @@
     "share_pct": 10,
     "keeps_company_with": [
      "spiraling",
-     "poppy",
      "playful",
-     "organized",
-     "endless"
+     "poppy",
+     "energetic",
+     "silky"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -351,7 +351,7 @@
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 750,
+    "median_duration_ms": 820,
     "main_transforms": [
      "rotate",
      "translateY",
@@ -373,14 +373,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 11,
-    "share_pct": 7,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
-     "modern",
+     "soft",
+     "calm",
      "graceful",
      "subtle",
-     "soft",
-     "high-end"
+     "understated"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -391,19 +391,19 @@
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 900,
+    "median_duration_ms": 885,
     "main_transforms": [
      "translateY",
-     "translateX",
-     "rotateX"
+     "scale",
+     "translateX"
     ],
-    "pct_real_3d": 27,
-    "pct_infinite_loop": 18,
-    "pct_dark_palette": 0,
+    "pct_real_3d": 30,
+    "pct_infinite_loop": 13,
+    "pct_dark_palette": 13,
     "examples": [
      "Card Spread",
      "horiznotal & vertical scroll",
-     "Vertical/ horizontal lanes"
+     "classic horziontal scroll"
     ]
    }
   },
@@ -413,14 +413,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 70,
-    "share_pct": 45,
+    "presets": 77,
+    "share_pct": 49,
     "keeps_company_with": [
      "understated",
      "soft",
      "subtle",
-     "silky",
-     "minimal"
+     "minimal",
+     "graceful"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -435,10 +435,10 @@
     "main_transforms": [
      "translateY",
      "scale",
-     "translateX"
+     "rotate"
     ],
-    "pct_real_3d": 19,
-    "pct_infinite_loop": 11,
+    "pct_real_3d": 21,
+    "pct_infinite_loop": 12,
     "pct_dark_palette": 19,
     "examples": [
      "Card Spread",
@@ -453,26 +453,37 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
+    "presets": 6,
+    "share_pct": 4,
+    "keeps_company_with": [
+     "understated",
+     "soft",
+     "calm",
+     "classic",
+     "gentle"
+    ],
     "typical_triggers": [
-     "viewProgress"
+     "viewProgress",
+     "viewEnter",
+     "hover"
     ],
     "typical_easing": [
-     "cubic-bezier",
-     "linear"
+     "linear",
+     "cubic-bezier"
     ],
-    "median_duration_ms": null,
+    "median_duration_ms": 300,
     "main_transforms": [
      "translateX",
-     "translateY"
+     "translateY",
+     "translate"
     ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
+    "pct_real_3d": 33,
+    "pct_infinite_loop": 17,
+    "pct_dark_palette": 17,
     "examples": [
-     "Card Spread"
+     "Card Spread",
+     "auto-shape-cycle",
+     "Blurry_Transition"
     ]
    }
   },
@@ -482,14 +493,14 @@
    "cluster": "confident",
    "cluster_name": "Direction & reveal",
    "signature": {
-    "presets": 20,
-    "share_pct": 13,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
+     "vertical",
      "impactful",
      "cascading",
      "bold",
-     "graphic",
-     "vertical"
+     "graphic"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -500,19 +511,19 @@
      "cubic-bezier",
      "linear"
     ],
-    "median_duration_ms": 900,
+    "median_duration_ms": 1000,
     "main_transforms": [
      "translateY",
-     "scale",
+     "rotateX",
      "translateX"
     ],
-    "pct_real_3d": 40,
-    "pct_infinite_loop": 15,
-    "pct_dark_palette": 35,
+    "pct_real_3d": 43,
+    "pct_infinite_loop": 17,
+    "pct_dark_palette": 39,
     "examples": [
      "horiznotal & vertical scroll",
      "Digital Jukebox",
-     "invert-header"
+     "Vertical3Dcards"
     ]
    }
   },
@@ -527,9 +538,9 @@
     "keeps_company_with": [
      "endless",
      "artistic",
+     "experimental",
      "flowing",
-     "immersive",
-     "effortless"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -562,13 +573,13 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 20,
-    "share_pct": 13,
+    "presets": 32,
+    "share_pct": 20,
     "keeps_company_with": [
      "unique",
-     "edgy",
-     "futuristic",
+     "experimental",
      "techy",
+     "futuristic",
      "dynamic"
     ],
     "typical_triggers": [
@@ -580,19 +591,19 @@
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 550,
+    "median_duration_ms": 800,
     "main_transforms": [
      "translateY",
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 16,
-    "pct_infinite_loop": 5,
-    "pct_dark_palette": 37,
+    "pct_real_3d": 23,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 29,
     "examples": [
      "expand horzinotal scroll",
-     "3D_Parallax_Gallery",
-     "Mirror_Hover_Galery"
+     "Digital Jukebox",
+     "3D_Parallax_Gallery"
     ]
    }
   },
@@ -602,14 +613,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 15,
-    "share_pct": 10,
+    "presets": 20,
+    "share_pct": 13,
     "keeps_company_with": [
-     "unique",
      "experimental",
+     "unique",
+     "unconventional",
      "artistic",
-     "organic",
-     "techy"
+     "surprising"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -620,15 +631,15 @@
      "linear",
      "ease-out"
     ],
-    "median_duration_ms": 850,
+    "median_duration_ms": 700,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
     "pct_real_3d": 20,
-    "pct_infinite_loop": 27,
-    "pct_dark_palette": 27,
+    "pct_infinite_loop": 20,
+    "pct_dark_palette": 30,
     "examples": [
      "horiznotal & vertical scroll",
      "title folds scroll animation",
@@ -722,33 +733,33 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 28,
-    "share_pct": 18,
+    "presets": 44,
+    "share_pct": 28,
     "keeps_company_with": [
-     "energetic",
+     "experimental",
+     "edgy",
      "futuristic",
-     "fun",
-     "cool",
-     "edgy"
+     "artistic",
+     "attention-grabbing"
     ],
     "typical_triggers": [
      "viewProgress",
      "viewEnter",
-     "interest"
+     "pointerMove"
     ],
     "typical_easing": [
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 700,
+    "median_duration_ms": 650,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 22,
-    "pct_infinite_loop": 15,
-    "pct_dark_palette": 26,
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 21,
+    "pct_dark_palette": 33,
     "examples": [
      "expand horzinotal scroll",
      "horiznotal & vertical scroll",
@@ -762,14 +773,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 27,
-    "share_pct": 17,
+    "presets": 42,
+    "share_pct": 27,
     "keeps_company_with": [
+     "experimental",
      "futuristic",
      "attention-grabbing",
-     "experimental",
-     "unique",
-     "cool"
+     "dynamic",
+     "techy"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -780,19 +791,19 @@
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 760,
+    "median_duration_ms": 900,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 35,
-    "pct_infinite_loop": 19,
-    "pct_dark_palette": 42,
+    "pct_real_3d": 29,
+    "pct_infinite_loop": 24,
+    "pct_dark_palette": 32,
     "examples": [
      "expand horzinotal scroll",
      "sticky repeater stack",
-     "Endless Parallax"
+     "horiznotal & vertical scroll"
     ]
    }
   },
@@ -802,14 +813,14 @@
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
    "signature": {
-    "presets": 30,
-    "share_pct": 19,
+    "presets": 32,
+    "share_pct": 20,
     "keeps_company_with": [
      "silky",
      "flowing",
-     "understated",
-     "vertical",
-     "continuous"
+     "organized",
+     "clean",
+     "understated"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -820,15 +831,15 @@
      "cubic-bezier",
      "linear"
     ],
-    "median_duration_ms": 550,
+    "median_duration_ms": 500,
     "main_transforms": [
      "translateY",
-     "translateX",
-     "rotate"
+     "scale",
+     "translateX"
     ],
-    "pct_real_3d": 23,
-    "pct_infinite_loop": 7,
-    "pct_dark_palette": 27,
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 9,
+    "pct_dark_palette": 28,
     "examples": [
      "title folds scroll animation",
      "classic horziontal scroll",
@@ -842,14 +853,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 70,
-    "share_pct": 45,
+    "presets": 83,
+    "share_pct": 53,
     "keeps_company_with": [
      "soft",
-     "classic",
+     "subtle",
      "understated",
-     "gentle",
-     "high-end"
+     "calm",
+     "gentle"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -860,19 +871,19 @@
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 800,
+    "median_duration_ms": 600,
     "main_transforms": [
      "translateY",
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 28,
-    "pct_infinite_loop": 10,
-    "pct_dark_palette": 14,
+    "pct_real_3d": 26,
+    "pct_infinite_loop": 9,
+    "pct_dark_palette": 17,
     "examples": [
      "Card Spread",
      "classic horziontal scroll",
-     "Small carousel"
+     "corner fold scroll animation"
     ]
    }
   },
@@ -882,14 +893,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 18,
-    "share_pct": 11,
+    "presets": 19,
+    "share_pct": 12,
     "keeps_company_with": [
-     "immersive",
-     "continuous",
-     "seamless",
      "experimental",
-     "organic"
+     "continuous",
+     "immersive",
+     "seamless",
+     "artistic"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -906,13 +917,13 @@
      "translateY",
      "translateX"
     ],
-    "pct_real_3d": 22,
-    "pct_infinite_loop": 72,
-    "pct_dark_palette": 39,
+    "pct_real_3d": 26,
+    "pct_infinite_loop": 68,
+    "pct_dark_palette": 37,
     "examples": [
      "Vertical/ horizontal lanes",
      "Vertical/ horizontal lanes",
-     "CasperGallery"
+     "3D small carousel"
     ]
    }
   },
@@ -922,14 +933,14 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 11,
-    "share_pct": 7,
+    "presets": 19,
+    "share_pct": 12,
     "keeps_company_with": [
      "poppy",
-     "dynamic",
      "fun",
+     "charming",
      "playful",
-     "surprising"
+     "expressive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -938,21 +949,21 @@
     ],
     "typical_easing": [
      "linear",
-     "ease-in-out"
+     "cubic-bezier"
     ],
     "median_duration_ms": 850,
     "main_transforms": [
-     "scale",
      "translateY",
+     "scale",
      "rotate"
     ],
-    "pct_real_3d": 40,
-    "pct_infinite_loop": 10,
-    "pct_dark_palette": 40,
+    "pct_real_3d": 39,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 44,
     "examples": [
      "corner fold scroll animation",
      "Shape scroll",
-     "CasperGallery"
+     "3D_Parallax_Gallery"
     ]
    }
   },
@@ -962,14 +973,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 9,
-    "share_pct": 6,
+    "presets": 15,
+    "share_pct": 10,
     "keeps_company_with": [
      "unconventional",
      "creative",
-     "edgy",
-     "endless",
-     "attention-grabbing"
+     "techy",
+     "surprising",
+     "artistic"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -977,8 +988,8 @@
      "hover"
     ],
     "typical_easing": [
-     "ease-in-out",
-     "ease-out"
+     "ease-out",
+     "linear"
     ],
     "median_duration_ms": 1000,
     "main_transforms": [
@@ -986,9 +997,9 @@
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 25,
-    "pct_infinite_loop": 38,
-    "pct_dark_palette": 12,
+    "pct_real_3d": 21,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 29,
     "examples": [
      "Accordion Scroll Vertical",
      "3D small carousel",
@@ -1002,14 +1013,14 @@
    "cluster": "confident",
    "cluster_name": "Direction & reveal",
    "signature": {
-    "presets": 13,
-    "share_pct": 8,
+    "presets": 26,
+    "share_pct": 17,
     "keeps_company_with": [
-     "fun",
+     "unconventional",
+     "experimental",
      "surprising",
-     "poppy",
-     "artistic",
-     "bold"
+     "fun",
+     "creative"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1017,8 +1028,8 @@
      "pointerMove"
     ],
     "typical_easing": [
-     "linear",
-     "cubic-bezier"
+     "cubic-bezier",
+     "linear"
     ],
     "median_duration_ms": 1000,
     "main_transforms": [
@@ -1026,9 +1037,9 @@
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 25,
-    "pct_infinite_loop": 25,
-    "pct_dark_palette": 33,
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 28,
+    "pct_dark_palette": 28,
     "examples": [
      "Shape scroll",
      "Digital Jukebox",
@@ -1041,56 +1052,14 @@
    "look_for": "Same meaning. Kept only because one existing row uses it.",
    "cluster": "eye catching",
    "cluster_name": "Legacy wording",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "linear"
-    ],
-    "median_duration_ms": null,
-    "main_transforms": [
-     "scale",
-     "scaleX",
-     "translateY"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 100,
-    "examples": [
-     "title folds scroll animation"
-    ]
-   }
+   "signature": {}
   },
   "eye-catching": {
    "means": "Pulls the eye on first glance.",
    "look_for": "Same intent as attention-grabbing but usually via colour/shape rather than speed.",
    "cluster": "bold",
    "cluster_name": "Energy & statement",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "interest"
-    ],
-    "typical_easing": [
-     "ease-out"
-    ],
-    "median_duration_ms": 450,
-    "main_transforms": [
-     "translateY"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
-    "examples": [
-     "Accordion Scroll Vertical"
-    ]
-   }
+   "signature": {}
   },
   "flowing": {
    "means": "Continuous directional movement, like a current.",
@@ -1098,14 +1067,14 @@
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
    "signature": {
-    "presets": 33,
-    "share_pct": 21,
+    "presets": 36,
+    "share_pct": 23,
     "keeps_company_with": [
      "effortless",
-     "spatial",
      "continuous",
-     "seamless",
-     "gradual"
+     "horizontal",
+     "poppy",
+     "silky"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1116,19 +1085,19 @@
      "linear",
      "ease-out"
     ],
-    "median_duration_ms": 460,
+    "median_duration_ms": 500,
     "main_transforms": [
-     "scale",
      "translateY",
+     "scale",
      "translateX"
     ],
-    "pct_real_3d": 41,
-    "pct_infinite_loop": 16,
-    "pct_dark_palette": 34,
+    "pct_real_3d": 37,
+    "pct_infinite_loop": 17,
+    "pct_dark_palette": 31,
     "examples": [
+     "expand horzinotal scroll",
      "title folds scroll animation",
-     "classic horziontal scroll",
-     "corner fold scroll animation"
+     "classic horziontal scroll"
     ]
    }
   },
@@ -1137,66 +1106,14 @@
    "look_for": "Do not apply to new rows; pick 'seamless' or 'flowing' instead.",
    "cluster": "flowless",
    "cluster_name": "Loose / idiosyncratic",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "activate",
-     "pointerMove",
-     "viewEnter"
-    ],
-    "typical_easing": [
-     "cubic-bezier",
-     "ease-in-out"
-    ],
-    "median_duration_ms": 730,
-    "main_transforms": [
-     "scale",
-     "translateX",
-     "translateY"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 100,
-    "pct_dark_palette": 0,
-    "examples": [
-     "Endless Parallax"
-    ]
-   }
+   "signature": {}
   },
   "fluid": {
    "means": "Liquid-like, continuously deforming.",
    "look_for": "Curved paths, easing without hard stops, shapes that bend rather than snap.",
    "cluster": "fluid",
    "cluster_name": "Loose / idiosyncratic",
-   "signature": {
-    "presets": 3,
-    "share_pct": 2,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewEnter",
-     "viewProgress",
-     "hover"
-    ],
-    "typical_easing": [
-     "linear",
-     "ease-out"
-    ],
-    "median_duration_ms": 550,
-    "main_transforms": [
-     "scale",
-     "translateY",
-     "translateX"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 33,
-    "pct_dark_palette": 67,
-    "examples": [
-     "expand horzinotal scroll",
-     "title folds scroll animation",
-     "Mouse track infinite gallery"
-    ]
-   }
+   "signature": {}
   },
   "fun": {
    "means": "Produces a small smile.",
@@ -1204,19 +1121,19 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 15,
-    "share_pct": 10,
+    "presets": 21,
+    "share_pct": 13,
     "keeps_company_with": [
+     "groovy",
      "charming",
+     "innovative",
      "poppy",
-     "expressive",
-     "surprising",
-     "modern"
+     "playful"
     ],
     "typical_triggers": [
      "pointerMove",
      "viewEnter",
-     "viewProgress"
+     "hover"
     ],
     "typical_easing": [
      "cubic-bezier",
@@ -1224,13 +1141,13 @@
     ],
     "median_duration_ms": 500,
     "main_transforms": [
-     "translateY",
      "scale",
+     "translateY",
      "rotate"
     ],
-    "pct_real_3d": 14,
-    "pct_infinite_loop": 7,
-    "pct_dark_palette": 29,
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 25,
     "examples": [
      "sticky repeater stack",
      "Shape scroll",
@@ -1244,14 +1161,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 14,
-    "share_pct": 9,
+    "presets": 30,
+    "share_pct": 19,
     "keeps_company_with": [
      "techy",
+     "experimental",
+     "attention-grabbing",
      "edgy",
-     "unique",
-     "dynamic",
-     "attention-grabbing"
+     "unique"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -1262,19 +1179,19 @@
      "cubic-bezier",
      "linear"
     ],
-    "median_duration_ms": 600,
+    "median_duration_ms": 800,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 29,
-    "pct_infinite_loop": 7,
-    "pct_dark_palette": 43,
+    "pct_real_3d": 23,
+    "pct_infinite_loop": 23,
+    "pct_dark_palette": 37,
     "examples": [
      "sticky repeater stack",
-     "Small carousel",
-     "Endless Parallax"
+     "horiznotal & vertical scroll",
+     "Small carousel"
     ]
    }
   },
@@ -1284,33 +1201,33 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 16,
-    "share_pct": 10,
+    "presets": 31,
+    "share_pct": 20,
     "keeps_company_with": [
      "soft",
-     "graceful",
      "calm",
-     "modern",
-     "classic"
+     "graceful",
+     "classic",
+     "subtle"
     ],
     "typical_triggers": [
-     "viewEnter",
      "viewProgress",
-     "interest"
+     "viewEnter",
+     "hover"
     ],
     "typical_easing": [
-     "linear",
-     "ease-out"
+     "ease-out",
+     "linear"
     ],
-    "median_duration_ms": 920,
+    "median_duration_ms": 820,
     "main_transforms": [
-     "translateY",
      "scale",
+     "translateY",
      "translateX"
     ],
-    "pct_real_3d": 19,
-    "pct_infinite_loop": 25,
-    "pct_dark_palette": 19,
+    "pct_real_3d": 23,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 13,
     "examples": [
      "Card Spread",
      "Vertical/ horizontal lanes",
@@ -1324,33 +1241,33 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 8,
-    "share_pct": 5,
+    "presets": 17,
+    "share_pct": 11,
     "keeps_company_with": [
-     "soft",
-     "modern",
-     "gentle",
      "classic",
-     "subtle"
+     "high-end",
+     "understated",
+     "soft",
+     "modern"
     ],
     "typical_triggers": [
      "viewProgress",
      "viewEnter",
-     "interest"
+     "hover"
     ],
     "typical_easing": [
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 1120,
+    "median_duration_ms": 900,
     "main_transforms": [
      "translateY",
      "translateX",
      "scale"
     ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 25,
-    "pct_dark_palette": 0,
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 29,
+    "pct_dark_palette": 6,
     "examples": [
      "Card Spread",
      "classic horziontal scroll",
@@ -1364,13 +1281,13 @@
    "cluster": "gradual",
    "cluster_name": "Form & change",
    "signature": {
-    "presets": 60,
-    "share_pct": 38,
+    "presets": 61,
+    "share_pct": 39,
     "keeps_company_with": [
-     "calm",
      "shape",
      "sophisticated",
-     "flowing",
+     "high-end",
+     "calm",
      "continuous"
     ],
     "typical_triggers": [
@@ -1388,13 +1305,13 @@
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 32,
+    "pct_real_3d": 33,
     "pct_infinite_loop": 3,
-    "pct_dark_palette": 17,
+    "pct_dark_palette": 18,
     "examples": [
+     "Card Spread",
      "title folds scroll animation",
-     "corner fold scroll animation",
-     "acordion scroll"
+     "classic horziontal scroll"
     ]
    }
   },
@@ -1404,14 +1321,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 47,
-    "share_pct": 30,
+    "presets": 58,
+    "share_pct": 37,
     "keeps_company_with": [
      "attention-grabbing",
-     "impactful",
-     "edgy",
-     "bold",
-     "surprising"
+     "futuristic",
+     "experimental",
+     "confident",
+     "techy"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1419,8 +1336,8 @@
      "pointerMove"
     ],
     "typical_easing": [
-     "linear",
-     "cubic-bezier"
+     "cubic-bezier",
+     "linear"
     ],
     "median_duration_ms": 900,
     "main_transforms": [
@@ -1428,13 +1345,13 @@
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 26,
-    "pct_infinite_loop": 13,
-    "pct_dark_palette": 24,
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 19,
+    "pct_dark_palette": 25,
     "examples": [
+     "expand horzinotal scroll",
      "Shape scroll",
-     "CardSpread_7",
-     "Vertical3Dcards"
+     "Endless Parallax"
     ]
    }
   },
@@ -1444,28 +1361,36 @@
    "cluster": "flowless",
    "cluster_name": "Loose / idiosyncratic",
    "signature": {
-    "presets": 2,
-    "share_pct": 1,
-    "keeps_company_with": [],
+    "presets": 5,
+    "share_pct": 3,
+    "keeps_company_with": [
+     "innovative",
+     "charming",
+     "fun",
+     "playful",
+     "modern"
+    ],
     "typical_triggers": [
      "pointerMove",
-     "hover"
+     "hover",
+     "click"
     ],
     "typical_easing": [
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 550,
+    "median_duration_ms": 500,
     "main_transforms": [
      "rotate",
-     "translateY",
-     "scale"
+     "scale",
+     "translateY"
     ],
     "pct_real_3d": 0,
     "pct_infinite_loop": 0,
-    "pct_dark_palette": 50,
+    "pct_dark_palette": 40,
     "examples": [
      "horziontally scrolling image gallery",
+     "CursorTrail",
      "DolphinAnimation"
     ]
    }
@@ -1476,14 +1401,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 24,
-    "share_pct": 15,
+    "presets": 36,
+    "share_pct": 23,
     "keeps_company_with": [
-     "classic",
-     "modern",
-     "sophisticated",
      "graceful",
-     "refined"
+     "sophisticated",
+     "modern",
+     "calm",
+     "soft"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1491,18 +1416,18 @@
      "hover"
     ],
     "typical_easing": [
-     "cubic-bezier",
-     "linear"
+     "linear",
+     "cubic-bezier"
     ],
     "median_duration_ms": 860,
     "main_transforms": [
-     "scale",
      "translateY",
+     "scale",
      "translateX"
     ],
-    "pct_real_3d": 33,
-    "pct_infinite_loop": 12,
-    "pct_dark_palette": 8,
+    "pct_real_3d": 31,
+    "pct_infinite_loop": 11,
+    "pct_dark_palette": 6,
     "examples": [
      "Card Spread",
      "expand horzinotal scroll",
@@ -1516,23 +1441,23 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 36,
-    "share_pct": 23,
+    "presets": 39,
+    "share_pct": 25,
     "keeps_company_with": [
+     "flowing",
      "polished",
      "techy",
-     "interactive",
      "effortless",
-     "alive"
+     "interactive"
     ],
     "typical_triggers": [
      "viewProgress",
-     "hover",
-     "viewEnter"
+     "viewEnter",
+     "hover"
     ],
     "typical_easing": [
      "cubic-bezier",
-     "ease-out"
+     "linear"
     ],
     "median_duration_ms": 500,
     "main_transforms": [
@@ -1540,13 +1465,13 @@
      "translateY",
      "scale"
     ],
-    "pct_real_3d": 25,
-    "pct_infinite_loop": 8,
-    "pct_dark_palette": 25,
+    "pct_real_3d": 26,
+    "pct_infinite_loop": 10,
+    "pct_dark_palette": 26,
     "examples": [
-     "horziontally scrolling image gallery",
-     "CardSpreadByHover",
-     "HorizontalCarouselPerspective"
+     "expand horzinotal scroll",
+     "horiznotal & vertical scroll",
+     "classic horziontal scroll"
     ]
    }
   },
@@ -1555,58 +1480,14 @@
    "look_for": "Same cue as 'horizontal'. Kept only because existing rows use it.",
    "cluster": "eye catching",
    "cluster_name": "Legacy wording",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewEnter",
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "ease-out",
-     "linear"
-    ],
-    "median_duration_ms": 400,
-    "main_transforms": [
-     "scale",
-     "translateX",
-     "translateY"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
-    "examples": [
-     "expand horzinotal scroll"
-    ]
-   }
+   "signature": {}
   },
   "horizontal scroll": {
    "means": "Vertical scrolling is remapped to sideways travel.",
    "look_for": "A sticky viewport with a wide track moved by translateX.",
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "linear"
-    ],
-    "median_duration_ms": null,
-    "main_transforms": [
-     "translateX"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
-    "examples": [
-     "classic horziontal scroll"
-    ]
-   }
+   "signature": {}
   },
   "immersive": {
    "means": "Fills your field of view; you are inside it.",
@@ -1614,14 +1495,14 @@
    "cluster": "dimensional",
    "cluster_name": "Depth & space",
    "signature": {
-    "presets": 22,
-    "share_pct": 14,
+    "presets": 33,
+    "share_pct": 21,
     "keeps_company_with": [
      "endless",
-     "spatial",
-     "classic",
-     "attention-grabbing",
-     "impactful"
+     "3d",
+     "perspective",
+     "dimensional",
+     "artistic"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1630,21 +1511,21 @@
     ],
     "typical_easing": [
      "linear",
-     "ease-in-out"
+     "ease-out"
     ],
     "median_duration_ms": 850,
     "main_transforms": [
-     "translateY",
      "scale",
+     "translateY",
      "rotateX"
     ],
-    "pct_real_3d": 43,
-    "pct_infinite_loop": 29,
-    "pct_dark_palette": 24,
+    "pct_real_3d": 56,
+    "pct_infinite_loop": 25,
+    "pct_dark_palette": 31,
     "examples": [
+     "expand horzinotal scroll",
      "Vertical/ horizontal lanes",
-     "Vertical/ horizontal lanes",
-     "CasperGallery"
+     "Vertical/ horizontal lanes"
     ]
    }
   },
@@ -1654,37 +1535,37 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 33,
-    "share_pct": 21,
+    "presets": 39,
+    "share_pct": 25,
     "keeps_company_with": [
      "attention-grabbing",
      "confident",
      "bold",
      "edgy",
-     "graphic"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
      "viewEnter",
-     "pageVisible"
+     "hover"
     ],
     "typical_easing": [
      "cubic-bezier",
      "linear"
     ],
-    "median_duration_ms": 950,
+    "median_duration_ms": 900,
     "main_transforms": [
      "translateY",
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 30,
+    "pct_real_3d": 28,
     "pct_infinite_loop": 15,
-    "pct_dark_palette": 30,
+    "pct_dark_palette": 28,
     "examples": [
      "expand horzinotal scroll",
      "Digital Jukebox",
-     "CardSpread_7"
+     "3D small carousel"
     ]
    }
   },
@@ -1694,29 +1575,33 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 3,
-    "share_pct": 2,
+    "presets": 5,
+    "share_pct": 3,
     "keeps_company_with": [
-     "bold"
+     "groovy",
+     "fun",
+     "expressive",
+     "playful",
+     "futuristic"
     ],
     "typical_triggers": [
+     "pointerMove",
      "hover",
-     "viewEnter",
-     "pointerMove"
+     "viewEnter"
     ],
     "typical_easing": [
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 560,
+    "median_duration_ms": 500,
     "main_transforms": [
+     "translateY",
      "scale",
-     "translateX",
-     "translateY"
+     "translateX"
     ],
-    "pct_real_3d": 33,
-    "pct_infinite_loop": 33,
-    "pct_dark_palette": 67,
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 20,
+    "pct_dark_palette": 60,
     "examples": [
      "Small carousel",
      "Endless Parallax",
@@ -1760,33 +1645,33 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 57,
-    "share_pct": 36,
+    "presets": 55,
+    "share_pct": 35,
     "keeps_company_with": [
      "alive",
      "fun",
      "organized",
-     "poppy",
-     "playful"
+     "playful",
+     "poppy"
     ],
     "typical_triggers": [
      "hover",
      "viewEnter",
-     "viewProgress"
+     "pointerMove"
     ],
     "typical_easing": [
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 420,
+    "median_duration_ms": 435,
     "main_transforms": [
      "scale",
      "translateY",
      "translateX"
     ],
-    "pct_real_3d": 20,
+    "pct_real_3d": 21,
     "pct_infinite_loop": 9,
-    "pct_dark_palette": 35,
+    "pct_dark_palette": 36,
     "examples": [
      "Shape scroll",
      "acordion scroll",
@@ -1800,83 +1685,14 @@
    "cluster": "dimensional",
    "cluster_name": "Depth & space",
    "signature": {
-    "presets": 31,
-    "share_pct": 20,
+    "presets": 40,
+    "share_pct": 25,
     "keeps_company_with": [
-     "spatial",
      "dimensional",
+     "3d",
      "depth",
      "perspective",
-     "futuristic"
-    ],
-    "typical_triggers": [
-     "viewProgress",
-     "viewEnter",
-     "hover"
-    ],
-    "typical_easing": [
-     "cubic-bezier",
-     "linear"
-    ],
-    "median_duration_ms": 900,
-    "main_transforms": [
-     "translateY",
-     "translateX",
-     "scale"
-    ],
-    "pct_real_3d": 41,
-    "pct_infinite_loop": 7,
-    "pct_dark_palette": 10,
-    "examples": [
-     "3D_Parallax_Gallery",
-     "CardSpreadByHover",
-     "CardSpread_7"
-    ]
-   }
-  },
-  "layering": {
-   "means": "Legacy phrasing - prefer 'layered'.",
-   "look_for": "Same cue as 'layered'.",
-   "cluster": "layering",
-   "cluster_name": "Loose / idiosyncratic",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "linear"
-    ],
-    "median_duration_ms": null,
-    "main_transforms": [
-     "rotateX",
-     "translateY",
-     "translateZ"
-    ],
-    "pct_real_3d": 100,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
-    "examples": [
-     "Digital Jukebox"
-    ]
-   }
-  },
-  "minimal": {
-   "means": "Reduced to the fewest possible moving parts.",
-   "look_for": "One or two properties animating; sparse composition; often just opacity + a small transform.",
-   "cluster": "gradual",
-   "cluster_name": "Form & change",
-   "signature": {
-    "presets": 72,
-    "share_pct": 46,
-    "keeps_company_with": [
-     "understated",
-     "shape",
-     "refined",
-     "clean",
-     "sophisticated"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -1887,19 +1703,66 @@
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 580,
+    "median_duration_ms": 900,
     "main_transforms": [
-     "scale",
      "translateY",
-     "rotate"
+     "translateX",
+     "scale"
     ],
-    "pct_real_3d": 19,
-    "pct_infinite_loop": 7,
+    "pct_real_3d": 58,
+    "pct_infinite_loop": 8,
     "pct_dark_palette": 21,
     "examples": [
-     "CursorTrail",
-     "Mouse track infinite gallery",
-     "Paragraph_Reaveal"
+     "Digital Jukebox",
+     "3D_Parallax_Gallery",
+     "CardSpreadByHover"
+    ]
+   }
+  },
+  "layering": {
+   "means": "Legacy phrasing - prefer 'layered'.",
+   "look_for": "Same cue as 'layered'.",
+   "cluster": "layering",
+   "cluster_name": "Loose / idiosyncratic",
+   "signature": {}
+  },
+  "minimal": {
+   "means": "Reduced to the fewest possible moving parts.",
+   "look_for": "One or two properties animating; sparse composition; often just opacity + a small transform.",
+   "cluster": "gradual",
+   "cluster_name": "Form & change",
+   "signature": {
+    "presets": 60,
+    "share_pct": 38,
+    "keeps_company_with": [
+     "subtle",
+     "calm",
+     "understated",
+     "soft",
+     "clean"
+    ],
+    "typical_triggers": [
+     "viewProgress",
+     "hover",
+     "viewEnter"
+    ],
+    "typical_easing": [
+     "cubic-bezier",
+     "linear"
+    ],
+    "median_duration_ms": 500,
+    "main_transforms": [
+     "translateY",
+     "scale",
+     "rotate"
+    ],
+    "pct_real_3d": 17,
+    "pct_infinite_loop": 8,
+    "pct_dark_palette": 22,
+    "examples": [
+     "classic horziontal scroll",
+     "Vertical/ horizontal lanes",
+     "Mouse track infinite gallery"
     ]
    }
   },
@@ -1909,33 +1772,33 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 8,
-    "share_pct": 5,
+    "presets": 34,
+    "share_pct": 22,
     "keeps_company_with": [
      "graceful",
-     "classic",
-     "soft",
-     "subtle",
-     "fun"
+     "high-end",
+     "organic",
+     "fun",
+     "shape"
     ],
     "typical_triggers": [
      "viewProgress",
      "viewEnter",
-     "interest"
+     "hover"
     ],
     "typical_easing": [
-     "linear",
-     "cubic-bezier"
+     "cubic-bezier",
+     "linear"
     ],
-    "median_duration_ms": 530,
+    "median_duration_ms": 650,
     "main_transforms": [
      "translateY",
-     "translateX",
-     "scale"
+     "scale",
+     "translateX"
     ],
-    "pct_real_3d": 14,
-    "pct_infinite_loop": 29,
-    "pct_dark_palette": 29,
+    "pct_real_3d": 24,
+    "pct_infinite_loop": 15,
+    "pct_dark_palette": 9,
     "examples": [
      "Card Spread",
      "corner fold scroll animation",
@@ -1949,37 +1812,37 @@
    "cluster": "gradual",
    "cluster_name": "Form & change",
    "signature": {
-    "presets": 17,
-    "share_pct": 11,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
      "shape",
-     "creative",
-     "gentle",
+     "modern",
+     "transformative",
      "calm",
-     "endless"
+     "gentle"
     ],
     "typical_triggers": [
-     "viewEnter",
      "viewProgress",
-     "pointerMove"
+     "viewEnter",
+     "hover"
     ],
     "typical_easing": [
-     "linear",
-     "ease-out"
+     "cubic-bezier",
+     "linear"
     ],
-    "median_duration_ms": 1000,
+    "median_duration_ms": 860,
     "main_transforms": [
      "scale",
      "translateY",
      "translate"
     ],
-    "pct_real_3d": 12,
-    "pct_infinite_loop": 35,
-    "pct_dark_palette": 24,
+    "pct_real_3d": 4,
+    "pct_infinite_loop": 22,
+    "pct_dark_palette": 22,
     "examples": [
      "title folds scroll animation",
      "horziontally scrolling image gallery",
-     "CasperGallery"
+     "DolphinAnimation"
     ]
    }
   },
@@ -1996,7 +1859,7 @@
      "alive",
      "polished",
      "interactive",
-     "subtle"
+     "staggered"
     ],
     "typical_triggers": [
      "hover",
@@ -2029,14 +1892,14 @@
    "cluster": "dimensional",
    "cluster_name": "Depth & space",
    "signature": {
-    "presets": 26,
-    "share_pct": 17,
+    "presets": 24,
+    "share_pct": 15,
     "keeps_company_with": [
-     "3d",
      "spatial",
+     "3d",
      "dimensional",
      "depth",
-     "calm"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2069,19 +1932,19 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 40,
-    "share_pct": 25,
+    "presets": 38,
+    "share_pct": 24,
     "keeps_company_with": [
-     "charming",
      "fun",
+     "charming",
      "poppy",
      "energetic",
-     "surprising"
+     "circular"
     ],
     "typical_triggers": [
      "hover",
-     "viewProgress",
-     "viewEnter"
+     "pointerMove",
+     "viewProgress"
     ],
     "typical_easing": [
      "cubic-bezier",
@@ -2091,11 +1954,11 @@
     "main_transforms": [
      "translateY",
      "scale",
-     "rotate"
+     "translateX"
     ],
-    "pct_real_3d": 21,
-    "pct_infinite_loop": 16,
-    "pct_dark_palette": 32,
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 14,
+    "pct_dark_palette": 33,
     "examples": [
      "expand horzinotal scroll",
      "sticky repeater stack",
@@ -2113,10 +1976,10 @@
     "share_pct": 34,
     "keeps_company_with": [
      "organized",
-     "silky",
      "structured",
-     "smooth",
-     "horizontal"
+     "silky",
+     "alive",
+     "smooth"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2149,14 +2012,14 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 15,
-    "share_pct": 10,
+    "presets": 19,
+    "share_pct": 12,
     "keeps_company_with": [
      "fun",
      "energetic",
      "surprising",
-     "expressive",
-     "playful"
+     "playful",
+     "expressive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2165,21 +2028,21 @@
     ],
     "typical_easing": [
      "linear",
-     "cubic-bezier"
+     "ease-out"
     ],
-    "median_duration_ms": 420,
+    "median_duration_ms": 600,
     "main_transforms": [
-     "scale",
      "translateY",
+     "scale",
      "rotate"
     ],
-    "pct_real_3d": 21,
-    "pct_infinite_loop": 14,
-    "pct_dark_palette": 29,
+    "pct_real_3d": 28,
+    "pct_infinite_loop": 17,
+    "pct_dark_palette": 33,
     "examples": [
+     "corner fold scroll animation",
      "Shape scroll",
-     "acordion scroll",
-     "CasperGallery"
+     "acordion scroll"
     ]
    }
   },
@@ -2189,13 +2052,13 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 72,
+    "presets": 73,
     "share_pct": 46,
     "keeps_company_with": [
      "understated",
-     "high-end",
-     "classic",
-     "elegant",
+     "soft",
+     "subtle",
+     "calm",
      "gentle"
     ],
     "typical_triggers": [
@@ -2211,10 +2074,10 @@
     "main_transforms": [
      "translateY",
      "scale",
-     "rotate"
+     "translateX"
     ],
-    "pct_real_3d": 24,
-    "pct_infinite_loop": 6,
+    "pct_real_3d": 25,
+    "pct_infinite_loop": 8,
     "pct_dark_palette": 12,
     "examples": [
      "Card Spread",
@@ -2235,8 +2098,8 @@
      "transformative",
      "shape",
      "organic",
-     "minimal",
-     "understated"
+     "impactful",
+     "staggered"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2253,9 +2116,9 @@
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 14,
+    "pct_real_3d": 15,
     "pct_infinite_loop": 12,
-    "pct_dark_palette": 21,
+    "pct_dark_palette": 22,
     "examples": [
      "Digital Jukebox",
      "BlurFocus_Gallery",
@@ -2269,14 +2132,14 @@
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
    "signature": {
-    "presets": 16,
-    "share_pct": 10,
+    "presets": 17,
+    "share_pct": 11,
     "keeps_company_with": [
      "endless",
+     "graceful",
+     "understated",
      "flowing",
-     "cascading",
-     "impactful",
-     "understated"
+     "gentle"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -2285,21 +2148,21 @@
     ],
     "typical_easing": [
      "linear",
-     "ease-out"
+     "cubic-bezier"
     ],
-    "median_duration_ms": 420,
+    "median_duration_ms": 580,
     "main_transforms": [
      "scale",
      "translateY",
      "translateX"
     ],
     "pct_real_3d": 12,
-    "pct_infinite_loop": 31,
-    "pct_dark_palette": 25,
+    "pct_infinite_loop": 35,
+    "pct_dark_palette": 18,
     "examples": [
      "classic horziontal scroll",
      "Small carousel",
-     "Wheel Carousel"
+     "Endless Parallax"
     ]
    }
   },
@@ -2309,14 +2172,14 @@
    "cluster": "gradual",
    "cluster_name": "Form & change",
    "signature": {
-    "presets": 17,
-    "share_pct": 11,
+    "presets": 22,
+    "share_pct": 14,
     "keeps_company_with": [
      "organic",
-     "calm",
+     "sophisticated",
      "transformative",
-     "artistic",
-     "gradual"
+     "soft",
+     "zoom"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2334,12 +2197,12 @@
      "translateX"
     ],
     "pct_real_3d": 0,
-    "pct_infinite_loop": 12,
-    "pct_dark_palette": 12,
+    "pct_infinite_loop": 14,
+    "pct_dark_palette": 14,
     "examples": [
+     "Card Spread",
      "horziontally scrolling image gallery",
-     "BG_Image_ShapeMask_Gallery",
-     "BG_image_ShapeMask"
+     "BG_Image_ShapeMask_Gallery"
     ]
    }
   },
@@ -2349,14 +2212,14 @@
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
    "signature": {
-    "presets": 24,
-    "share_pct": 15,
+    "presets": 31,
+    "share_pct": 20,
     "keeps_company_with": [
      "graceful",
-     "gentle",
      "effortless",
-     "modern",
-     "unique"
+     "circular",
+     "polished",
+     "elegant"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2373,8 +2236,8 @@
      "scale",
      "rotate"
     ],
-    "pct_real_3d": 17,
-    "pct_infinite_loop": 8,
+    "pct_real_3d": 13,
+    "pct_infinite_loop": 10,
     "pct_dark_palette": 29,
     "examples": [
      "sticky repeater stack",
@@ -2388,27 +2251,7 @@
    "look_for": "If explaining it needs an 'and then', it is not simple.",
    "cluster": "effortless",
    "cluster_name": "Flow & continuity",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "linear"
-    ],
-    "median_duration_ms": null,
-    "main_transforms": [
-     "translateX"
-    ],
-    "pct_real_3d": 0,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 0,
-    "examples": [
-     "classic horziontal scroll"
-    ]
-   }
+   "signature": {}
   },
   "smooth": {
    "means": "No visible jerk, stutter or hard stop anywhere in the motion.",
@@ -2416,14 +2259,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 89,
-    "share_pct": 57,
+    "presets": 95,
+    "share_pct": 61,
     "keeps_company_with": [
      "gentle",
-     "subtle",
-     "polished",
+     "soft",
      "silky",
-     "organized"
+     "polished",
+     "subtle"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2440,9 +2283,9 @@
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 28,
+    "pct_real_3d": 26,
     "pct_infinite_loop": 13,
-    "pct_dark_palette": 31,
+    "pct_dark_palette": 29,
     "examples": [
      "Card Spread",
      "title folds scroll animation",
@@ -2456,33 +2299,33 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 12,
-    "share_pct": 8,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
-     "graceful",
+     "cloudy",
      "gentle",
      "subtle",
-     "modern",
+     "calm",
      "classic"
     ],
     "typical_triggers": [
-     "viewEnter",
      "viewProgress",
+     "viewEnter",
      "hover"
     ],
     "typical_easing": [
      "linear",
-     "cubic-bezier"
+     "ease-out"
     ],
-    "median_duration_ms": 1300,
+    "median_duration_ms": 700,
     "main_transforms": [
      "scale",
      "translateX",
      "translateY"
     ],
-    "pct_real_3d": 8,
-    "pct_infinite_loop": 42,
-    "pct_dark_palette": 8,
+    "pct_real_3d": 17,
+    "pct_infinite_loop": 26,
+    "pct_dark_palette": 9,
     "examples": [
      "Card Spread",
      "Vertical/ horizontal lanes",
@@ -2500,8 +2343,8 @@
     "share_pct": 24,
     "keeps_company_with": [
      "high-end",
-     "classic",
      "shape",
+     "calm",
      "gradual",
      "refined"
     ],
@@ -2520,7 +2363,7 @@
      "translateY",
      "translateX"
     ],
-    "pct_real_3d": 24,
+    "pct_real_3d": 22,
     "pct_infinite_loop": 5,
     "pct_dark_palette": 14,
     "examples": [
@@ -2543,12 +2386,12 @@
      "dimensional",
      "3d",
      "depth",
-     "layered"
+     "immersive"
     ],
     "typical_triggers": [
      "viewProgress",
-     "viewEnter",
-     "interest"
+     "pointerMove",
+     "viewEnter"
     ],
     "typical_easing": [
      "ease-out",
@@ -2558,11 +2401,11 @@
     "main_transforms": [
      "translateY",
      "rotateX",
-     "translateX"
+     "rotateY"
     ],
     "pct_real_3d": 90,
     "pct_infinite_loop": 0,
-    "pct_dark_palette": 20,
+    "pct_dark_palette": 30,
     "examples": [
      "acordion scroll",
      "HorizontalCarouselPerspective",
@@ -2576,12 +2419,14 @@
    "cluster": "confident",
    "cluster_name": "Direction & reveal",
    "signature": {
-    "presets": 5,
-    "share_pct": 3,
+    "presets": 6,
+    "share_pct": 4,
     "keeps_company_with": [
      "circular",
-     "dynamic",
-     "bold"
+     "vertical",
+     "surprising",
+     "playful",
+     "impactful"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2594,13 +2439,13 @@
     ],
     "median_duration_ms": 200,
     "main_transforms": [
-     "rotate",
      "translateY",
+     "rotate",
      "translateX"
     ],
-    "pct_real_3d": 20,
-    "pct_infinite_loop": 20,
-    "pct_dark_palette": 40,
+    "pct_real_3d": 17,
+    "pct_infinite_loop": 17,
+    "pct_dark_palette": 33,
     "examples": [
      "Digital Jukebox",
      "CardSpread_7",
@@ -2614,14 +2459,14 @@
    "cluster": "staggered",
    "cluster_name": "Order & choreography",
    "signature": {
-    "presets": 49,
+    "presets": 48,
     "share_pct": 31,
     "keeps_company_with": [
      "cascading",
      "organized",
      "structured",
      "techy",
-     "understated"
+     "futuristic"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -2639,7 +2484,7 @@
      "translateX"
     ],
     "pct_real_3d": 27,
-    "pct_infinite_loop": 16,
+    "pct_infinite_loop": 17,
     "pct_dark_palette": 35,
     "examples": [
      "BlurFocus_Gallery",
@@ -2661,7 +2506,7 @@
      "polished",
      "cascading",
      "staggered",
-     "confident"
+     "techy"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -2694,37 +2539,37 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 14,
-    "share_pct": 9,
+    "presets": 25,
+    "share_pct": 16,
     "keeps_company_with": [
      "soft",
+     "understated",
      "classic",
-     "modern",
-     "graceful",
-     "understated"
+     "calm",
+     "gentle"
     ],
     "typical_triggers": [
      "viewProgress",
-     "viewEnter",
-     "hover"
+     "hover",
+     "viewEnter"
     ],
     "typical_easing": [
      "linear",
      "ease-out"
     ],
-    "median_duration_ms": 500,
+    "median_duration_ms": 300,
     "main_transforms": [
      "translateY",
      "scale",
      "translateX"
     ],
-    "pct_real_3d": 14,
-    "pct_infinite_loop": 21,
-    "pct_dark_palette": 7,
+    "pct_real_3d": 20,
+    "pct_infinite_loop": 4,
+    "pct_dark_palette": 8,
     "examples": [
      "Card Spread",
      "Vertical/ horizontal lanes",
-     "Vertical/ horizontal lanes"
+     "BlurFocus_Gallery"
     ]
    }
   },
@@ -2734,37 +2579,37 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 16,
-    "share_pct": 10,
+    "presets": 26,
+    "share_pct": 17,
     "keeps_company_with": [
-     "poppy",
-     "fun",
-     "expressive",
+     "unconventional",
+     "experimental",
      "unique",
-     "energetic"
+     "expressive",
+     "poppy"
     ],
     "typical_triggers": [
      "viewEnter",
-     "pointerMove",
-     "viewProgress"
+     "viewProgress",
+     "pointerMove"
     ],
     "typical_easing": [
-     "linear",
-     "ease-out"
+     "ease-out",
+     "ease-in-out"
     ],
-    "median_duration_ms": 1000,
+    "median_duration_ms": 600,
     "main_transforms": [
-     "scale",
      "translateY",
-     "rotate"
+     "scale",
+     "translateX"
     ],
-    "pct_real_3d": 25,
-    "pct_infinite_loop": 19,
-    "pct_dark_palette": 38,
+    "pct_real_3d": 23,
+    "pct_infinite_loop": 23,
+    "pct_dark_palette": 42,
     "examples": [
      "Shape scroll",
-     "CasperGallery",
-     "CursorTrail"
+     "Accordion Scroll Vertical",
+     "CasperGallery"
     ]
    }
   },
@@ -2774,14 +2619,14 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 21,
-    "share_pct": 13,
+    "presets": 28,
+    "share_pct": 18,
     "keeps_company_with": [
      "futuristic",
-     "unique",
-     "cool",
+     "experimental",
+     "attention-grabbing",
      "edgy",
-     "creative"
+     "cool"
     ],
     "typical_triggers": [
      "viewEnter",
@@ -2792,15 +2637,15 @@
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 500,
+    "median_duration_ms": 600,
     "main_transforms": [
      "translateX",
      "translateY",
      "scale"
     ],
-    "pct_real_3d": 19,
-    "pct_infinite_loop": 19,
-    "pct_dark_palette": 33,
+    "pct_real_3d": 18,
+    "pct_infinite_loop": 18,
+    "pct_dark_palette": 32,
     "examples": [
      "Small carousel",
      "3D small carousel",
@@ -2814,13 +2659,13 @@
    "cluster": "gradual",
    "cluster_name": "Form & change",
    "signature": {
-    "presets": 48,
-    "share_pct": 31,
+    "presets": 50,
+    "share_pct": 32,
     "keeps_company_with": [
      "shape",
-     "revealing",
      "organic",
-     "confident",
+     "continuous",
+     "revealing",
      "gradual"
     ],
     "typical_triggers": [
@@ -2832,19 +2677,19 @@
      "linear",
      "cubic-bezier"
     ],
-    "median_duration_ms": 820,
+    "median_duration_ms": 860,
     "main_transforms": [
      "scale",
      "translateY",
      "translate"
     ],
     "pct_real_3d": 10,
-    "pct_infinite_loop": 6,
-    "pct_dark_palette": 29,
+    "pct_infinite_loop": 8,
+    "pct_dark_palette": 28,
     "examples": [
      "title folds scroll animation",
-     "BlurFocus_Gallery",
-     "Cornergallery01"
+     "Cornergallery01",
+     "DolphinAnimation"
     ]
    }
   },
@@ -2854,37 +2699,37 @@
    "cluster": "bold",
    "cluster_name": "Energy & statement",
    "signature": {
-    "presets": 5,
-    "share_pct": 3,
+    "presets": 9,
+    "share_pct": 6,
     "keeps_company_with": [
      "experimental",
      "artistic",
-     "edgy",
-     "dynamic",
-     "continuous"
+     "creative",
+     "surprising",
+     "expressive"
     ],
     "typical_triggers": [
-     "viewProgress",
      "viewEnter",
-     "interest"
+     "viewProgress",
+     "activate"
     ],
     "typical_easing": [
-     "linear",
-     "ease-out"
+     "ease-in-out",
+     "linear"
     ],
-    "median_duration_ms": 1150,
+    "median_duration_ms": 1700,
     "main_transforms": [
      "translateX",
      "translateY",
-     "skewX"
+     "scale"
     ],
-    "pct_real_3d": 20,
-    "pct_infinite_loop": 20,
-    "pct_dark_palette": 20,
+    "pct_real_3d": 11,
+    "pct_infinite_loop": 44,
+    "pct_dark_palette": 22,
     "examples": [
+     "Endless Parallax",
      "Accordion Scroll Vertical",
-     "3D small carousel",
-     "dot-churn"
+     "3D small carousel"
     ]
    }
   },
@@ -2894,14 +2739,14 @@
    "cluster": "soft",
    "cluster_name": "Restraint & polish",
    "signature": {
-    "presets": 20,
-    "share_pct": 13,
+    "presets": 23,
+    "share_pct": 15,
     "keeps_company_with": [
+     "cloudy",
      "subtle",
-     "graceful",
      "soft",
-     "calm",
-     "vertical"
+     "classic",
+     "graceful"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2909,22 +2754,22 @@
      "viewEnter"
     ],
     "typical_easing": [
-     "linear",
+     "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 600,
+    "median_duration_ms": 450,
     "main_transforms": [
      "translateY",
      "translateX",
-     "rotate"
+     "scale"
     ],
-    "pct_real_3d": 25,
-    "pct_infinite_loop": 5,
-    "pct_dark_palette": 5,
+    "pct_real_3d": 26,
+    "pct_infinite_loop": 9,
+    "pct_dark_palette": 9,
     "examples": [
      "Card Spread",
-     "capezzani-wordmark-header",
-     "invert-header"
+     "Looped tabs with perspective",
+     "capezzani-wordmark-header"
     ]
    }
   },
@@ -2934,33 +2779,33 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 9,
-    "share_pct": 6,
+    "presets": 16,
+    "share_pct": 10,
     "keeps_company_with": [
      "creative",
-     "cool",
-     "futuristic",
-     "techy",
-     "surprising"
+     "surprising",
+     "experimental",
+     "artistic",
+     "cool"
     ],
     "typical_triggers": [
      "viewProgress",
      "hover",
-     "click"
+     "viewEnter"
     ],
     "typical_easing": [
-     "linear",
+     "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 450,
+    "median_duration_ms": 400,
     "main_transforms": [
      "translateY",
-     "translateX",
-     "scale"
+     "scale",
+     "translateX"
     ],
-    "pct_real_3d": 11,
-    "pct_infinite_loop": 11,
-    "pct_dark_palette": 33,
+    "pct_real_3d": 12,
+    "pct_infinite_loop": 12,
+    "pct_dark_palette": 38,
     "examples": [
      "sticky repeater stack",
      "horiznotal & vertical scroll",
@@ -2974,14 +2819,14 @@
    "cluster": "confident",
    "cluster_name": "Direction & reveal",
    "signature": {
-    "presets": 21,
-    "share_pct": 13,
+    "presets": 22,
+    "share_pct": 14,
     "keeps_company_with": [
-     "understated",
-     "fun",
-     "surprising",
      "confident",
-     "effortless"
+     "fun",
+     "playful",
+     "surprising",
+     "expressive"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -2995,16 +2840,16 @@
     "median_duration_ms": 600,
     "main_transforms": [
      "translateY",
-     "rotateX",
-     "rotate"
+     "translateX",
+     "rotateX"
     ],
-    "pct_real_3d": 29,
+    "pct_real_3d": 27,
     "pct_infinite_loop": 0,
-    "pct_dark_palette": 24,
+    "pct_dark_palette": 27,
     "examples": [
+     "horiznotal & vertical scroll",
      "Digital Jukebox",
-     "DolphinAnimation",
-     "Vertical3Dcards"
+     "DolphinAnimation"
     ]
    }
   },
@@ -3013,29 +2858,7 @@
    "look_for": "translateZ / toward-or-away-from-viewer motion.",
    "cluster": "playful",
    "cluster_name": "Play & response",
-   "signature": {
-    "presets": 1,
-    "share_pct": 1,
-    "keeps_company_with": [],
-    "typical_triggers": [
-     "viewProgress"
-    ],
-    "typical_easing": [
-     "linear"
-    ],
-    "median_duration_ms": null,
-    "main_transforms": [
-     "rotate",
-     "scale",
-     "translateY"
-    ],
-    "pct_real_3d": 100,
-    "pct_infinite_loop": 0,
-    "pct_dark_palette": 100,
-    "examples": [
-     "sticky repeater stack"
-    ]
-   }
+   "signature": {}
   },
   "zoom": {
    "means": "Scale is the primary motion.",
@@ -3043,14 +2866,14 @@
    "cluster": "playful",
    "cluster_name": "Play & response",
    "signature": {
-    "presets": 42,
-    "share_pct": 27,
+    "presets": 35,
+    "share_pct": 22,
     "keeps_company_with": [
-     "cool",
-     "high-end",
      "shape",
      "organic",
-     "immersive"
+     "impactful",
+     "high-end",
+     "cool"
     ],
     "typical_triggers": [
      "viewProgress",
@@ -3061,19 +2884,19 @@
      "cubic-bezier",
      "ease-out"
     ],
-    "median_duration_ms": 800,
+    "median_duration_ms": 860,
     "main_transforms": [
      "scale",
      "translateY",
      "translateX"
     ],
-    "pct_real_3d": 24,
+    "pct_real_3d": 26,
     "pct_infinite_loop": 12,
-    "pct_dark_palette": 37,
+    "pct_dark_palette": 35,
     "examples": [
      "sticky repeater stack",
      "horziontally scrolling image gallery",
-     "BlurFocus_Gallery"
+     "Cornergallery01"
     ]
    }
   }

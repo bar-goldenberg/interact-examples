@@ -1,5 +1,5 @@
 {
- "_note": "Allowed Atmosphere tags. 'canonical' is the derived rubric vocabulary; 'legacy' are terms already present in the CSV (kept so existing rows round-trip). Editing the hub is restricted to this list unless you explicitly confirm a new term.",
+ "_note": "Allowed Atmosphere tags. 'canonical' is the derived rubric vocabulary; 'legacy' are terms already present in the CSV (kept so existing rows round-trip). Editing the hub is restricted to this list unless you explicitly confirm a new term. 2026-08-30: 11 duplicate/legacy labels merged away (see animations-hub/tag-history.csv).",
  "canonical": [
   "3d",
   "alive",
@@ -26,9 +26,7 @@
   "energetic",
   "experimental",
   "expressive",
-  "eye-catching",
   "flowing",
-  "fluid",
   "fun",
   "futuristic",
   "gentle",
@@ -44,7 +42,6 @@
   "inspirational",
   "interactive",
   "layered",
-  "luxurious",
   "minimal",
   "organic",
   "organized",
@@ -57,7 +54,6 @@
   "seamless",
   "shape",
   "silky",
-  "simple",
   "smooth",
   "soft",
   "sophisticated",
@@ -76,19 +72,11 @@
   "zoom"
  ],
  "legacy": [
-  "3d effect",
   "cloudy",
-  "eye catching",
-  "flowless",
-  "horizontal movement",
-  "horizontal scroll",
-  "layering",
-  "modern",
-  "z axis"
+  "modern"
  ],
  "atmosphere": [
   "3d",
-  "3d effect",
   "alive",
   "artistic",
   "attention-grabbing",
@@ -114,11 +102,7 @@
   "energetic",
   "experimental",
   "expressive",
-  "eye catching",
-  "eye-catching",
   "flowing",
-  "flowless",
-  "fluid",
   "fun",
   "futuristic",
   "gentle",
@@ -128,16 +112,12 @@
   "groovy",
   "high-end",
   "horizontal",
-  "horizontal movement",
-  "horizontal scroll",
   "immersive",
   "impactful",
   "innovative",
   "inspirational",
   "interactive",
   "layered",
-  "layering",
-  "luxurious",
   "minimal",
   "modern",
   "organic",
@@ -151,7 +131,6 @@
   "seamless",
   "shape",
   "silky",
-  "simple",
   "smooth",
   "soft",
   "sophisticated",
@@ -167,7 +146,6 @@
   "understated",
   "unique",
   "vertical",
-  "z axis",
   "zoom"
  ]
 }
