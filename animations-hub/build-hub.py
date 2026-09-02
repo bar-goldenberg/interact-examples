@@ -60,6 +60,8 @@ def load():
             'atmosphere': parse_atmosphere(r['Atmosphere']),
             'original': parse_atmosphere(r.get('atmosphere_original') or ''),
             'reviewed': (r.get('reviewed') or '').strip(),
+            'motion_tag': (r.get('motion_tag') or '').strip(),
+            'mood_tag': (r.get('mood_tag') or '').strip(),
             'business': split_list(r['business_type']),
             'section': split_list(r.get('section_type ') or r.get('section_type') or ''),
         })
@@ -148,6 +150,14 @@ HTML = r"""<meta charset="utf-8">
   .grp .gname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .grp .gcount { font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .8; }
   .grp .gdots { display: flex; gap: 3px; flex: none; }
+  .item .axisTag {
+    flex: none; font-size: 9px; color: var(--warn); opacity: .9;
+    max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .item .suggTag {
+    flex: none; font-size: 9px; color: var(--accent); opacity: .75; font-style: italic;
+    max-width: 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .grpitems { padding-bottom: 4px; }
   .grpitems.hidden { display: none; }
   .allToggle {
@@ -270,6 +280,42 @@ HTML = r"""<meta charset="utf-8">
   .chip.arm .x { opacity: 1; }
   .warnline { font-size: 10.5px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
 
+  /* ---------- motion / mood dropdowns ---------- */
+  #axisBox { margin: 10px 0 2px; }
+  .axisRow {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  }
+  .axisRow label {
+    flex: none; width: 58px; font-size: 9.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+  }
+  .axisRow select {
+    flex: 1; padding: 4px 6px; font-size: 12px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--ink);
+  }
+  .axisRow select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .axisRow select.set {
+    border-color: var(--warn); background: var(--warn-bg);
+    color: var(--warn); font-weight: 650;
+  }
+  .axisRow select.ro {
+    color: var(--muted); background: var(--panel); border-style: dashed;
+  }
+  .axisRow select.ro:hover { border-color: var(--accent); }
+  .axisNote { font-size: 10px; color: var(--muted); margin: 2px 0 0; line-height: 1.4; }
+  #unTags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  #unTags .rochip {
+    border: 1px dashed var(--line); background: none; color: var(--muted);
+    border-radius: 999px; padding: 2px 7px; font: inherit; font-size: 10.5px;
+    cursor: help;
+  }
+  #unTags .rochip:hover { border-color: var(--accent); color: var(--accent); }
+  #unTags .lbl {
+    font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted); width: 100%; margin-bottom: 1px;
+  }
+
   /* ---------- suggested tags ---------- */
   .schip {
     border: 1px dashed var(--line); background: none; color: var(--muted);
@@ -330,7 +376,22 @@ HTML = r"""<meta charset="utf-8">
     color: var(--manual); font-weight: 650;
   }
   #doneBtn svg { fill: currentColor; }
-  #reviewFilter { display: flex; gap: 4px; margin-top: 7px; }
+  #axSugg { margin-top: 8px; padding: 8px 9px; border: 1px dashed var(--accent);
+    border-radius: 8px; background: rgba(99,102,241,.06); display: none; }
+  #axSugg .hd { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+  #axSugg .sRow { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+  #axSugg .sRow > span.ax { font-size: 10px; color: var(--muted); width: 44px; flex: none; }
+  #axSugg button.sChip {
+    border: 1px solid var(--accent); background: none; color: var(--accent);
+    border-radius: 999px; padding: 2px 9px; cursor: pointer; font: inherit; font-size: 11px;
+  }
+  #axSugg button.sChip:hover { background: var(--accent); color: #fff; }
+  #axSugg button.sChip.taken { border-style: solid; background: var(--accent); color: #fff; cursor: default; }
+  #axSugg .conf { font-size: 9.5px; color: var(--muted); }
+  #axSugg .ev { margin-top: 6px; font-size: 10.5px; line-height: 1.45; color: var(--muted); }
+  #axSugg .warn2 { color: var(--warn); font-weight: 650; }
+  #reviewFilter { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
   #reviewFilter button {
     border: 1px solid var(--line); background: none; color: var(--muted);
     border-radius: 999px; padding: 2px 9px; cursor: pointer; font: inherit; font-size: 10.5px;
@@ -380,6 +441,56 @@ HTML = r"""<meta charset="utf-8">
     font: inherit; font-size: 10.5px; border: 1px solid var(--line);
     border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--bg);
   }
+  /* ---------- axis editor ---------- */
+  #axCols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .axCol { min-width: 0; }
+  .axCol h3 {
+    margin: 0 0 8px; font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .axCol.motion h3 { color: var(--accent); }
+  .axCol.mood h3 { color: var(--warn); }
+  .axCol.other h3 { color: var(--muted); }
+  .axCol h3 span { font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .7; }
+  .axList {
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px;
+    min-height: 120px; max-height: 46vh; overflow-y: auto;
+    display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start;
+  }
+  .axCol.motion .axList { border-color: var(--accent); }
+  .axCol.mood .axList { border-color: var(--warn); }
+  .axchip {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 999px; padding: 2px 8px; font: inherit; font-size: 11.5px;
+    cursor: pointer; display: inline-flex; gap: 5px; align-items: baseline;
+  }
+  .axchip:hover { border-color: var(--accent); color: var(--accent); }
+  .axchip .n { font-size: 10px; opacity: .6; font-variant-numeric: tabular-nums; }
+  .axchip.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #axBar {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+    padding-top: 10px; border-top: 1px solid var(--line); flex-wrap: wrap;
+  }
+  #axBar .sp { flex: 1; }
+  #axBar .move {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 7px; padding: 4px 10px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #axBar .move:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  #axBar .move:disabled { opacity: .4; cursor: default; }
+  #axSave {
+    border: 1px solid var(--manual); background: var(--manual-bg); color: var(--manual);
+    border-radius: 7px; padding: 5px 13px; cursor: pointer; font: inherit;
+    font-size: 12px; font-weight: 650;
+  }
+  #axSave:disabled { opacity: .45; cursor: default; }
+  #axMsg { font-size: 11px; color: var(--muted); }
+  #axMsg.err { color: var(--danger); }
+  #axMsg.ok { color: var(--manual); }
+  .item .orphan {
+    flex: none; font-size: 11px; color: var(--danger); font-weight: 700; cursor: help;
+  }
+
   /* ---------- atmosphere tag index (overlay) ---------- */
   #tagIndex, .overlay {
     position: fixed; inset: 0; z-index: 50; display: none;
@@ -472,12 +583,15 @@ HTML = r"""<meta charset="utf-8">
     </div>
     <div id="dictBar">
       <button class="allToggle" id="openDict" title="What every tag means and what to look for (d)">Tag dictionary</button>
+      &nbsp;·&nbsp;
+      <button class="allToggle" id="openAx" title="Move tags between the motion and mood axes (a)">Edit axes</button>
     </div>
     <div id="drawerBar"><button class="allToggle" id="allToggle"></button></div>
     <div id="reviewFilter">
       <button data-rf="all" class="on">All</button>
       <button data-rf="todo">To review</button>
       <button data-rf="done">Done</button>
+      <button data-rf="untagged" title="No motion tag and no mood tag yet">Untagged</button>
     </div>
     <div id="filterNote"></div>
   </div>
@@ -531,6 +645,31 @@ HTML = r"""<meta charset="utf-8">
   </div>
 </div>
 
+<div id="axEdit" class="overlay">
+  <div id="tiCard">
+    <div id="tiHead">
+      <h2>Edit axes</h2>
+      <span class="sub" id="axSub"></span>
+      <button id="axClose" type="button">Close</button>
+    </div>
+    <div id="tiBody">
+      <div id="axCols">
+        <div class="axCol motion"><h3>Motion <span id="axnMotion"></span></h3><div class="axList" id="axMotion"></div></div>
+        <div class="axCol mood"><h3>Mood <span id="axnMood"></span></h3><div class="axList" id="axMood"></div></div>
+        <div class="axCol other"><h3>Uncategorised <span id="axnOther"></span></h3><div class="axList" id="axOther"></div></div>
+      </div>
+      <div id="axBar">
+        <button class="move" id="axToMotion" type="button">→ Motion</button>
+        <button class="move" id="axToMood" type="button">→ Mood</button>
+        <button class="move" id="axToOther" type="button">→ Uncategorised</button>
+        <span class="sp"></span>
+        <span id="axMsg"></span>
+        <button id="axSave" type="button">Save axes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="histIndex" class="overlay">
   <div id="tiCard">
     <div id="tiHead">
@@ -569,7 +708,7 @@ const $ = s => document.querySelector(s);
 const listEl = $('#list'), qEl = $('#q'), frame = $('#frame');
 let current = -1, tagFilter = null, view = PRESETS.slice();
 let bust = Date.now();   // cache-buster seed for iframe loads
-let reviewFilter = 'all';   // all | todo | done
+let reviewFilter = 'all';   // all | todo | done | untagged
 
 /* ---- collapsible folder drawers ---- */
 const STORE = 'animationsHub.collapsedFolders';
@@ -592,11 +731,14 @@ function setAllDrawers(collapse) {
 }
 
 const norm = s => s.toLowerCase();
+const cntAtmosphere = t => PRESETS.filter(p => p.atmosphere.some(x => norm(x) === norm(t))).length;
 const allTags = p => [...p.atmosphere, ...p.business, ...p.section];
 
 function matches(p, q) {
   if (reviewFilter === 'done' && !p.reviewed) return false;
   if (reviewFilter === 'todo' && p.reviewed) return false;
+  // "untagged" = neither axis assigned yet, i.e. still to be given a main tag pair
+  if (reviewFilter === 'untagged' && (p.motion_tag || p.mood_tag)) return false;
   if (tagFilter && !allTags(p).some(t => norm(t) === norm(tagFilter))) return false;
   if (!q) return true;
   const hay = [p.name, p.path, ...allTags(p)].join(' ').toLowerCase();
@@ -646,6 +788,37 @@ function renderList() {
       b.innerHTML = '<span class="dot ' + p.source + '"></span><span class="nm"></span>' +
         (isEdited(p) ? '<span class="edited" title="edited - tags differ from the original">' + EDIT_ICON + '</span>' : '') +
         (p.reviewed ? '<span class="done" title="approved ' + p.reviewed + '">' + DONE_ICON + '</span>' : '');
+      if (p.motion_orphan || p.mood_orphan) {
+        const w = document.createElement('span');
+        w.className = 'orphan';
+        w.textContent = '\u26A0';
+        const bits = [];
+        if (p.motion_orphan) bits.push('motion “' + p.motion_tag + '” is no longer a motion tag');
+        if (p.mood_orphan) bits.push('mood “' + p.mood_tag + '” is no longer a mood tag');
+        w.title = bits.join('\n');
+        b.insertBefore(w, b.querySelector('.edited') || b.querySelector('.done') || null);
+      }
+      const ax = [p.motion_tag, p.mood_tag].filter(Boolean);
+      if (ax.length) {
+        const mt = document.createElement('span');
+        mt.className = 'axisTag';
+        mt.textContent = ax.join(' · ');
+        mt.title = (p.motion_tag ? 'motion: ' + p.motion_tag : '') +
+                   (p.motion_tag && p.mood_tag ? '\n' : '') +
+                   (p.mood_tag ? 'mood: ' + p.mood_tag : '');
+        b.insertBefore(mt, b.querySelector('.edited') || b.querySelector('.done') || null);
+      } else {
+        const s = SUGG[String(p.row)];
+        if (s) {                                 // proposed, not applied
+          const st = document.createElement('span');
+          st.className = 'suggTag';
+          st.textContent = [s.motion, s.mood].filter(Boolean).join(' · ');
+          st.title = 'Suggested (not applied) — motion: ' + s.motion +
+                     ' (' + s.motion_conf + '), mood: ' + s.mood + ' (' + s.mood_conf + ')' +
+                     '\nOpen the preset to accept.';
+          b.insertBefore(st, b.querySelector('.edited') || b.querySelector('.done') || null);
+        }
+      }
       b.querySelector('.nm').textContent = p.name;
       b.title = (p.path || 'No file in this repo') + (isEdited(p) ? '  (edited)' : '');
       b.onclick = () => select(PRESETS.indexOf(p));
@@ -658,7 +831,9 @@ function renderList() {
   const nDone = PRESETS.filter(p => p.reviewed).length;
   $('#count').textContent = view.length + ' of ' + PRESETS.length + ' presets' +
     (nEdited ? '  ·  ' + nEdited + ' edited' : '') +
-    (nDone ? '  ·  ' + nDone + ' done' : '');
+    (nDone ? '  ·  ' + nDone + ' done' : '') +
+    (PRESETS.filter(x => x.motion_orphan || x.mood_orphan).length
+      ? '  ·  \u26A0 ' + PRESETS.filter(x => x.motion_orphan || x.mood_orphan).length + ' orphaned' : '');
   const allShut = order.length > 0 && order.every(f => collapsed.has(f));
   const at = $('#allToggle');
   at.textContent = allShut ? 'Open all' : 'Close all';
@@ -707,6 +882,14 @@ function renderTags(p) {
   body.innerHTML =
     '<span class="badge ' + p.source + '">' +
       (p.source === 'manual' ? '● Tagged manually' : '● Tagged by Claude') + '</span>' +
+    '<div id="axisBox">' +
+      '<div id="axSugg"></div>' +
+      '<div class="axisRow"><label>Motion</label><select id="selMotion"></select></div>' +
+      '<div class="axisRow"><label>Mood</label><select id="selMood"></select></div>' +
+      '<div class="axisRow"><label>Other</label><select id="selOther" class="ro"></select></div>' +
+      '<p class="axisNote" id="axisNote"></p>' +
+      '<div id="unTags"></div>' +
+    '</div>' +
     chipRow('Atmosphere', p.atmosphere) +
     '<div class="grouphead"><span class="glabel">Suggested</span>' +
       '<span class="gn">nearest ' + suggestionsFor(p).length + '</span></div>' +
@@ -742,6 +925,7 @@ function renderTags(p) {
       row.appendChild(c);
     });
   };
+  paintAxes(p);
   fillSuggested(p, body);
   wireSugSearch(p, body);
   fillDefs(p, body);
@@ -792,6 +976,267 @@ function step(d) {
   const vi = view.indexOf(PRESETS[current]);
   const next = vi < 0 ? 0 : Math.min(view.length - 1, Math.max(0, vi + d));
   select(PRESETS.indexOf(view[next]));
+}
+
+/* ================= axis editor =================
+   Move labels between motion / mood / uncategorised and save to
+   main-tag-axes.json. A label leaving an axis does NOT clear presets already
+   assigned to it - those become "orphans", flagged with a red marker in the
+   sidebar so you can see and fix them deliberately. */
+let axDraft = null, axSel = new Set();
+
+function openAx() {
+  axDraft = {
+    motion: (AXES.motion || []).slice(),
+    mood: (AXES.mood || []).slice(),
+    other: (AXES.uncategorised || []).slice(),
+  };
+  axSel = new Set();
+  $('#axEdit').classList.add('open');
+  renderAx();
+}
+function closeAx() { $('#axEdit').classList.remove('open'); }
+
+function renderAx() {
+  const map = { motion: '#axMotion', mood: '#axMood', other: '#axOther' };
+  Object.keys(map).forEach(k => {
+    const box = $(map[k]);
+    box.innerHTML = '';
+    axDraft[k].slice().sort((a, b) => cntAtmosphere(b) - cntAtmosphere(a) || a.localeCompare(b))
+      .forEach(t => {
+        const c = document.createElement('button');
+        c.className = 'axchip' + (axSel.has(t) ? ' sel' : '');
+        c.innerHTML = '<span></span><span class="n"></span>';
+        c.firstChild.textContent = t;
+        c.lastChild.textContent = cntAtmosphere(t);
+        const def = DICT[norm(t)];
+        if (def) c.title = def.means;
+        c.onclick = () => { axSel.has(t) ? axSel.delete(t) : axSel.add(t); renderAx(); };
+        box.appendChild(c);
+      });
+  });
+  $('#axnMotion').textContent = axDraft.motion.length;
+  $('#axnMood').textContent = axDraft.mood.length;
+  $('#axnOther').textContent = axDraft.other.length;
+  const n = axSel.size;
+  ['#axToMotion', '#axToMood', '#axToOther'].forEach(id => { $(id).disabled = !n; });
+  $('#axSub').textContent = n ? n + ' selected — now pick a destination'
+                              : 'click tags to select, then move them';
+  const changed = JSON.stringify(axDraft.motion) !== JSON.stringify(AXES.motion || []) ||
+                  JSON.stringify(axDraft.mood) !== JSON.stringify(AXES.mood || []);
+  $('#axSave').disabled = !changed;
+  if (!changed) $('#axMsg').textContent = '';
+}
+
+function axMove(dest) {
+  ['motion', 'mood', 'other'].forEach(k => {
+    axDraft[k] = axDraft[k].filter(t => !axSel.has(t));
+  });
+  axDraft[dest] = axDraft[dest].concat([...axSel]);
+  axSel = new Set();
+  renderAx();
+}
+
+$('#openAx').onclick = openAx;
+$('#axClose').onclick = closeAx;
+$('#axEdit').onclick = e => { if (e.target.id === 'axEdit') closeAx(); };
+$('#axToMotion').onclick = () => axMove('motion');
+$('#axToMood').onclick = () => axMove('mood');
+$('#axToOther').onclick = () => axMove('other');
+$('#axSave').onclick = async () => {
+  if (!serverEditable) { $('#axMsg').textContent = 'needs the local server'; $('#axMsg').className = 'err'; return; }
+  try {
+    const r = await fetch('/api/axes', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ motion: axDraft.motion, mood: axDraft.mood })
+    });
+    const d = await r.json();
+    const msg = $('#axMsg');
+    if (!d.ok) { msg.textContent = d.error || 'save failed'; msg.className = 'err'; return; }
+    AXES = d.axes;
+    const orph = d.orphans || [];
+    // refresh presets so orphan flags come back from the server
+    try {
+      const pr = await fetch('/api/presets', { cache: 'no-store' });
+      const pd = await pr.json();
+      if (pd.ok) pd.presets.forEach((f, i) => Object.assign(PRESETS[i], f));
+    } catch (e) {}
+    renderAx(); renderList();
+    // set the message AFTER renderAx, which clears it when the draft is in sync
+    msg.textContent = 'saved' + (orph.length ? ' — \u26A0 ' + orph.length + ' preset value(s) now orphaned' : '');
+    msg.className = orph.length ? 'err' : 'ok';
+    if (current >= 0) renderTags(PRESETS[current]);
+  } catch (e) {
+    $('#axMsg').textContent = 'server unreachable'; $('#axMsg').className = 'err';
+  }
+};
+
+/* ================= motion / mood axis tags =================
+   Two closed dropdowns backed by main-tag-axes.json. Values a preset already
+   carries as an atmosphere tag are grouped first, since those are the likely
+   picks; the rest stay available because these are curated categories, not
+   necessarily applied tags. The third select is deliberately disabled - it just
+   lets you review the 40 labels that sit in neither axis. */
+let AXES = { motion: [], mood: [], uncategorised: [] };
+
+function fillAxisSelect(el, axis, p, current) {
+  const list = AXES[axis] || [];
+  const have = new Set(p.atmosphere.map(norm));
+  el.innerHTML = '';
+  const blank = document.createElement('option');
+  blank.value = ''; blank.textContent = '— none —';
+  el.appendChild(blank);
+  const group = (label, items) => {
+    if (!items.length) return;
+    const g = document.createElement('optgroup');
+    g.label = label;
+    items.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      g.appendChild(o);
+    });
+    el.appendChild(g);
+  };
+  group('on this preset', list.filter(t => have.has(t)));
+  group('other ' + axis + ' tags', list.filter(t => !have.has(t)));
+  if (current && !list.includes(norm(current))) {      // orphan - keep it visible
+    const g = document.createElement('optgroup');
+    g.label = 'no longer a ' + axis + ' tag';
+    const o = document.createElement('option');
+    o.value = norm(current); o.textContent = norm(current) + '  \u26A0';
+    g.appendChild(o); el.appendChild(g);
+  }
+  el.value = current ? norm(current) : '';
+  el.classList.toggle('set', !!el.value);
+  el.onchange = () => setAxis(p, axis, el.value);
+}
+
+/* Claude's suggested main tags, for presets that have none yet. Read-only until
+   clicked; clicking goes through the same guarded /api/axis call as the dropdowns. */
+function paintSugg(p) {
+  const box = $('#axSugg');
+  if (!box) return;
+  const s = SUGG[String(p.row)];
+  if (!s) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = '';
+  const hd = document.createElement('div');
+  hd.className = 'hd';
+  hd.textContent = 'suggested' + (s.off_candidate ? ' \u00b7 outside this preset\u2019s own tags' : '');
+  box.appendChild(hd);
+
+  [['motion', s.motion, s.motion_conf, s.motion_runner_up],
+   ['mood', s.mood, s.mood_conf, s.mood_runner_up]].forEach(([axis, tag, conf, ru]) => {
+    if (!tag) return;
+    const row = document.createElement('div');
+    row.className = 'sRow';
+    const lab = document.createElement('span');
+    lab.className = 'ax'; lab.textContent = axis;
+    row.appendChild(lab);
+    const b = document.createElement('button');
+    b.className = 'sChip';
+    b.textContent = tag;
+    const live = axis === 'motion' ? p.motion_tag : p.mood_tag;
+    if (norm(live || '') === norm(tag)) {
+      b.classList.add('taken'); b.title = 'already set'; b.disabled = true;
+    } else {
+      b.title = 'Set ' + axis + ' to \u201c' + tag + '\u201d';
+      b.onclick = () => setAxis(p, axis, tag);
+    }
+    row.appendChild(b);
+    const c = document.createElement('span');
+    c.className = 'conf';
+    c.textContent = conf + (ru ? ' \u00b7 else ' + ru : '');
+    row.appendChild(c);
+    box.appendChild(row);
+  });
+
+  if (s.evidence) {
+    const e = document.createElement('div');
+    e.className = 'ev'; e.textContent = s.evidence;
+    box.appendChild(e);
+  }
+  if (s.revised) {
+    const r = document.createElement('div');
+    r.className = 'ev'; r.textContent = '\u21bb ' + s.revised;
+    box.appendChild(r);
+  }
+  if (s.conflict) {
+    const k = document.createElement('div');
+    k.className = 'ev warn2'; k.textContent = '\u26A0 ' + s.conflict;
+    box.appendChild(k);
+  }
+}
+
+async function setAxis(p, axis, tag) {
+  if (!serverEditable) { status('read-only — start server.py', 'err'); renderTags(p); return; }
+  try {
+    const r = await fetch('/api/axis', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ row: p.row, axis: axis, tag: tag })
+    });
+    const d = await r.json();
+    if (!d.ok) { status(d.error || 'could not save', 'err'); renderTags(p); return; }
+    if (axis === 'motion') p.motion_tag = d.tag; else p.mood_tag = d.tag;
+    status(d.tag ? axis + ' tag: ' + d.tag : axis + ' tag cleared', d.tag ? 'ok' : '');
+    renderList(); renderTags(p);
+  } catch (e) { status('server unreachable', 'err'); }
+}
+
+function paintAxes(p) {
+  const m = $('#selMotion'), d = $('#selMood'), o = $('#selOther');
+  if (!m) return;
+  fillAxisSelect(m, 'motion', p, p.motion_tag);
+  fillAxisSelect(d, 'mood', p, p.mood_tag);
+  // read-only review list
+  const un = (AXES.uncategorised || []);
+  const have = new Set(p.atmosphere.map(norm));
+  const onThis = un.filter(t => have.has(t));
+  o.innerHTML = '';
+  const head = document.createElement('option');
+  head.textContent = onThis.length
+    ? onThis.length + ' uncategorised tag' + (onThis.length === 1 ? '' : 's') + ' on this preset'
+    : 'none of the ' + un.length + ' uncategorised tags here';
+  o.appendChild(head);
+  const g1 = document.createElement('optgroup'); g1.label = 'on this preset';
+  onThis.forEach(t => { const x=document.createElement('option'); x.textContent=t; g1.appendChild(x); });
+  if (onThis.length) o.appendChild(g1);
+  const g2 = document.createElement('optgroup'); g2.label = 'all uncategorised (' + un.length + ')';
+  un.forEach(t => { const x=document.createElement('option'); x.textContent=t; g2.appendChild(x); });
+  o.appendChild(g2);
+  o.selectedIndex = 0;
+  o.title = 'Review only — pick one to read its definition; it is never assigned';
+  o.onchange = () => {
+    const t = norm(o.value || o.options[o.selectedIndex].textContent);
+    o.selectedIndex = 0;                       // nothing sticks - this is a viewer
+    const def = DICT[t];
+    const n = cntAtmosphere(t);
+    status(def ? t + ' — ' + def.means + '  (' + n + ' presets)'
+               : t + ' — ' + n + ' presets', '');
+  };
+  paintSugg(p);
+  const box = $('#unTags');
+  if (box) {
+    box.innerHTML = '';
+    if (onThis.length) {
+      const l = document.createElement('span');
+      l.className = 'lbl';
+      l.textContent = 'uncategorised on this preset · ' + onThis.length;
+      box.appendChild(l);
+      onThis.forEach(t => {
+        const c = document.createElement('span');
+        c.className = 'rochip';
+        c.textContent = t;
+        const def = DICT[norm(t)];
+        c.title = (def ? def.means + '  |  Look for: ' + def.look_for + '  |  ' : '') +
+                  cntAtmosphere(t) + ' presets  —  in neither axis';
+        box.appendChild(c);
+      });
+    }
+  }
+  $('#axisNote').textContent = AXES.motion.length
+    ? AXES.motion.length + ' motion · ' + AXES.mood.length + ' mood · ' + un.length + ' uncategorised'
+    : 'axis lists unavailable (needs the local server)';
 }
 
 /* ================= suggested tags =================
@@ -1110,9 +1555,13 @@ function renderTagIndex() {
     (tagFilter ? ' · filtering by “' + tagFilter + '”' : '');
 }
 
-let DICT = {};
+let DICT = {}, SUGG = {};
 
 (async function loadDict() {
+  try {
+    const rs = await fetch('main-tag-suggestions.json', { cache: 'no-store' });
+    if (rs.ok) SUGG = (await rs.json()).by_row || {};
+  } catch (e) { /* suggestions optional */ }
   try {
     const r = await fetch('tag-dictionary.json', { cache: 'no-store' });
     if (!r.ok) return;
@@ -1253,11 +1702,15 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#histIndex').classList.contains('open')) {
     closeHist(); return;
   }
+  if (e.key === 'Escape' && $('#axEdit').classList.contains('open')) {
+    closeAx(); return;
+  }
   if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') e.target.blur(); return; }
   if (e.key === '/') { e.preventDefault(); qEl.focus(); return; }
   if (e.key === 't') { e.preventDefault(); openTagIndex(); return; }
   if (e.key === 'h') { e.preventDefault(); openHist(); return; }
   if (e.key === 'd') { e.preventDefault(); $('#openDict').click(); return; }
+  if (e.key === 'a') { e.preventDefault(); openAx(); return; }
   if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); step(1); }
   if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); step(-1); }
 });
@@ -1401,6 +1854,7 @@ $('#undoBtn').onclick = async () => {
     const d = await r.json();
     if (!d.ok || !Array.isArray(d.presets) || d.presets.length !== PRESETS.length) throw new Error('shape');
     vocab = d.vocabulary || [];
+    if (d.axes) AXES = d.axes;
     d.presets.forEach((fresh, i) => Object.assign(PRESETS[i], fresh));
     serverEditable = true;
     const dl = $('#vocabList');

@@ -103,6 +103,8 @@ def build_presets():
     ni, pi = idx['Name of preset'], idx['path']
     gi = idx.get(ORIG_COL)
     ri = idx.get(REVIEW_COL)
+    moi = idx.get(MOTION_COL)
+    mdi = idx.get(MOOD_COL)
     out = []
     for n, r in enumerate(rows[1:], start=1):     # n == physical/logical row index
         path = r[pi].strip()
@@ -116,6 +118,12 @@ def build_presets():
             'atmosphere': parse_atmosphere(r[ai]),
             'original': parse_atmosphere(r[gi]) if gi is not None else [],
             'reviewed': (r[ri].strip() if ri is not None else ''),
+            'motion_tag': (r[moi].strip() if moi is not None else ''),
+            'mood_tag': (r[mdi].strip() if mdi is not None else ''),
+            'motion_orphan': bool(moi is not None and r[moi].strip()
+                                  and r[moi].strip().lower() not in AXES.get('motion', [])),
+            'mood_orphan': bool(mdi is not None and r[mdi].strip()
+                                and r[mdi].strip().lower() not in AXES.get('mood', [])),
             'business': split_list(r[bi]),
             'section': split_list(r[si]),
         })
@@ -126,6 +134,24 @@ def build_presets():
 ORIG_COL = 'atmosphere_original'
 HISTORY = os.path.join(HERE, 'tag-history.csv')
 REVIEW_COL = 'reviewed'
+MOTION_COL = 'motion_tag'
+MOOD_COL = 'mood_tag'
+AXESP = os.path.join(HERE, 'main-tag-axes.json')
+
+
+def load_axes():
+    try:
+        with open(AXESP, encoding='utf-8') as fh:
+            d = json.load(fh)
+        return {k: [t.lower() for t in d.get(k, [])]
+                for k in ('motion', 'mood', 'uncategorised')}
+    except Exception as e:
+        print('  ! main-tag-axes.json unreadable (%s) - axis dropdowns disabled' % e)
+        return {'motion': [], 'mood': [], 'uncategorised': []}
+
+
+AXES = load_axes()
+AXIS_COL = {'motion': MOTION_COL, 'mood': MOOD_COL}
 HISTORY_COLS = ['timestamp', 'row', 'preset', 'path', 'action',
                 'added', 'removed', 'before', 'after']
 
@@ -246,6 +272,130 @@ def set_reviewed(row_index, on):
         return r[ni].strip(), r[vi], True
 
 
+def set_axis(row_index, axis, tag):
+    """Set or clear one row's motion_tag or mood_tag.
+
+    The value must come from that axis's list in main-tag-axes.json - the UI
+    offers a closed dropdown and the server enforces the same list. Pass '' to
+    clear. Unlike the atmosphere tags these are curated categories, so the value
+    need not be one of the preset's own tags.
+    """
+    global _backed_up
+    if axis not in AXIS_COL:
+        raise ValueError('axis must be motion or mood')
+    col = AXIS_COL[axis]
+    with LOCK:
+        raw, lines, rows, trailing = read_csv()
+        if not (1 <= row_index < len(rows)):
+            raise IndexError('row %r out of range' % row_index)
+        header = rows[0]
+        if col not in header:
+            raise RuntimeError('CSV has no %r column' % col)
+        if not _backed_up:
+            shutil.copy2(CSVP, BACKUP)
+            _backed_up = True
+            print('  snapshot -> %s' % os.path.relpath(BACKUP, REPO))
+
+        vi = header.index(col)
+        ni = header.index('Name of preset')
+        pi = header.index('path')
+        tag = re.sub(r'\s+', ' ', str(tag or '')).strip().lower()
+        allowed = AXES.get(axis, [])
+        if tag and allowed and tag not in allowed:
+            raise ValueError('%r is not a valid %s tag' % (tag, axis))
+
+        r = list(rows[row_index])
+        was = r[vi].strip()
+        if tag == was:
+            return r[ni].strip(), was, False
+        r[vi] = tag
+        lines[row_index] = ','.join(field(x) for x in r).encode('utf-8')
+        blob = b'\r\n'.join(lines) + (b'\r\n' if trailing else b'')
+        tmp = CSVP + '.tmp'
+        with open(tmp, 'wb') as fh:
+            fh.write(blob)
+        os.replace(tmp, CSVP)
+        try:
+            log_history({'timestamp': datetime.datetime.now().isoformat(timespec='seconds'),
+                         'row': row_index, 'preset': r[ni].strip(), 'path': r[pi].strip(),
+                         'action': ('%s tag' % axis) if tag else ('%s tag cleared' % axis),
+                         'added': tag, 'removed': was, 'before': was, 'after': tag})
+        except Exception as e:
+            print('  ! could not write history: %s' % e)
+        return r[ni].strip(), tag, True
+
+
+def all_labels():
+    """Every label an axis may contain: the allowed vocabulary plus anything the
+    CSV actually uses. The vocabulary side matters - it lets a newly added term be
+    placed on an axis before any preset carries it yet."""
+    _, _, rows, _ = read_csv()
+    ai = rows[0].index('Atmosphere')
+    in_use = {t.lower() for r in rows[1:] for t in parse_atmosphere(r[ai])}
+    return sorted(in_use | set(VOCAB))
+
+
+def save_axes(motion, mood):
+    """Rewrite main-tag-axes.json. Values already assigned to presets are NOT
+    cleared when they leave an axis - they are reported as orphans and flagged in
+    the UI instead, so nothing is lost silently."""
+    global AXES
+    def clean(lst, label):
+        if not isinstance(lst, list):
+            raise ValueError('%s must be a list' % label)
+        out = []
+        for t in lst:
+            t = re.sub(r'\s+', ' ', str(t)).strip().lower()
+            if not t:
+                continue
+            if t not in out:
+                out.append(t)
+        return out
+
+    motion, mood = clean(motion, 'motion'), clean(mood, 'mood')
+    both = set(motion) & set(mood)
+    if both:
+        raise ValueError('a tag cannot be in both axes: %s' % ', '.join(sorted(both)))
+    labels = all_labels()
+    unknown = [t for t in motion + mood if t not in labels]
+    if unknown:
+        raise ValueError('not an existing atmosphere label: %s' % ', '.join(unknown))
+
+    other = [t for t in labels if t not in motion and t not in mood]
+    with LOCK:
+        payload = {'_note': 'Allowed values for the motion_tag and mood_tag dropdowns. '
+                            '"uncategorised" is every remaining atmosphere label, shown '
+                            'read-only in the hub for review.',
+                   'motion': motion, 'mood': mood, 'uncategorised': other}
+        tmp = AXESP + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as fh:
+            json.dump(payload, fh, indent=1)
+        os.replace(tmp, AXESP)
+        AXES = load_axes()
+
+    # count presets whose assigned value is now off-list
+    _, _, rows, _ = read_csv()
+    hdr = rows[0]
+    moi = hdr.index(MOTION_COL) if MOTION_COL in hdr else None
+    mdi = hdr.index(MOOD_COL) if MOOD_COL in hdr else None
+    orphans = []
+    for n, r in enumerate(rows[1:], 1):
+        if moi is not None and r[moi].strip() and r[moi].strip().lower() not in motion:
+            orphans.append((n, r[0].strip(), 'motion', r[moi].strip()))
+        if mdi is not None and r[mdi].strip() and r[mdi].strip().lower() not in mood:
+            orphans.append((n, r[0].strip(), 'mood', r[mdi].strip()))
+    try:
+        log_history({'timestamp': datetime.datetime.now().isoformat(timespec='seconds'),
+                     'row': 0, 'preset': '(axis definition)', 'path': '',
+                     'action': 'axes edited',
+                     'added': 'motion %d, mood %d' % (len(motion), len(mood)),
+                     'removed': '%d orphaned' % len(orphans) if orphans else '',
+                     'before': '', 'after': ''})
+    except Exception as e:
+        print('  ! could not write history: %s' % e)
+    return payload, orphans
+
+
 def read_history(limit=400, row=None):
     if not os.path.exists(HISTORY):
         return []
@@ -363,6 +513,7 @@ class Handler(SimpleHTTPRequestHandler):
             try:
                 return self._json(200, {'ok': True, 'editable': True,
                                         'vocabulary': sorted(VOCAB),
+                                        'axes': AXES,
                                         'presets': build_presets()})
             except Exception as e:
                 return self._json(500, {'ok': False, 'error': str(e)})
@@ -370,6 +521,33 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         route = self.path.split('?')[0]
+        if route == '/api/axes':
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                data = json.loads(self.rfile.read(n) or b'{}')
+                payload, orphans = save_axes(data.get('motion'), data.get('mood'))
+                print('  axes saved: motion %d, mood %d, uncategorised %d, orphans %d'
+                      % (len(payload['motion']), len(payload['mood']),
+                         len(payload['uncategorised']), len(orphans)))
+                return self._json(200, {'ok': True, 'axes': payload,
+                                        'orphans': [{'row': o[0], 'preset': o[1],
+                                                     'axis': o[2], 'tag': o[3]} for o in orphans]})
+            except Exception as e:
+                return self._json(400, {'ok': False, 'error': '%s: %s' % (type(e).__name__, e)})
+        if route == '/api/axis':
+            try:
+                n = int(self.headers.get('Content-Length') or 0)
+                data = json.loads(self.rfile.read(n) or b'{}')
+                row = data.get('row')
+                if not isinstance(row, int):
+                    raise ValueError('row must be an integer')
+                name, val, changed = set_axis(row, data.get('axis'), data.get('tag', ''))
+                if changed:
+                    print('  %-6s tag %-30s %s' % (data.get('axis'), name[:30], val or '(cleared)'))
+                return self._json(200, {'ok': True, 'row': row,
+                                        'axis': data.get('axis'), 'tag': val})
+            except Exception as e:
+                return self._json(400, {'ok': False, 'error': '%s: %s' % (type(e).__name__, e)})
         if route == '/api/reviewed':
             try:
                 n = int(self.headers.get('Content-Length') or 0)

@@ -804,3 +804,12 @@ What each tag means, what to look for in the animation, and what it actually cor
 
 **Look for:** Same cue as 'horizontal'. Kept only because existing rows use it.
 
+### pointer move
+
+*Means* — the animation is driven by the cursor rather than by scroll or a click:
+move the pointer and the element responds continuously.
+
+*Look for* — a `pointerMove` / `pointer-move` trigger in the Interact config; the
+motion tracks the cursor and reverses when you move back.
+
+*Newly added* — no presets carry it yet, so there is no measured signature.

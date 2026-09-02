@@ -2899,6 +2899,31 @@
      "Cornergallery01"
     ]
    }
+  },
+  "pointer move": {
+   "means": "The animation is driven by the cursor rather than by scroll or a click - move the pointer and the element responds continuously.",
+   "look_for": "A `pointerMove` / `pointer-move` trigger in the Interact config; the motion tracks the cursor and reverses when you move back.",
+   "cluster": "interactive",
+   "cluster_name": "Interaction & response",
+   "signature": {
+    "presets": 0,
+    "share_pct": 0,
+    "keeps_company_with": [
+     "interactive",
+     "immersive",
+     "depth",
+     "alive",
+     "perspective"
+    ],
+    "typical_triggers": [
+     "pointerMove",
+     "pointer-move"
+    ],
+    "typical_easing": [
+     "linear"
+    ],
+    "note": "newly added term - no presets carry it yet, so no measured signature"
+   }
   }
  },
  "clusters": {
