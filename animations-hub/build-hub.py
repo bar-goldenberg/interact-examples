@@ -376,6 +376,14 @@ HTML = r"""<meta charset="utf-8">
     color: var(--manual); font-weight: 650;
   }
   #doneBtn svg { fill: currentColor; }
+  .axisRow button.axFind {
+    flex: none; border: 1px solid var(--line); background: none; color: var(--muted);
+    border-radius: 6px; width: 22px; height: 22px; cursor: pointer; font-size: 12px;
+    line-height: 1; padding: 0;
+  }
+  .axisRow button.axFind:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .axisRow button.axFind:disabled { opacity: .3; cursor: default; }
+  .axisRow button.axFind.lit { background: var(--accent); border-color: var(--accent); color: #fff; }
   #axSugg { margin-top: 8px; padding: 8px 9px; border: 1px dashed var(--accent);
     border-radius: 8px; background: rgba(99,102,241,.06); display: none; }
   #axSugg .hd { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase;
@@ -577,7 +585,7 @@ HTML = r"""<meta charset="utf-8">
     <p id="count"></p>
     <input id="q" type="search" placeholder="Search name or tag…" autocomplete="off">
     <div id="tagIndexBar">
-      <button class="allToggle" id="openTagIndex" title="Browse every atmosphere tag (t)">All atmosphere tags →</button>
+      <button class="allToggle" id="openTagIndex" title="Browse motion, mood and atmosphere tags (t)">All tags →</button>
       &nbsp;·&nbsp;
       <button class="allToggle" id="openHist" title="Every tag change you have made (h)">History</button>
     </div>
@@ -706,7 +714,7 @@ const DONE_ICON = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="
   + '<path d="M6.2 12.3L2.4 8.5l1.3-1.3 2.5 2.5 6-6L13.5 5l-7.3 7.3z"/></svg>';
 const $ = s => document.querySelector(s);
 const listEl = $('#list'), qEl = $('#q'), frame = $('#frame');
-let current = -1, tagFilter = null, view = PRESETS.slice();
+let current = -1, tagFilter = null, tagFilterAxis = null, view = PRESETS.slice();
 let bust = Date.now();   // cache-buster seed for iframe loads
 let reviewFilter = 'all';   // all | todo | done | untagged
 
@@ -739,7 +747,15 @@ function matches(p, q) {
   if (reviewFilter === 'todo' && p.reviewed) return false;
   // "untagged" = neither axis assigned yet, i.e. still to be given a main tag pair
   if (reviewFilter === 'untagged' && (p.motion_tag || p.mood_tag)) return false;
-  if (tagFilter && !allTags(p).some(t => norm(t) === norm(tagFilter))) return false;
+  if (tagFilter) {
+    // tagFilterAxis null = the old behaviour (any tag on the preset);
+    // 'motion'/'mood' = only presets whose main tag on that axis is this one.
+    if (tagFilterAxis === 'motion') {
+      if (norm(p.motion_tag || '') !== norm(tagFilter)) return false;
+    } else if (tagFilterAxis === 'mood') {
+      if (norm(p.mood_tag || '') !== norm(tagFilter)) return false;
+    } else if (!allTags(p).some(t => norm(t) === norm(tagFilter))) return false;
+  }
   if (!q) return true;
   const hay = [p.name, p.path, ...allTags(p)].join(' ').toLowerCase();
   return q.split(/\s+/).filter(Boolean).every(w => hay.includes(w));
@@ -842,11 +858,11 @@ function renderList() {
   const note = $('#filterNote');
   if (tagFilter) {
     note.style.display = 'block';
-    note.innerHTML = 'Filtered by tag <b></b> — ';
+    note.innerHTML = 'Filtered by ' + (tagFilterAxis || 'tag') + ' <b></b> — ';
     note.querySelector('b').textContent = '“' + tagFilter + '”';
     const clr = document.createElement('button');
     clr.textContent = 'clear';
-    clr.onclick = () => { tagFilter = null; renderList(); if (current >= 0) renderTags(PRESETS[current]); };
+    clr.onclick = () => { tagFilter = null; tagFilterAxis = null; renderList(); if (current >= 0) renderTags(PRESETS[current]); };
     note.appendChild(clr);
   } else note.style.display = 'none';
 }
@@ -884,8 +900,10 @@ function renderTags(p) {
       (p.source === 'manual' ? '● Tagged manually' : '● Tagged by Claude') + '</span>' +
     '<div id="axisBox">' +
       '<div id="axSugg"></div>' +
-      '<div class="axisRow"><label>Motion</label><select id="selMotion"></select></div>' +
-      '<div class="axisRow"><label>Mood</label><select id="selMood"></select></div>' +
+      '<div class="axisRow"><label>Motion</label><select id="selMotion"></select>' +
+        '<button class="axFind" id="findMotion" type="button" title="Show only presets with this motion tag">\u2315</button></div>' +
+      '<div class="axisRow"><label>Mood</label><select id="selMood"></select>' +
+        '<button class="axFind" id="findMood" type="button" title="Show only presets with this mood tag">\u2315</button></div>' +
       '<div class="axisRow"><label>Other</label><select id="selOther" class="ro"></select></div>' +
       '<p class="axisNote" id="axisNote"></p>' +
       '<div id="unTags"></div>' +
@@ -919,7 +937,8 @@ function renderTags(p) {
       const def = DICT[norm(t)];
       if (def) c.title = def.means + '  |  Look for: ' + def.look_for;
       c.onclick = () => {
-        tagFilter = (tagFilter && norm(tagFilter) === norm(t)) ? null : t;
+        tagFilter = (tagFilter && norm(tagFilter) === norm(t) && !tagFilterAxis) ? null : t;
+        tagFilterAxis = null;
         renderList(); renderTags(p);
       };
       row.appendChild(c);
@@ -1214,6 +1233,17 @@ function paintAxes(p) {
     status(def ? t + ' — ' + def.means + '  (' + n + ' presets)'
                : t + ' — ' + n + ' presets', '');
   };
+  [['motion', '#findMotion', p.motion_tag], ['mood', '#findMood', p.mood_tag]].forEach(([axis, sel, val]) => {
+    const b = $(sel);
+    if (!b) return;
+    b.disabled = !val;
+    b.classList.toggle('lit', !!val && tagFilterAxis === axis && norm(tagFilter || '') === norm(val));
+    b.title = val
+      ? (b.classList.contains('lit') ? 'Clear the ' + axis + ' filter'
+         : 'Show only presets whose ' + axis + ' tag is \u201c' + val + '\u201d')
+      : 'No ' + axis + ' tag on this preset yet';
+    b.onclick = () => { if (val) pickTag(val, axis); };
+  });
   paintSugg(p);
   const box = $('#unTags');
   if (box) {
@@ -1458,7 +1488,7 @@ async function openHist() {
       jump.textContent = e.preset;
       jump.onclick = () => {
         const p = PRESETS.find(x => String(x.row) === String(e.row));
-        if (p) { closeHist(); qEl.value = ''; tagFilter = null; select(PRESETS.indexOf(p)); }
+        if (p) { closeHist(); qEl.value = ''; tagFilter = null; tagFilterAxis = null; select(PRESETS.indexOf(p)); }
       };
       nm.appendChild(jump);
       right.appendChild(nm);
@@ -1545,14 +1575,48 @@ function renderTagIndex() {
     });
     body.appendChild(g);
   };
-  section('In use · ' + used.length + ' tags', used, false);
-  section('Available but unused · ' + unused.length, unused, true);
+  // main-tag axes first: these filter on the assigned motion_tag / mood_tag only
+  const axisSection = (axis, labels) => {
+    const cnt = new Map();
+    labels.map(norm).forEach(t => cnt.set(t, 0));
+    PRESETS.forEach(pr => {
+      const v = norm((axis === 'motion' ? pr.motion_tag : pr.mood_tag) || '');
+      if (v && cnt.has(v)) cnt.set(v, cnt.get(v) + 1);
+    });
+    const rows = [...cnt.entries()].filter(([t]) => !q || t.includes(q));
+    if (!rows.length) return;
+    rows.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const h = document.createElement('h3');
+    h.textContent = axis + ' tag \u00b7 ' + rows.length + ' of ' + labels.length;
+    body.appendChild(h);
+    const g = document.createElement('div');
+    g.className = 'tigrid';
+    rows.forEach(([t, c]) => {
+      const b = document.createElement('button');
+      b.className = 'tichip' + (c ? '' : ' zero') +
+        (tagFilter && norm(tagFilter) === t && tagFilterAxis === axis ? ' lit' : '');
+      b.innerHTML = '<span></span><span class="n"></span>';
+      b.firstChild.textContent = t;
+      b.lastChild.textContent = c || '\u2014';
+      b.title = c ? 'Show only presets whose ' + axis + ' tag is \u201c' + t + '\u201d (' + c + ')'
+                  : 'on the ' + axis + ' axis but not assigned to any preset';
+      if (c) b.onclick = () => pickTag(t, axis);
+      g.appendChild(b);
+    });
+    body.appendChild(g);
+  };
+  axisSection('motion', (AXES.motion || []));
+  axisSection('mood', (AXES.mood || []));
+
+  section('atmosphere · in use · ' + used.length + ' tags', used, false);
+  section('atmosphere · available but unused · ' + unused.length, unused, true);
   if (!used.length && !unused.length) {
     body.innerHTML = '<p class="hint">No tag matches that.</p>';
   }
-  $('#tiSub').textContent = counts.size + ' tags in use across ' + PRESETS.length +
+  $('#tiSub').textContent = counts.size + ' atmosphere tags in use across ' + PRESETS.length +
     ' presets · ' + VOCAB_ALL.length + ' allowed by vocabulary.json' +
-    (tagFilter ? ' · filtering by “' + tagFilter + '”' : '');
+    ' · motion/mood chips filter on the assigned main tag only' +
+    (tagFilter ? ' · filtering by ' + (tagFilterAxis || 'tag') + ' “' + tagFilter + '”' : '');
 }
 
 let DICT = {}, SUGG = {};
@@ -1652,8 +1716,11 @@ function fillDefs(p, body) {
   section('suggested \u00b7 ' + sugg.length, sugg, 'sug');
 }
 
-function pickTag(t) {
-  tagFilter = (tagFilter && norm(tagFilter) === norm(t)) ? null : t;
+function pickTag(t, axis) {
+  axis = axis || null;
+  const same = tagFilter && norm(tagFilter) === norm(t) && tagFilterAxis === axis;
+  tagFilter = same ? null : t;
+  tagFilterAxis = same ? null : axis;
   closeTagIndex();
   qEl.value = '';
   renderList();
